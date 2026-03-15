@@ -292,7 +292,6 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button class="btn btn-sm btn-gh" onclick="syncLoad(true)" title="Recarregar">↻</button>
       <button class="btn btn-p btn-sm" id="btn-add" onclick="openAddModal()">+ Processo</button>
       <button class="btn btn-sm btn-gh" onclick="document.getElementById('bulk-modal').classList.add('open')">⬆ Importar lote</button>
-      <button class="btn btn-p btn-sm" id="btn-add" onclick="openAddModal()">+ Processo</button>
     </div>
   </div>
   <div class="sync-bar">
@@ -383,8 +382,14 @@ function dias(dt){return Math.floor((HOJE()-dt)/86400000);}
 function fdt(dt){return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();}
 function hoje(){return new Date().toISOString().split('T')[0];}
 const CATS=['— Selecionar —','Mera ciência','Criminal — Representação de delegado (prisão/cautelar)','Criminal — Análise de IPL: minutar denúncia','Criminal — Análise de IPL: diligências','Criminal — Manifestação sobre resposta à acusação','Criminal — Alegações finais','Criminal — Manifestação sobre medida protetiva','Criminal — Contrarrazões de apelação','Cível — Manifestação sobre tutela provisória','Cível — Manifestação final (custos legis)','Outro / Complexo'];
-const RESPS=['— Selecionar —','Assessor jurídico (PJ)','Amanda','Promotora (Dra. Francys Lucy)'];
-const function mkProc(dtStr,num,i,sv){
+function getRESPS(){return['— Selecionar —','Assessor jurídico (PJ)',...getEstags(),'Promotora (Dra. Francys Lucy)'];}
+function getEstags(){
+  return [
+    localStorage.getItem('mppa_estag1')||'Estagiário 1',
+    localStorage.getItem('mppa_estag2')||'Estagiário 2',
+  ];
+}
+function mkProc(dtStr,num,i,sv){
   const yr=num.match(/\.(\d{4})\./)?.[1]||'';const vr=num.match(/\.(\d{4})$/)?.[1]||'';
   const ent=pBR(dtStr||'');const d=dias(ent);
   const b={id:i,num,yr,vr,ent,dtStr:dtStr||'',d,cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,obs:'',cmd:'',iaStatus:'idle',atrib:'',esObs:'',esSt:'triagem',agBx:false,bxOk:false,bxDt:'',bxObs:''};
@@ -669,7 +674,7 @@ function renderTri(){
   const fl=getFilt();if(!fl.length){el.innerHTML='<div class="empty">Nenhum processo encontrado.<br><span style="font-size:12px">Use <strong>+ Processo</strong> ou <strong>⬆ Importar lote</strong> para adicionar processos.</span></div>';return;}
   const wo=new Set([...document.querySelectorAll('.pc.open')].map(e=>e.id.replace('c-','')));
   const co=id=>CATS.map(c=>`<option value="${c}" ${c===(procs[id].cat||'— Selecionar —')?'selected':''}>${c}</option>`).join('');
-  const ro=id=>RESPS.map(r=>`<option value="${r}" ${r===(procs[id].resp||'— Selecionar —')?'selected':''}>${r}</option>`).join('');
+  const ro=id=>getRESPS().map(r=>`<option value="${r}" ${r===(procs[id].resp||'— Selecionar —')?'selected':''}>${r}</option>`).join('');
   const ao=id=>{const v=procs[id].atrib||'';return['— Selecionar —',...getEstags(),'Assessor jurídico (PJ)'].map(r=>`<option value="${r==='— Selecionar —'?'':r}" ${v===(r==='— Selecionar —'?'':r)?'selected':''}>${r}</option>`).join('');};
   el.innerHTML=fl.map(p=>{
     const op=wo.has(String(p.id));
@@ -927,13 +932,7 @@ function doAddProc(){
   const ent=dtVal?new Date(dtVal):new Date();
   const d2=dias(ent);
   const dtStr=ent.toLocaleString('pt-BR',{timeZone:'America/Belem'}).replace(',',' ');
-  procs.push({
-    id:procs.length,num,yr,vr,ent,dtStr,d:d2,
-    cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,
-    obs:'',cmd:'',iaStatus:'idle',
-    atrib:'',esObs:'',esSt:'pendente',
-    agBx:false,bxOk:false,bxDt:'',bxObs:''
-  });
+  procs.push(mkProc(dtStr,num,procs.length,null));
   document.getElementById('add-modal').classList.remove('open');
   syncSave();updStats();renderAll();
   toast('Processo adicionado: '+num);
