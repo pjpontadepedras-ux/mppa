@@ -545,7 +545,7 @@ async function syncLoad(msg){
   try{
     const r=await fetch(GSURL+'?action=load',{redirect:'follow'});
     const d=await r.json();
-    if(d.ok&&d.data){procs=mkP(d.data);setSS('Sincronizado ✓','ok');if(msg)toast('Dados carregados do Google Sheets');}
+    if(d.ok&&d.data){procs=mkP(d.data);migrateEstagNames();setSS('Sincronizado ✓','ok');if(msg)toast('Dados carregados do Google Sheets');}
     else setSS('Conectado (sem dados ainda)','ok');
   }catch(e){setSS('Erro de conexão','err');if(msg)toast('Erro — verifique a URL do Apps Script');}
   updStats();renderAll();
@@ -620,12 +620,13 @@ async function doLogin(){
     }
     document.getElementById('pwd-err').style.display='none';
   }
-  const savedNome=localStorage.getItem('mppa_nome');
-  CU=(v!=='assessor'&&savedNome)?savedNome:v;isA=(v==='assessor');
+  // For estagiários: always use the selected name from login, not savedNome
+  // savedNome is only used for display preference, not identity
+  CU=v;isA=(v==='assessor');
   document.getElementById('ls').style.display='none';
   document.getElementById('sdb').style.display='flex';
   document.getElementById('mc').style.display='flex';
-  document.getElementById('ubadge').textContent=isA?'Assessor (PJ)':v;
+  document.getElementById('ubadge').textContent=isA?'Assessor (PJ)':CU;
   loadCfg();
   if(isA){document.getElementById('tbb-est').style.display='';document.getElementById('tbb-rev').style.display='';document.getElementById('aact').style.display='';}
   else{
@@ -634,7 +635,7 @@ async function doLogin(){
     document.getElementById('tbr').insertBefore(nb,document.getElementById('tbr').firstChild);
     document.getElementById('tab-tri').classList.remove('active');document.getElementById('tab-mf').classList.add('active');
   }
-  const loc=localStorage.getItem('mppa_loc');if(loc){try{procs=mkP(JSON.parse(loc));setSS('Dados locais','ok');}catch(e){}}
+  const loc=localStorage.getItem('mppa_loc');if(loc){try{procs=mkP(JSON.parse(loc));migrateEstagNames();setSS('Dados locais','ok');}catch(e){}}
   filt='inbox';
   if(GSURL)syncLoad(false);else{updStats();renderAll();}
 }
@@ -654,8 +655,9 @@ function saveP(id){
   p.ok=novoOk;
   p.obs=g('obs-'+id);p.cmd=g('cmd-'+id);
   const av=g('atr-'+id);p.atrib=av==='— Selecionar —'?'':av;
-  if(p.atrib&&p.esSt==='triagem')p.esSt='atribuido';
-  if(!p.atrib&&p.esSt==='atribuido')p.esSt='triagem';
+  const newSt=g('esst-d-'+id);if(newSt)p.esSt=newSt;
+  else{if(p.atrib&&p.esSt==='triagem')p.esSt='atribuido';
+  if(!p.atrib&&p.esSt==='atribuido')p.esSt='triagem';}
   if(p.agBx)p.bxObs=g('bxobs-'+id)||'';
   const sm=document.getElementById('sm-'+id);sm.classList.add('show');setTimeout(()=>sm.classList.remove('show'),2000);
   updStats();renderTri();syncSave();
@@ -725,10 +727,7 @@ function renderTri(){
         <div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label><label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label><label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label><label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label></div></div></div>
         <div class="fr1"><label class="fl">Observações</label><textarea class="fc" id="obs-${p.id}" placeholder="Histórico, partes, andamento...">${p.obs}</textarea></div>
         <div class="fr1"><label class="fl">Comando de minuta</label><textarea class="fc" id="cmd-${p.id}" placeholder="Instrução objetiva para o responsável...">${p.cmd}</textarea></div>
-        <div class="sblk sblk-b"><div class="sblk-t">👤 Atribuição ao estagiário</div>
-          <div class="fr" style="margin-top:0"><div><label class="fl">Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div>
-          <div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Aguardando minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Em protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select></div></div>
-        </div>
+        <div class="fr" style="margin-top:12px"><div><label class="fl">👤 Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div><div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select></div></div>
         ${bxS}
         <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span><button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);margin-left:6px" onclick="confirmDelete(${p.id})">🗑 Apagar</button>
           <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'||batching?'disabled':''}>${ibl} IA</button>
@@ -1001,6 +1000,19 @@ function deleteSelected(){
   toast('Processos apagados com sucesso.');
 }
 // Toggle checkbox visibility: long press or button mode
+
+
+function migrateEstagNames(){
+  // When estagiário names change, update atrib references
+  // Map legacy slot names to current names
+  const [e1,e2]=getEstags();
+  const legacyMap={'Estagiário 1':e1,'Estagiário 2':e2};
+  procs.forEach(p=>{
+    if(p.atrib&&legacyMap[p.atrib]&&legacyMap[p.atrib]!==p.atrib){
+      p.atrib=legacyMap[p.atrib];
+    }
+  });
+}
 
 function renderAll(){renderTri();}
 
