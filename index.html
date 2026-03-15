@@ -70,12 +70,14 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .sbtn{display:block;width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,.07);color:var(--sb-m);border:none;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:var(--f);text-align:center;transition:background .12s}
 .sbtn:hover{background:rgba(255,255,255,.12);color:var(--sb-t)}
 .main{margin-left:215px;flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden}
-.tabbar{background:#fff;border-bottom:1px solid var(--cb);padding:0 16px;display:flex;align-items:flex-end;position:sticky;top:0;z-index:50;overflow-x:auto;scrollbar-width:none}
+.tabbar{background:#fff;border-bottom:1px solid var(--cb);padding:0;display:flex;flex-direction:column;position:sticky;top:0;z-index:50}
+.tabbar-tabs{display:flex;align-items:flex-end;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tabbar-acts{display:flex;align-items:center;gap:6px;padding:6px 16px;border-top:1px solid #f0f2f5;background:#fafbfc;flex-wrap:wrap}
 .tbb{padding:12px 16px 10px;font-size:13px;font-weight:500;color:var(--txm);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--f);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tbb:hover{color:var(--tx)}.tbb.active{color:var(--if);border-bottom-color:var(--if)}
 .tbb .tb{font-size:10px;background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:99px;font-weight:600}
 .tbb.active .tb{background:var(--if);color:#fff}
-.tab-act{margin-left:auto;display:flex;align-items:center;gap:6px;padding:8px 0;flex-shrink:0}
+
 .sync-bar{background:#eff6ff;border-bottom:1px solid #bfdbfe;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:12px;color:#1e40af;flex-wrap:wrap;overflow:hidden}
 .ss{font-size:11px;color:#64748b}.ss.ok{color:#16a34a}.ss.err{color:#dc2626}.ss.loading{color:#f59e0b}
 .tc{display:none;flex:1}.tc.active{display:flex;flex-direction:column;flex:1}
@@ -160,6 +162,9 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .spin{width:11px;height:11px;border:1.5px solid #bfdbfe;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px;line-height:1.8}
+.sel-bar{display:none;align-items:center;gap:10px;padding:8px 16px;background:#eff6ff;border-bottom:1px solid #bfdbfe;font-size:12px;color:#1e40af;position:sticky;top:0;z-index:40}
+.sel-bar.visible{display:flex}
+.pc-cb{width:16px;height:16px;cursor:pointer;accent-color:var(--if);flex-shrink:0}
 .gp{height:2px;background:#dbeafe;position:fixed;top:0;left:215px;right:0;z-index:200;display:none}
 .gpf{height:100%;background:#2563eb;transition:width .3s}
 .toast{position:fixed;bottom:20px;right:24px;background:#1c2333;color:#fff;font-size:12px;padding:8px 16px;border-radius:6px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999}
@@ -241,7 +246,12 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <span class="ubadge" id="ubadge">—</span>
   </div>
   <div class="sb-stats">
-    <div class="sb-big"><div class="num" id="st">—</div><div class="lbl">Total de processos</div></div>
+    <div class="sb-big" style="cursor:pointer" onclick="sf('inbox',document.getElementById('ni-inbox'))">
+      <div class="num" id="st-inbox" style="font-size:28px;color:#60a5fa">—</div>
+      <div class="lbl">📥 Caixa de entrada</div>
+      <div class="num" id="st" style="font-size:16px;color:rgba(255,255,255,0.4);margin-top:2px"></div>
+      <div style="font-size:9px;color:var(--sb-m);text-transform:uppercase;letter-spacing:.08em">total</div>
+    </div>
     <div class="sg">
       <div class="sc"><div class="num red" id="su">0</div><div class="lbl">Urgentes</div></div>
       <div class="sc"><div class="num green" id="sc2">0</div><div class="lbl">Concluídos</div></div>
@@ -252,7 +262,8 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
   </div>
   <nav class="sb-nav">
     <div class="nsl">Filtrar</div>
-    <div class="ni active" onclick="sf('all',this)"><div class="nil"><span class="nd d-all"></span><span class="nl">Todos</span></div><span class="nc" id="n-all">—</span></div>
+    <div class="ni active" onclick="sf('inbox',this)" id="ni-inbox"><div class="nil"><span class="nd" style="background:#2563eb"></span><span class="nl">📥 Caixa de entrada</span></div><span class="nc" id="n-inbox">—</span></div>
+    <div class="ni" onclick="sf('all',this)"><div class="nil"><span class="nd d-all"></span><span class="nl">Todos</span></div><span class="nc" id="n-all">—</span></div>
     <div class="ni" onclick="sf('urg',this)"><div class="nil"><span class="nd d-urg"></span><span class="nl">Urgentes</span></div><span class="nc" id="n-urg">0</span></div>
     <div class="ni" onclick="sf('rev',this)"><div class="nil"><span class="nd" style="background:#a78bfa"></span><span class="nl">Ag. revisão</span></div><span class="nc" id="n-rev">0</span></div>
     <div class="ni" onclick="sf('bx',this)"><div class="nil"><span class="nd d-bx"></span><span class="nl">Ag. baixa</span></div><span class="nc" id="n-bx">0</span></div>
@@ -275,23 +286,26 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 <!-- MAIN -->
 <div class="main" id="mc" style="display:none">
   <div class="tabbar" id="tbr">
-    <button class="tbb active" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
-    <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
-    <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
-    <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa no sistema <span class="tb" id="tb-bx">0</span></button>
-    <div class="tab-act" id="aact" style="display:none">
+    <div class="tabbar-tabs" id="tbr-tabs">
+      <button class="tbb active" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
+      <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
+      <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
+      <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa no sistema <span class="tb" id="tb-bx">0</span></button>
+      <button class="tbb btn-sm btn-gh" style="margin-left:auto;border-bottom:none;font-size:11px;padding:8px 10px" onclick="syncLoad(true)" title="Recarregar dados">↻</button>
+    </div>
+    <div class="tabbar-acts" id="aact" style="display:none">
       <select class="fc" id="srt" onchange="renderTri()" style="font-size:12px;padding:5px 10px;width:auto">
         <option value="ent_asc">Entrada (mais antiga)</option>
         <option value="ent_desc">Entrada (mais recente)</option>
         <option value="urg">Urgentes primeiro</option>
         <option value="dias">Mais tempo em espera</option>
         <option value="pnd">Pendentes primeiro</option>
+        <option value="inbox">Caixa de entrada</option>
       </select>
       <button class="btn btn-b btn-sm" id="btn-ia" onclick="batchIA()">Analisar com IA</button>
-      <button class="btn btn-p btn-sm" onclick="exportCSV()">CSV</button>
-      <button class="btn btn-sm btn-gh" onclick="syncLoad(true)" title="Recarregar">↻</button>
       <button class="btn btn-p btn-sm" id="btn-add" onclick="openAddModal()">+ Processo</button>
       <button class="btn btn-sm btn-gh" onclick="document.getElementById('bulk-modal').classList.add('open')">⬆ Importar lote</button>
+      <button class="btn btn-p btn-sm" onclick="exportCSV()">CSV</button>
     </div>
   </div>
   <div class="sync-bar">
@@ -300,6 +314,20 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <span class="ss" id="sync-st">—</span>
     <button class="btn btn-xs btn-gh" onclick="openCfg()" style="margin-left:auto">Configurar</button>
   </div>
+  <!-- SELECTION BAR -->
+  <div class="sel-bar" id="sel-bar">
+    <span id="sel-count" style="font-weight:600;white-space:nowrap">0 selecionados</span>
+    <span style="color:#93c5fd">·</span>
+    <span style="font-size:11px;color:#3b82f6">Atribuir para:</span>
+    <select id="sel-atrib" class="fc" style="font-size:12px;padding:3px 8px;width:auto;min-width:120px" onchange="atribuirSelecionados(this.value);this.value=''">
+      <option value="">— Estagiário —</option>
+    </select>
+    <span style="color:#93c5fd">·</span>
+    <button class="btn btn-sm" style="background:#dc2626;color:#fff;border:none;cursor:pointer;font-family:var(--f);padding:4px 10px;border-radius:var(--rs);font-size:12px" onclick="deleteSelected()">🗑 Apagar</button>
+    <button class="btn btn-sm btn-gh" style="font-size:12px;padding:4px 10px" onclick="clearSelection()">✕ Cancelar</button>
+    <label style="margin-left:auto;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;white-space:nowrap"><input type="checkbox" id="sel-all" onchange="toggleSelectAll(this.checked)" style="width:13px;height:13px;accent-color:var(--if)"> Todos</label>
+  </div>
+
   <!-- TAB TRIAGEM -->
   <div class="tc active" id="tab-tri">
     <div class="content">
@@ -332,6 +360,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     </div>
   </div>
 </div>
+
 
 
 <!-- BULK IMPORT MODAL -->
@@ -606,6 +635,7 @@ async function doLogin(){
     document.getElementById('tab-tri').classList.remove('active');document.getElementById('tab-mf').classList.add('active');
   }
   const loc=localStorage.getItem('mppa_loc');if(loc){try{procs=mkP(JSON.parse(loc));setSS('Dados locais','ok');}catch(e){}}
+  filt='inbox';
   if(GSURL)syncLoad(false);else{updStats();renderAll();}
 }
 function doLogout(){CU=null;isA=false;document.getElementById('ls').style.display='flex';document.getElementById('sdb').style.display='none';document.getElementById('mc').style.display='none';document.getElementById('lsel').value='';document.getElementById('lbtn').disabled=true;const old=document.getElementById('tbb-mf');if(old)old.remove();}
@@ -633,12 +663,12 @@ function saveP(id){
 function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';if(p.esSt==='concluido'){if(!confirm('Confirmar conclusão de '+p.num+'?'))return;}if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
 function mrkBx(id){const p=procs[id];const obs=document.getElementById('bxoi-'+id)?.value||'';p.bxObs=obs;p.bxOk=true;p.ok=true;if(!p.bxDt)p.bxDt=hoje();syncSave();updStats();renderBx();renderAll();toast('Baixa registrada — '+p.num);}
 function updStats(){
-  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length;
+  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok).length;
   const cri=procs.filter(p=>p.cat.startsWith('Criminal')).length,civ=procs.filter(p=>p.cat.startsWith('Cível')).length,cie=procs.filter(p=>p.cat==='Mera ciência').length;
   const ant=procs.filter(p=>p.d>7&&!p.ok).length,pnd=procs.filter(p=>!p.ok).length;
   function s(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
-  s('st',procs.length);s('su',urg);s('sc2',done);s('sa',atr);s('srev',rev);s('sb2',bx);
-  s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
+  s('st',procs.length);s('st-inbox',inbox);s('su',urg);s('sc2',done);s('sa',atr);s('srev',rev);s('sb2',bx);
+  s('n-inbox',inbox);s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
   const pct=Math.round((done/procs.length)*100);
   document.getElementById('pf').style.width=pct+'%';document.getElementById('ptxt').textContent=done+' / '+procs.length+' concluídos';
   s('tb-tri',procs.length);s('tb-est',atr);s('tb-rev',rev);s('tb-bx',bx);
@@ -665,7 +695,7 @@ function summ(p){if(p.iaStatus==='loading')return'<span class="spin"></span> Ana
 function getFilt(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   const s=document.getElementById('srt')?.value||'ent_asc';
-  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
+  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
   if(s==='urg')l=[...l].sort((a,b)=>b.urg-a.urg);else if(s==='ent_desc')l=[...l].sort((a,b)=>b.ent-a.ent);else if(s==='dias')l=[...l].sort((a,b)=>b.d-a.d);else if(s==='pnd')l=[...l].sort((a,b)=>a.ok-b.ok);else l=[...l].sort((a,b)=>a.ent-b.ent);
   return l;
 }
@@ -683,6 +713,7 @@ function renderTri(){
     const bxS=p.agBx?`<div class="sblk sblk-p"><div class="sblk-t">🗂 Aguardando baixa no sistema</div>${p.bxOk?`<div style="font-size:12px;color:#5b21b6"><strong>✓ Baixa registrada</strong> em ${p.bxDt}${p.bxObs?' · '+p.bxObs:''}</div>`:`<div class="fr1"><label class="fl">Observação</label><input class="fc" type="text" id="bxobs-${p.id}" placeholder="Ex: enviado por malote em 15/03" value="${p.bxObs}"></div><div style="margin-top:10px"><button class="btn btn-pu btn-sm" onclick="mrkBx(${p.id})">✓ Registrar baixa</button></div>`}</div>`:'';
     return`<div class="pc${bc}${op?' open':''}" id="c-${p.id}">
       <div class="ch" onclick="tog(${p.id})">
+        <input type="checkbox" class="pc-cb" id="cb-${p.id}" onclick="event.stopPropagation();toggleSelect(${p.id},this)">
         <button class="pnb" id="nb-${p.id}" onclick="event.stopPropagation();cpN(${p.id},this)">${p.num}</button>
         <div class="cmeta"><span class="mt t-yr">${p.yr}</span><span class="mt t-vr">${p.vr}</span>${dtag(p)}${stag(p)}${ctag(p)}</div>
         <div class="csum">${summ(p)}</div>
@@ -904,6 +935,72 @@ async function savePwdToSheets(hash){
       body:JSON.stringify({action:'saveConfig',pwdHash:hash})});
   }catch(e){}
 }
+
+
+
+let selectedIds=new Set();
+function toggleSelect(id,el){
+  if(el.checked)selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateSelBar();
+}
+function updateSelBar(){
+  const bar=document.getElementById('sel-bar');
+  const cnt=document.getElementById('sel-count');
+  if(selectedIds.size>0){
+    bar.classList.add('visible');
+    cnt.textContent=selectedIds.size+' selecionado'+(selectedIds.size!==1?'s':'');
+    // populate estagiário options
+    const sel=document.getElementById('sel-atrib');
+    if(sel){
+      const estags=getEstags();
+      sel.innerHTML='<option value="">— Estagiário —</option>'+estags.map(e=>`<option value="${e}">${e}</option>`).join('');
+    }
+  } else {
+    bar.classList.remove('visible');
+    document.getElementById('sel-all').checked=false;
+  }
+}
+function toggleSelectAll(checked){
+  const cbs=document.querySelectorAll('.pc-cb');
+  cbs.forEach(cb=>{
+    const id=parseInt(cb.id.replace('cb-',''));
+    cb.checked=checked;
+    if(checked)selectedIds.add(id);
+    else selectedIds.delete(id);
+  });
+  updateSelBar();
+}
+function clearSelection(){
+  selectedIds.clear();
+  document.querySelectorAll('.pc-cb').forEach(cb=>cb.checked=false);
+  document.getElementById('sel-all').checked=false;
+  updateSelBar();
+}
+function atribuirSelecionados(nome){
+  if(!nome||!selectedIds.size)return;
+  selectedIds.forEach(id=>{
+    if(procs[id]){
+      procs[id].atrib=nome;
+      if(procs[id].esSt==='triagem'||procs[id].esSt==='')procs[id].esSt='atribuido';
+    }
+  });
+  const n=selectedIds.size;
+  clearSelection();
+  syncSave();updStats();renderAll();
+  toast(n+' processo(s) atribuídos para '+nome);
+}
+function deleteSelected(){
+  if(!selectedIds.size)return;
+  if(!confirm('Apagar '+selectedIds.size+' processo(s) selecionado(s)?\n\nEssa ação não pode ser desfeita.'))return;
+  procs=procs.filter(p=>!selectedIds.has(p.id));
+  procs.forEach((p,i)=>p.id=i);
+  selectedIds.clear();
+  syncSave();updStats();renderAll();
+  document.getElementById('sel-bar').classList.remove('visible');
+  toast('Processos apagados com sucesso.');
+}
+// Toggle checkbox visibility: long press or button mode
 
 function renderAll(){renderTri();}
 
