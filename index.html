@@ -421,8 +421,8 @@ function getEstags(){
 function mkProc(dtStr,num,i,sv){
   const yr=num.match(/\.(\d{4})\./)?.[1]||'';const vr=num.match(/\.(\d{4})$/)?.[1]||'';
   const ent=pBR(dtStr||'');const d=dias(ent);
-  const b={id:i,num,yr,vr,ent,dtStr:dtStr||'',d,cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,obs:'',cmd:'',iaStatus:'idle',atrib:'',esObs:'',esSt:'triagem',agBx:false,bxOk:false,bxDt:'',bxObs:''};
-  if(sv){Object.assign(b,{cat:sv.cat||'',resp:sv.resp||'',prazo:sv.prazo||'',urg:!!sv.urg,cpl:!!sv.cpl,ok:!!sv.ok,obs:sv.obs||'',cmd:sv.cmd||'',atrib:sv.atrib||'',esObs:sv.esObs||'',esSt:sv.esSt||'triagem',agBx:!!sv.agBx,bxOk:!!sv.bxOk,bxDt:sv.bxDt||'',bxObs:sv.bxObs||''});}
+  const b={id:i,num,yr,vr,ent,dtStr:dtStr||'',d,cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,obs:'',cmd:'',lnk:'',iaStatus:'idle',atrib:'',esObs:'',esSt:'triagem',agBx:false,bxOk:false,bxDt:'',bxObs:''};
+  if(sv){Object.assign(b,{cat:sv.cat||'',resp:sv.resp||'',prazo:sv.prazo||'',urg:!!sv.urg,cpl:!!sv.cpl,ok:!!sv.ok,obs:sv.obs||'',cmd:sv.cmd||'',lnk:sv.lnk||'',atrib:sv.atrib||'',esObs:sv.esObs||'',esSt:sv.esSt||'triagem',agBx:!!sv.agBx,bxOk:!!sv.bxOk,bxDt:sv.bxDt||'',bxObs:sv.bxObs||''});}
   return b;
 }
 function mkP(sv){
@@ -492,8 +492,8 @@ async function saveCfg(){
   (function(){
     const [e1n,e2n]=getEstags();
     const o1=document.getElementById('lopt1');const o2=document.getElementById('lopt2');
-    if(o1){o1.textContent=e1n;o1.value=e1n;}
-    if(o2){o2.textContent=e2n;o2.value=e2n;}
+    if(o1){o1.textContent=e1n;o1.value=e1n;o1.style.display='';}
+    if(o2){o2.textContent=e2n;o2.value=e2n;o2.style.display='';}
   })();
   closeCfg();
   if(GSURL)syncLoad(true);else if(isA)toast('Sem URL — dados ficam locais');
@@ -551,7 +551,7 @@ async function syncLoad(msg){
   updStats();renderAll();
 }
 async function syncSave(){
-  const payload=procs.map(p=>({num:p.num,dtStr:p.dtStr,cat:p.cat,resp:p.resp,prazo:p.prazo,urg:p.urg,cpl:p.cpl,ok:p.ok,obs:p.obs,cmd:p.cmd,atrib:p.atrib,esObs:p.esObs,esSt:p.esSt,agBx:p.agBx,bxOk:p.bxOk,bxDt:p.bxDt,bxObs:p.bxObs}));
+  const payload=procs.map(p=>({num:p.num,dtStr:p.dtStr,cat:p.cat,resp:p.resp,prazo:p.prazo,urg:p.urg,cpl:p.cpl,ok:p.ok,obs:p.obs,cmd:p.cmd,lnk:p.lnk||'',atrib:p.atrib,esObs:p.esObs,esSt:p.esSt,agBx:p.agBx,bxOk:p.bxOk,bxDt:p.bxDt,bxObs:p.bxObs}));
   localStorage.setItem('mppa_loc',JSON.stringify(payload));
   if(!GSURL){setSS('Salvo localmente','ok');return;}
   setSS('Salvando…','loading');
@@ -653,7 +653,7 @@ function saveP(id){
   const novoOk=gc('ok-'+id);
   if(novoOk&&!p.ok){if(!confirm('Confirmar conclusão do processo '+p.num+'?\n\nO ciclo será encerrado.')){document.getElementById('ok-'+id).checked=false;return;}p.esSt='concluido';}
   p.ok=novoOk;
-  p.obs=g('obs-'+id);p.cmd=g('cmd-'+id);
+  p.obs=g('obs-'+id);p.cmd=g('cmd-'+id);p.lnk=g('lnk-'+id)||'';
   const av=g('atr-'+id);p.atrib=av==='— Selecionar —'?'':av;
   const newSt=g('esst-d-'+id);if(newSt)p.esSt=newSt;
   else{if(p.atrib&&p.esSt==='triagem')p.esSt='atribuido';
@@ -662,7 +662,7 @@ function saveP(id){
   const sm=document.getElementById('sm-'+id);sm.classList.add('show');setTimeout(()=>sm.classList.remove('show'),2000);
   updStats();renderTri();syncSave();
 }
-function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';if(p.esSt==='concluido'){if(!confirm('Confirmar conclusão de '+p.num+'?'))return;}if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
+function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';const lnkEs=document.getElementById('lnk-es-'+id);if(lnkEs)p.lnk=lnkEs.value||'';if(p.esSt==='concluido'){if(!confirm('Confirmar conclusão de '+p.num+'?'))return;}if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
 function mrkBx(id){const p=procs[id];const obs=document.getElementById('bxoi-'+id)?.value||'';p.bxObs=obs;p.bxOk=true;p.ok=true;if(!p.bxDt)p.bxDt=hoje();syncSave();updStats();renderBx();renderAll();toast('Baixa registrada — '+p.num);}
 function updStats(){
   const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok).length;
@@ -725,9 +725,15 @@ function renderTri(){
         <div class="ei"><div class="ei-r"><div class="ei-i"><strong>Entrada:</strong> ${p.dtStr}</div><div class="ei-i"><strong>Espera:</strong> ${p.d}d</div><div class="ei-i"><strong>Vara:</strong> ${p.vr}</div><div class="ei-i"><strong>Ano:</strong> ${p.yr}</div></div></div>
         <div class="fr"><div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select></div><div><label class="fl">Responsável</label><select class="fc" id="resp-${p.id}">${ro(p.id)}</select></div></div>
         <div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label><label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label><label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label><label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label></div></div></div>
-        <div class="fr1"><label class="fl">Observações</label><textarea class="fc" id="obs-${p.id}" placeholder="Histórico, partes, andamento...">${p.obs}</textarea></div>
-        <div class="fr1"><label class="fl">Comando de minuta</label><textarea class="fc" id="cmd-${p.id}" placeholder="Instrução objetiva para o responsável...">${p.cmd}</textarea></div>
+        <div class="fr1"><label class="fl">Relatório do Processo</label><textarea class="fc" id="obs-${p.id}" placeholder="Histórico, partes envolvidas, andamento, contexto relevante...">${p.obs}</textarea></div>
+        <div class="fr1"><label class="fl">Prompt / Comando de IA <span style="font-size:9px;color:var(--txm);font-weight:400;text-transform:none;letter-spacing:0">— cole no ChatGPT, Claude ou outro</span></label><textarea class="fc" id="cmd-${p.id}" placeholder="Instrução completa para gerar a minuta via IA..." style="min-height:80px">${p.cmd}</textarea></div>
         <div class="fr" style="margin-top:12px"><div><label class="fl">👤 Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div><div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select></div></div>
+        <div class="fr1"><label class="fl">🔗 Link da minuta / Localização no SAJ <span style="font-size:9px;color:var(--txm);font-weight:400;text-transform:none;letter-spacing:0">— cole o link ou informe onde está no SAJ</span></label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="fc" type="text" id="lnk-${p.id}" placeholder="Ex: https://docs.google.com/... ou 'SAJ — Petição 1234'" value="${p.lnk||''}" style="flex:1">
+            ${p.lnk?`<a href="${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb;white-space:nowrap;flex-shrink:0">↗ Abrir</a>`:''}
+          </div>
+        </div>
         ${bxS}
         <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span><button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);margin-left:6px" onclick="confirmDelete(${p.id})">🗑 Apagar</button>
           <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'||batching?'disabled':''}>${ibl} IA</button>
@@ -770,6 +776,7 @@ function tkC(p,done=false){
     <div class="tkcat">${p.cat||'Categoria a definir'}</div>
     ${p.cmd?`<div class="tkcmd">${p.cmd}</div>`:''}
     ${!done?`<div style="margin-top:8px"><label class="fl">Observação / andamento</label><textarea class="tkof" id="esob-${p.id}" placeholder="Descreva o andamento ou conclusão...">${p.esObs||''}</textarea></div>
+    <div style="margin-top:6px"><label class="fl">🔗 Link da minuta / SAJ</label><input class="fc" type="text" id="lnk-es-${p.id}" placeholder="Cole o link da minuta ou informe localização no SAJ" value="${p.lnk||''}" style="font-size:12px;padding:5px 8px">${p.lnk?`<a href="${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb;margin-top:3px;display:inline-block">↗ Abrir link</a>`:''}</div>
     <div class="tka"><select class="fc" id="esst-${p.id}" style="width:auto;font-size:12px;padding:5px 8px"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Aguardando minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Em protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select>
     <button class="btn btn-sm btn-p" onclick="saveET(${p.id})">Salvar</button>
     <button class="btn btn-sm" style="background:#7c3aed;color:#fff;border:none;cursor:pointer;font-family:var(--f);padding:5px 12px;border-radius:var(--r);font-size:12px" onclick="document.getElementById('esst-${p.id}').value='minuta pronta';saveET(${p.id})">📄 Minuta pronta</button><button class="btn btn-sm btn-g" onclick="document.getElementById('esst-${p.id}').value='concluido';saveET(${p.id})">✓ Concluído</button></div>`
@@ -837,6 +844,7 @@ function renderRev(){
       <div style="font-size:12px;color:var(--tx2);margin-bottom:3px">${p.cat||'Sem categoria'}</div>
       ${p.cmd?`<div style="font-size:11px;color:var(--tx);background:#f8f9fb;border-left:3px solid #c7d2fe;padding:5px 10px;margin-bottom:6px;border-radius:0 4px 4px 0;line-height:1.5">${p.cmd}</div>`:''}
       ${p.esObs?`<div style="font-size:11px;color:var(--txm);margin-bottom:6px;font-style:italic">Obs do estagiário: ${p.esObs}</div>`:''}
+      ${p.lnk?`<div style="margin-bottom:6px"><a href="${p.lnk}" target="_blank" style="font-size:12px;color:#2563eb;font-weight:500">🔗 ${p.lnk.startsWith('http')?'Abrir minuta':p.lnk}</a></div>`:''}`
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
         <button class="btn btn-p btn-sm" onclick="avancarStatus(${p.id},'protocolo')">📬 Aprovar → Protocolo</button>
         <button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);padding:5px 12px;border-radius:var(--r);font-size:12px" onclick="avancarStatus(${p.id},'aguardando minuta')">↩ Devolver ao estagiário</button>
@@ -1052,8 +1060,8 @@ loadCfg();
   const [e1,e2]=getEstags();
   const o1=document.getElementById('lopt1');
   const o2=document.getElementById('lopt2');
-  if(o1){o1.textContent=e1;o1.value=e1;}
-  if(o2){o2.textContent=e2;o2.value=e2;}
+  if(o1){o1.textContent=e1;o1.value=e1;o1.style.display='';}
+  if(o2){o2.textContent=e2;o2.value=e2;o2.style.display='';}
 })();
 
 // Auto-sync a cada 60s para manter dados atualizados
