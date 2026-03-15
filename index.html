@@ -159,7 +159,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .el-av{width:36px;height:36px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#1d4ed8;flex-shrink:0}
 .spin{width:11px;height:11px;border:1.5px solid #bfdbfe;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px}
+.empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px;line-height:1.8}
 .gp{height:2px;background:#dbeafe;position:fixed;top:0;left:215px;right:0;z-index:200;display:none}
 .gpf{height:100%;background:#2563eb;transition:width .3s}
 .toast{position:fixed;bottom:20px;right:24px;background:#1c2333;color:#fff;font-size:12px;padding:8px 16px;border-radius:6px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999}
@@ -179,8 +179,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <select class="l-select" id="lsel" onchange="onRoleChange()">
       <option value="">— Selecione —</option>
       <option value="assessor">Assessor (PJ) — visão completa</option>
-      <option value="Estagiário 1">Estagiário 1</option>
-      <option value="Estagiário 2">Estagiário 2</option>
+      <option value="Amanda">Amanda</option>
     </select>
     <div id="pwd-wrap" style="display:none;margin-bottom:16px">
       <label class="l-label" style="margin-bottom:6px">Senha do assessor</label>
@@ -200,6 +199,10 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <div class="mb-sub" style="margin-bottom:10px">Configure a conexão com Google Sheets e defina um código curto — os estagiários digitam esse código em qualquer navegador para conectar automaticamente.</div>
       <div class="fr1"><label class="fl">URL do Apps Script (Web App)</label><input class="fc" type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
       <div class="fr1"><label class="fl">Código de acesso <span style="font-size:10px;color:var(--txm);font-weight:400;text-transform:none;letter-spacing:0">— estagiários digitam isso para conectar</span></label><input class="fc" type="text" id="cfg-code" placeholder="Ex: mppa2026" maxlength="20" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9]/g,'')"></div>
+      <div class="fr" style="margin-top:12px">
+        <div><label class="fl">Nome do estagiário 1</label><input class="fc" type="text" id="cfg-estag1" placeholder="Ex: Amanda"></div>
+        <div><label class="fl">Nome do estagiário 2</label><input class="fc" type="text" id="cfg-estag2" placeholder="Ex: João"></div>
+      </div>
       <div class="fr1"><label class="fl">Chave API Anthropic (para IA)</label><input class="fc" type="password" id="cfg-api" placeholder="sk-ant-api03-..."></div>
     </div>
     <div id="cfg-estag-section" style="display:none">
@@ -234,6 +237,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <div class="org">MPPA</div>
     <h1>Triagem de Processos</h1>
     <div class="sub">Polo Marajó I · Ponta de Pedras</div>
+    <div style="font-size:9px;color:rgba(255,255,255,0.2);margin-top:6px">v1.0 · 2026</div>
     <span class="ubadge" id="ubadge">—</span>
   </div>
   <div class="sb-stats">
@@ -303,7 +307,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
         <div style="position:relative;flex:1;min-width:180px;max-width:380px">
           <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:#8892aa" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <input class="fc" type="text" id="srch" placeholder="Buscar por número..." oninput="renderTri()" style="padding-left:32px">
+          <input class="fc" type="text" id="srch" placeholder="Buscar por número, categoria, comando..." oninput="renderTri()" style="padding-left:32px">
         </div>
       </div>
       <div class="plist" id="plist"></div>
@@ -373,15 +377,14 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 
 <script>
 const RAW=[];
-const HOJE=new Date('2026-03-15T12:00:00');
+function HOJE(){return new Date();}
 function pBR(s){const[d,m,y]=s.split(' ')[0].split('/');return new Date(`${y}-${m}-${d}T${s.split(' ')[1]||'00:00:00'}`);}
-function dias(dt){return Math.floor((HOJE-dt)/86400000);}
+function dias(dt){return Math.floor((HOJE()-dt)/86400000);}
 function fdt(dt){return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();}
 function hoje(){return new Date().toISOString().split('T')[0];}
 const CATS=['— Selecionar —','Mera ciência','Criminal — Representação de delegado (prisão/cautelar)','Criminal — Análise de IPL: minutar denúncia','Criminal — Análise de IPL: diligências','Criminal — Manifestação sobre resposta à acusação','Criminal — Alegações finais','Criminal — Manifestação sobre medida protetiva','Criminal — Contrarrazões de apelação','Cível — Manifestação sobre tutela provisória','Cível — Manifestação final (custos legis)','Outro / Complexo'];
-const RESPS=['— Selecionar —','Assessor jurídico (PJ)','Estagiário 1','Estagiário 2','Promotora (Dra. Francys Lucy)'];
-const ESTAGS=['Estagiário 1','Estagiário 2'];
-function mkProc(dtStr,num,i,sv){
+const RESPS=['— Selecionar —','Assessor jurídico (PJ)','Amanda','Promotora (Dra. Francys Lucy)'];
+const function mkProc(dtStr,num,i,sv){
   const yr=num.match(/\.(\d{4})\./)?.[1]||'';const vr=num.match(/\.(\d{4})$/)?.[1]||'';
   const ent=pBR(dtStr||'');const d=dias(ent);
   const b={id:i,num,yr,vr,ent,dtStr:dtStr||'',d,cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,obs:'',cmd:'',iaStatus:'idle',atrib:'',esObs:'',esSt:'triagem',agBx:false,bxOk:false,bxDt:'',bxObs:''};
@@ -400,6 +403,8 @@ function loadCfg(){
   const nome=localStorage.getItem('mppa_nome')||'';
   const el=id=>document.getElementById(id);
   if(el('cfg-url'))el('cfg-url').value=GSURL;
+  if(el('cfg-estag1'))el('cfg-estag1').value=localStorage.getItem('mppa_estag1')||'';
+  if(el('cfg-estag2'))el('cfg-estag2').value=localStorage.getItem('mppa_estag2')||'';
   if(el('cfg-api'))el('cfg-api').value=APIKEY;
   if(el('cfg-code'))el('cfg-code').value=ACCESS_CODE;
   if(el('cfg-nome'))el('cfg-nome').value=nome||(CU==='assessor'?'':CU)||'';
@@ -412,6 +417,10 @@ async function saveCfg(){
     GSURL=(el('cfg-url')?.value||'').trim();
     APIKEY=(el('cfg-api')?.value||'').trim();
     ACCESS_CODE=(el('cfg-code')?.value||'').trim();
+    const e1=(el('cfg-estag1')?.value||'').trim();
+    const e2=(el('cfg-estag2')?.value||'').trim();
+    if(e1)localStorage.setItem('mppa_estag1',e1);
+    if(e2)localStorage.setItem('mppa_estag2',e2);
     localStorage.setItem('mppa_gs',GSURL);
     localStorage.setItem('mppa_ak',APIKEY);
     if(ACCESS_CODE){localStorage.setItem('mppa_code',ACCESS_CODE);if(GSURL)await saveCodeToSheets(GSURL,ACCESS_CODE);}
@@ -445,6 +454,13 @@ async function saveCfg(){
       }
     }
   }
+  // Refresh login option labels
+  (function(){
+    const [e1n,e2n]=getEstags();
+    const o1=document.getElementById('lopt1');const o2=document.getElementById('lopt2');
+    if(o1){o1.textContent=e1n;o1.value=e1n;}
+    if(o2){o2.textContent=e2n;o2.value=e2n;}
+  })();
   closeCfg();
   if(GSURL)syncLoad(true);else if(isA)toast('Sem URL — dados ficam locais');
 }
@@ -597,14 +613,19 @@ function gc(id){return document.getElementById(id)?.checked||false;}
 function saveP(id){
   const p=procs[id];
   p.cat=g('cat-'+id);p.resp=g('resp-'+id);p.prazo=g('pr-'+id);
-  p.urg=gc('urg-'+id);p.cpl=gc('cpl-'+id);p.ok=gc('ok-'+id);p.agBx=gc('agbx-'+id);
+  p.urg=gc('urg-'+id);p.cpl=gc('cpl-'+id);p.agBx=gc('agbx-'+id);
+  const novoOk=gc('ok-'+id);
+  if(novoOk&&!p.ok){if(!confirm('Confirmar conclusão do processo '+p.num+'?\n\nO ciclo será encerrado.')){document.getElementById('ok-'+id).checked=false;return;}p.esSt='concluido';}
+  p.ok=novoOk;
   p.obs=g('obs-'+id);p.cmd=g('cmd-'+id);
   const av=g('atr-'+id);p.atrib=av==='— Selecionar —'?'':av;
+  if(p.atrib&&p.esSt==='triagem')p.esSt='atribuido';
+  if(!p.atrib&&p.esSt==='atribuido')p.esSt='triagem';
   if(p.agBx)p.bxObs=g('bxobs-'+id)||'';
   const sm=document.getElementById('sm-'+id);sm.classList.add('show');setTimeout(()=>sm.classList.remove('show'),2000);
   updStats();renderTri();syncSave();
 }
-function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
+function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';if(p.esSt==='concluido'){if(!confirm('Confirmar conclusão de '+p.num+'?'))return;}if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
 function mrkBx(id){const p=procs[id];const obs=document.getElementById('bxoi-'+id)?.value||'';p.bxObs=obs;p.bxOk=true;p.ok=true;if(!p.bxDt)p.bxDt=hoje();syncSave();updStats();renderBx();renderAll();toast('Baixa registrada — '+p.num);}
 function updStats(){
   const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length;
@@ -616,6 +637,8 @@ function updStats(){
   const pct=Math.round((done/procs.length)*100);
   document.getElementById('pf').style.width=pct+'%';document.getElementById('ptxt').textContent=done+' / '+procs.length+' concluídos';
   s('tb-tri',procs.length);s('tb-est',atr);s('tb-rev',rev);s('tb-bx',bx);
+  const revTab=document.getElementById('tb-rev');
+  if(revTab){revTab.style.background=rev>0?'#dc2626':'';revTab.style.color=rev>0?'#fff':'';}
   const mf=document.getElementById('tb-mf');if(mf)mf.textContent=procs.filter(p=>p.atrib===CU&&!p.ok).length;
 }
 function sf(f,el){filt=f;document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));el.classList.add('active');renderTri();}
@@ -637,17 +660,17 @@ function summ(p){if(p.iaStatus==='loading')return'<span class="spin"></span> Ana
 function getFilt(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   const s=document.getElementById('srt')?.value||'ent_asc';
-  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q))return false;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
+  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
   if(s==='urg')l=[...l].sort((a,b)=>b.urg-a.urg);else if(s==='ent_desc')l=[...l].sort((a,b)=>b.ent-a.ent);else if(s==='dias')l=[...l].sort((a,b)=>b.d-a.d);else if(s==='pnd')l=[...l].sort((a,b)=>a.ok-b.ok);else l=[...l].sort((a,b)=>a.ent-b.ent);
   return l;
 }
 function renderTri(){
   const el=document.getElementById('plist');if(!el)return;
-  const fl=getFilt();if(!fl.length){el.innerHTML='<div class="empty">Nenhum processo encontrado.</div>';return;}
+  const fl=getFilt();if(!fl.length){el.innerHTML='<div class="empty">Nenhum processo encontrado.<br><span style="font-size:12px">Use <strong>+ Processo</strong> ou <strong>⬆ Importar lote</strong> para adicionar processos.</span></div>';return;}
   const wo=new Set([...document.querySelectorAll('.pc.open')].map(e=>e.id.replace('c-','')));
   const co=id=>CATS.map(c=>`<option value="${c}" ${c===(procs[id].cat||'— Selecionar —')?'selected':''}>${c}</option>`).join('');
   const ro=id=>RESPS.map(r=>`<option value="${r}" ${r===(procs[id].resp||'— Selecionar —')?'selected':''}>${r}</option>`).join('');
-  const ao=id=>{const v=procs[id].atrib||'';return['— Selecionar —',...ESTAGS,'Assessor jurídico (PJ)'].map(r=>`<option value="${r==='— Selecionar —'?'':r}" ${v===(r==='— Selecionar —'?'':r)?'selected':''}>${r}</option>`).join('');};
+  const ao=id=>{const v=procs[id].atrib||'';return['— Selecionar —',...getEstags(),'Assessor jurídico (PJ)'].map(r=>`<option value="${r==='— Selecionar —'?'':r}" ${v===(r==='— Selecionar —'?'':r)?'selected':''}>${r}</option>`).join('');};
   el.innerHTML=fl.map(p=>{
     const op=wo.has(String(p.id));
     const bc=p.urg?' urg':p.bxOk||p.ok?' done':p.agBx?' bx':p.cpl?' cpl':p.d>7&&!p.ok?' ant':p.atrib?' atr':'';
@@ -681,7 +704,7 @@ function renderTri(){
 function renderEst(){
   const el=document.getElementById('estlists');if(!el)return;
   const stL={'triagem':'📋 Triagem','atribuido':'👤 Atribuído','aguardando minuta':'✍ Aguardando minuta','minuta pronta':'📄 Minuta pronta','revisao':'🔍 Em revisão','protocolo':'📬 Em protocolo','concluido':'✓ Concluído','pendente':'📋 Triagem'};
-  el.innerHTML=ESTAGS.map(nome=>{
+  el.innerHTML=getEstags().map(nome=>{
     const tasks=procs.filter(p=>p.atrib===nome);
     const pend=tasks.filter(p=>p.esSt!=='concluido'&&!p.ok),done=tasks.filter(p=>p.esSt==='concluido'||p.ok);
     const ini=nome.replace('Estagiário ','E');
@@ -743,7 +766,7 @@ async function iaOne(id){
     const data=await r.json();const raw=data.content?.find(b=>b.type==='text')?.text||'{}';
     let psd;try{psd=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){psd={};}
     if(psd.cat&&CATS.includes(psd.cat))p.cat=psd.cat;p.urg=!!psd.urg;p.cpl=!!psd.cpl;
-    if(psd.atrib&&(ESTAGS.includes(psd.atrib)||psd.atrib==='Assessor jurídico (PJ)'))p.atrib=psd.atrib;
+    if(psd.atrib&&(getEstags().includes(psd.atrib)||psd.atrib==='Assessor jurídico (PJ)'))p.atrib=psd.atrib;
     if(psd.cmd)p.cmd=psd.cmd;p.iaStatus='done';
   }catch(e){p.iaStatus='idle';toast('Erro IA — verifique a chave');}
   updStats();renderTri();syncSave();
@@ -916,6 +939,18 @@ function doAddProc(){
   toast('Processo adicionado: '+num);
 }
 loadCfg();
+// Update login option labels with custom names
+(function(){
+  const [e1,e2]=getEstags();
+  const o1=document.getElementById('lopt1');
+  const o2=document.getElementById('lopt2');
+  if(o1){o1.textContent=e1;o1.value=e1;}
+  if(o2){o2.textContent=e2;o2.value=e2;}
+})();
+
+// Auto-sync a cada 60s para manter dados atualizados
+setInterval(()=>{if(GSURL&&document.visibilityState==='visible')syncLoad(false);},60000);
+
 // Pre-seed password hash if not set (first run)
 if(!localStorage.getItem('mppa_pwd_hash')){
   localStorage.setItem('mppa_pwd_hash','5658e37e');
