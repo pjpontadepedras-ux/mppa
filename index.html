@@ -176,13 +176,18 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <div class="l-title">Triagem de Processos</div>
     <div class="l-sub">Promotoria de Ponta de Pedras</div>
     <label class="l-label">Quem está acessando?</label>
-    <select class="l-select" id="lsel" onchange="document.getElementById('lbtn').disabled=!this.value">
+    <select class="l-select" id="lsel" onchange="onRoleChange()">
       <option value="">— Selecione —</option>
       <option value="assessor">Assessor (PJ) — visão completa</option>
       <option value="Estagiário 1">Estagiário 1</option>
       <option value="Estagiário 2">Estagiário 2</option>
     </select>
-    <button class="l-btn" id="lbtn" onclick="doLogin()" disabled>Entrar</button>
+    <div id="pwd-wrap" style="display:none;margin-bottom:16px">
+      <label class="l-label" style="margin-bottom:6px">Senha do assessor</label>
+      <input class="l-select" type="password" id="lpwd" placeholder="••••••••" oninput="checkLoginBtn()" onkeydown="if(event.key==='Enter')doLogin()" style="margin-bottom:0">
+      <div id="pwd-err" style="font-size:11px;color:#dc2626;margin-top:6px;display:none">Senha incorreta.</div>
+    </div>
+    <button class="l-btn" id="lbtn" onclick="doLogin()" disabled style="margin-top:16px">Entrar</button>
     <div class="l-note">Dados sincronizados via Google Sheets em tempo real.</div>
   </div>
 </div>
@@ -206,6 +211,15 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <label class="fl">Meu nome <span style="font-size:10px;color:var(--txm);font-weight:400;text-transform:none;letter-spacing:0">— como você aparece para todos</span></label>
       <input class="fc" type="text" id="cfg-nome" placeholder="Ex: João Silva">
     </div>
+    <div id="cfg-pwd-section" style="display:none;margin-top:12px">
+      <label class="fl">Alterar senha do assessor</label>
+      <div style="display:flex;gap:8px">
+        <input class="fc" type="password" id="cfg-pwd-new" placeholder="Nova senha" style="flex:1">
+        <input class="fc" type="password" id="cfg-pwd-confirm" placeholder="Confirmar" style="flex:1">
+      </div>
+      <div id="cfg-pwd-err" style="font-size:11px;color:#dc2626;margin-top:4px;display:none">As senhas não coincidem.</div>
+      <div style="font-size:11px;color:var(--txm);margin-top:4px">Deixe em branco para manter a senha atual.</div>
+    </div>
     <div style="font-size:11px;color:var(--txm);margin-top:8px">Configurações salvas neste navegador.</div>
     <div class="mb-actions">
       <button class="btn btn-gh btn-sm" onclick="closeCfg()">Cancelar</button>
@@ -228,6 +242,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <div class="sc"><div class="num red" id="su">0</div><div class="lbl">Urgentes</div></div>
       <div class="sc"><div class="num green" id="sc2">0</div><div class="lbl">Concluídos</div></div>
       <div class="sc"><div class="num blue" id="sa">0</div><div class="lbl">Atribuídos</div></div>
+      <div class="sc"><div class="num" style="color:#a78bfa" id="srev">0</div><div class="lbl">Ag. revisão</div></div>
       <div class="sc"><div class="num amber" id="sb2">0</div><div class="lbl">Ag. baixa</div></div>
     </div>
   </div>
@@ -235,6 +250,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <div class="nsl">Filtrar</div>
     <div class="ni active" onclick="sf('all',this)"><div class="nil"><span class="nd d-all"></span><span class="nl">Todos</span></div><span class="nc" id="n-all">—</span></div>
     <div class="ni" onclick="sf('urg',this)"><div class="nil"><span class="nd d-urg"></span><span class="nl">Urgentes</span></div><span class="nc" id="n-urg">0</span></div>
+    <div class="ni" onclick="sf('rev',this)"><div class="nil"><span class="nd" style="background:#a78bfa"></span><span class="nl">Ag. revisão</span></div><span class="nc" id="n-rev">0</span></div>
     <div class="ni" onclick="sf('bx',this)"><div class="nil"><span class="nd d-bx"></span><span class="nl">Ag. baixa</span></div><span class="nc" id="n-bx">0</span></div>
     <div class="ni" onclick="sf('cri',this)"><div class="nil"><span class="nd d-cri"></span><span class="nl">Criminal</span></div><span class="nc" id="n-cri">0</span></div>
     <div class="ni" onclick="sf('civ',this)"><div class="nil"><span class="nd d-civ"></span><span class="nl">Cível</span></div><span class="nc" id="n-civ">0</span></div>
@@ -257,6 +273,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
   <div class="tabbar" id="tbr">
     <button class="tbb active" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
     <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
+    <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
     <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa no sistema <span class="tb" id="tb-bx">0</span></button>
     <div class="tab-act" id="aact" style="display:none">
       <select class="fc" id="srt" onchange="renderTri()" style="font-size:12px;padding:5px 10px;width:auto">
@@ -270,6 +287,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button class="btn btn-p btn-sm" onclick="exportCSV()">CSV</button>
       <button class="btn btn-sm btn-gh" onclick="syncLoad(true)" title="Recarregar">↻</button>
       <button class="btn btn-p btn-sm" id="btn-add" onclick="openAddModal()">+ Processo</button>
+      <button class="btn btn-sm btn-gh" onclick="document.getElementById('bulk-modal').classList.add('open')">⬆ Importar lote</button>
       <button class="btn btn-p btn-sm" id="btn-add" onclick="openAddModal()">+ Processo</button>
     </div>
   </div>
@@ -293,6 +311,14 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
   </div>
   <!-- TAB ESTAGIÁRIOS -->
   <div class="tc" id="tab-est"><div class="content" id="estlists"></div></div>
+  <!-- TAB REVISÃO -->
+  <div class="tc" id="tab-rev">
+    <div class="content" id="revlist-content">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:600;color:var(--tx)">Minutas para revisão</div><div style="font-size:12px;color:var(--txm);margin-top:2px">Minutas prontas — revise, aprove para protocolo ou devolva ao estagiário</div></div>
+      <div id="revlist"></div>
+    </div>
+  </div>
+
   <!-- TAB MINHA FILA -->
   <div class="tc" id="tab-mf"><div class="ev" id="evw"></div></div>
   <!-- TAB BAIXA -->
@@ -300,6 +326,24 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <div class="content">
       <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:600;color:var(--tx)">Aguardando baixa no sistema</div><div style="font-size:12px;color:var(--txm);margin-top:2px">Minuta protocolada — resta devolver ao judiciário</div></div>
       <div id="bxlist"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- BULK IMPORT MODAL -->
+<div class="mo" id="bulk-modal">
+  <div class="mb" style="max-width:600px">
+    <div class="mb-title">Importar processos em lote</div>
+    <div class="mb-sub">Cole a lista de processos no formato: <code style="font-family:var(--fm);font-size:11px;background:#f1f5f9;padding:1px 5px;border-radius:3px">data/hora TAB número</code> — um por linha. O formato é exatamente o que você exportou do sistema anterior.</div>
+    <div class="fr1">
+      <label class="fl">Lista de processos</label>
+      <textarea class="fc" id="bulk-text" rows="10" placeholder="23/02/2026 19:24:50&#9;0800678-15.2025.8.14.0042&#10;23/02/2026 20:05:40&#9;0800827-11.2025.8.14.0042&#10;..." style="font-family:var(--fm);font-size:11px;line-height:1.6" oninput="parseBulk()"></textarea>
+    </div>
+    <div id="bulk-preview" style="font-size:11px;color:var(--txm);margin-top:6px"></div>
+    <div class="mb-actions">
+      <button class="btn btn-gh btn-sm" onclick="document.getElementById('bulk-modal').classList.remove('open')">Cancelar</button>
+      <button class="btn btn-p btn-sm" id="bulk-save" onclick="doBulkImport()" disabled>Importar</button>
     </div>
   </div>
 </div>
@@ -341,7 +385,7 @@ function mkP(sv){
   return RAW.map(([dtStr,num],i)=>{
     const yr=num.match(/\.(\d{4})\./)?.[1]||'';const vr=num.match(/\.(\d{4})$/)?.[1]||'';
     const ent=pBR(dtStr);const d=dias(ent);
-    const b={id:i,num,yr,vr,ent,dtStr,d,cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,obs:'',cmd:'',iaStatus:'idle',atrib:'',esObs:'',esSt:'pendente',agBx:false,bxOk:false,bxDt:'',bxObs:''};
+    const b={id:i,num,yr,vr,ent,dtStr,d,cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,obs:'',cmd:'',iaStatus:'idle',atrib:'',esObs:'',esSt:'triagem',agBx:false,bxOk:false,bxDt:'',bxObs:''};
     if(sv&&sv[i]){const s=sv[i];Object.assign(b,{cat:s.cat||'',resp:s.resp||'',prazo:s.prazo||'',urg:!!s.urg,cpl:!!s.cpl,ok:!!s.ok,obs:s.obs||'',cmd:s.cmd||'',atrib:s.atrib||'',esObs:s.esObs||'',esSt:s.esSt||'pendente',agBx:!!s.agBx,bxOk:!!s.bxOk,bxDt:s.bxDt||'',bxObs:s.bxObs||''});}
     return b;
   });
@@ -380,6 +424,25 @@ async function saveCfg(){
     if(!isA)renderMF();
     toast('Nome atualizado: '+nome);
   }
+  if(isA){
+    const newPwd=(el('cfg-pwd-new')?.value||'').trim();
+    const confPwd=(el('cfg-pwd-confirm')?.value||'').trim();
+    if(newPwd||confPwd){
+      if(newPwd!==confPwd){
+        const errEl=el('cfg-pwd-err');if(errEl){errEl.style.display='block';}
+        return;
+      }
+      if(newPwd.length>=4){
+        const hash=simpleHash(newPwd);
+        localStorage.setItem('mppa_pwd_hash',hash);
+        localStorage.setItem('mppa_pwd_at',String(Date.now()));
+        if(GSURL)await savePwdToSheets(hash);
+        if(el('cfg-pwd-new'))el('cfg-pwd-new').value='';
+        if(el('cfg-pwd-confirm'))el('cfg-pwd-confirm').value='';
+        toast('Senha atualizada com sucesso');
+      }
+    }
+  }
   closeCfg();
   if(GSURL)syncLoad(true);else if(isA)toast('Sem URL — dados ficam locais');
 }
@@ -416,6 +479,10 @@ function openCfg(){
   if(as)as.style.display=isA?'block':'none';
   if(es)es.style.display=isA?'none':'block';
   if(!isA){const saved=localStorage.getItem('mppa_estag_code')||'';const el=document.getElementById('cfg-estag-code');if(el)el.value=saved;}
+  const pwdSection=document.getElementById('cfg-pwd-section');
+  if(pwdSection)pwdSection.style.display=isA?'block':'none';
+  const pwdSec=document.getElementById('cfg-pwd-section');
+  if(pwdSec)pwdSec.style.display=isA?'block':'none';
   document.getElementById('cfg-modal').classList.add('open');
 }
 function closeCfg(){document.getElementById('cfg-modal').classList.remove('open');}
@@ -439,8 +506,68 @@ async function syncSave(){
   try{await fetch(GSURL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'save',data:payload})});setSS('Salvo ✓','ok');}
   catch(e){setSS('Erro ao salvar','err');}
 }
-function doLogin(){
+function onRoleChange(){
+  const v=document.getElementById('lsel').value;
+  const pw=document.getElementById('pwd-wrap');
+  pw.style.display=(v==='assessor')?'block':'none';
+  document.getElementById('pwd-err').style.display='none';
+  checkLoginBtn();
+}
+function checkLoginBtn(){
+  const v=document.getElementById('lsel').value;
+  const pwd=document.getElementById('lpwd')?.value||'';
+  document.getElementById('lbtn').disabled=!v||(v==='assessor'&&pwd.length<1);
+}
+// senha gerenciada no Google Sheets — não armazenada no HTML
+
+async function checkAssessorPwd(pwd){
+  // First try local cache (valid for 1 hour to avoid too many requests)
+  const cached=localStorage.getItem('mppa_pwd_hash');
+  const cachedAt=parseInt(localStorage.getItem('mppa_pwd_at')||'0');
+  if(cached&&Date.now()-cachedAt<3600000){
+    return simpleHash(pwd)===cached;
+  }
+  // Fetch from Sheets
+  if(!GSURL){
+    // Fallback: no sheets configured yet, allow with a bootstrap check
+    return simpleHash(pwd)==='5658e37e';
+  }
+  try{
+    const r=await fetch(GSURL+'?action=getConfig',{redirect:'follow'});
+    const d=await r.json();
+    if(d.ok&&d.pwdHash){
+      localStorage.setItem('mppa_pwd_hash',d.pwdHash);
+      localStorage.setItem('mppa_pwd_at',String(Date.now()));
+      return simpleHash(pwd)===d.pwdHash;
+    }
+    // Sheets has no password set yet — use default hash
+    return simpleHash(pwd)==='5658e37e';
+  }catch(e){
+    // Offline fallback
+    const local=localStorage.getItem('mppa_pwd_hash');
+    return local?simpleHash(pwd)===local:simpleHash(pwd)==='5658e37e';
+  }
+}
+function simpleHash(s){
+  let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;}
+  return h.toString(16);
+}
+
+async function doLogin(){
   const v=document.getElementById('lsel').value;if(!v)return;
+  if(v==='assessor'){
+    const pwd=document.getElementById('lpwd').value;
+    const btn=document.getElementById('lbtn');
+    btn.disabled=true;btn.textContent='Verificando...';
+    const ok=await checkAssessorPwd(pwd);
+    btn.disabled=false;btn.textContent='Entrar';
+    if(!ok){
+      document.getElementById('pwd-err').style.display='block';
+      document.getElementById('lpwd').value='';
+      return;
+    }
+    document.getElementById('pwd-err').style.display='none';
+  }
   const savedNome=localStorage.getItem('mppa_nome');
   CU=(v!=='assessor'&&savedNome)?savedNome:v;isA=(v==='assessor');
   document.getElementById('ls').style.display='none';
@@ -448,7 +575,7 @@ function doLogin(){
   document.getElementById('mc').style.display='flex';
   document.getElementById('ubadge').textContent=isA?'Assessor (PJ)':v;
   loadCfg();
-  if(isA){document.getElementById('tbb-est').style.display='';document.getElementById('aact').style.display='';}
+  if(isA){document.getElementById('tbb-est').style.display='';document.getElementById('tbb-rev').style.display='';document.getElementById('aact').style.display='';}
   else{
     document.getElementById('tbb-tri').style.display='none';document.getElementById('tbb-est').style.display='none';document.getElementById('aact').style.display='none';
     const nb=document.createElement('button');nb.className='tbb active';nb.id='tbb-mf';nb.innerHTML='Minha fila <span class="tb" id="tb-mf">—</span>';nb.onclick=function(){swTab('mf',this);};
@@ -459,7 +586,7 @@ function doLogin(){
   if(GSURL)syncLoad(false);else{updStats();renderAll();}
 }
 function doLogout(){CU=null;isA=false;document.getElementById('ls').style.display='flex';document.getElementById('sdb').style.display='none';document.getElementById('mc').style.display='none';document.getElementById('lsel').value='';document.getElementById('lbtn').disabled=true;const old=document.getElementById('tbb-mf');if(old)old.remove();}
-function swTab(n,el){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tbb').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='est')renderEst();if(n==='bx')renderBx();if(n==='mf')renderMF();}
+function swTab(n,el){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tbb').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='est')renderEst();if(n==='rev')renderRev();if(n==='bx')renderBx();if(n==='mf')renderMF();}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 function cpN(id,el){const n=procs[id].num;(navigator.clipboard?navigator.clipboard.writeText(n):Promise.reject()).catch(()=>{const ta=Object.assign(document.createElement('textarea'),{value:n,style:'position:fixed;opacity:0'});document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();});el.classList.add('cp');el.textContent='copiado ✓';toast('Copiado: '+n);setTimeout(()=>{el.classList.remove('cp');el.textContent=n;},1500);}
 function tog(id){document.getElementById('c-'+id)?.classList.toggle('open');}
@@ -475,29 +602,40 @@ function saveP(id){
   const sm=document.getElementById('sm-'+id);sm.classList.add('show');setTimeout(()=>sm.classList.remove('show'),2000);
   updStats();renderTri();syncSave();
 }
-function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';if(p.esSt==='concluido')p.ok=true;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
+function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
 function mrkBx(id){const p=procs[id];const obs=document.getElementById('bxoi-'+id)?.value||'';p.bxObs=obs;p.bxOk=true;p.ok=true;if(!p.bxDt)p.bxDt=hoje();syncSave();updStats();renderBx();renderAll();toast('Baixa registrada — '+p.num);}
 function updStats(){
-  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length;
+  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length;
   const cri=procs.filter(p=>p.cat.startsWith('Criminal')).length,civ=procs.filter(p=>p.cat.startsWith('Cível')).length,cie=procs.filter(p=>p.cat==='Mera ciência').length;
   const ant=procs.filter(p=>p.d>7&&!p.ok).length,pnd=procs.filter(p=>!p.ok).length;
   function s(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
-  s('st',procs.length);s('su',urg);s('sc2',done);s('sa',atr);s('sb2',bx);
-  s('n-all',procs.length);s('n-urg',urg);s('n-bx',bx);s('n-cri',cri);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
+  s('st',procs.length);s('su',urg);s('sc2',done);s('sa',atr);s('srev',rev);s('sb2',bx);
+  s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
   const pct=Math.round((done/procs.length)*100);
   document.getElementById('pf').style.width=pct+'%';document.getElementById('ptxt').textContent=done+' / '+procs.length+' concluídos';
-  s('tb-tri',procs.length);s('tb-est',atr);s('tb-bx',bx);
+  s('tb-tri',procs.length);s('tb-est',atr);s('tb-rev',rev);s('tb-bx',bx);
   const mf=document.getElementById('tb-mf');if(mf)mf.textContent=procs.filter(p=>p.atrib===CU&&!p.ok).length;
 }
 function sf(f,el){filt=f;document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));el.classList.add('active');renderTri();}
 function dtag(p){const d=p.d,c=d<=3?'fr':d<=7?'wk':'';return`<span class="mt t-d ${c}">${d}d</span>`;}
-function stag(p){if(p.urg)return'<span class="mt t-urg">Urgente</span>';if(p.bxOk||p.ok)return'<span class="mt t-ok">Concluído</span>';if(p.agBx)return'<span class="mt t-bx">Ag. baixa</span>';if(p.atrib)return`<span class="mt t-atr">${p.atrib}</span>`;if(p.cpl)return'<span class="mt t-cpl">Complexo</span>';return'<span class="mt t-pnd">Pendente</span>';}
+function stag(p){
+  if(p.urg)return'<span class="mt t-urg">Urgente</span>';
+  if(p.bxOk||p.ok)return'<span class="mt t-ok">Concluído</span>';
+  if(p.esSt==='minuta pronta')return'<span class="mt" style="background:#faf5ff;color:#6d28d9;font-weight:600">📄 Minuta pronta</span>';
+  if(p.esSt==='revisao')return'<span class="mt" style="background:#ede9fe;color:#5b21b6;font-weight:600">🔍 Em revisão</span>';
+  if(p.esSt==='protocolo')return'<span class="mt" style="background:#dcfce7;color:#166534">📬 Em protocolo</span>';
+  if(p.esSt==='aguardando minuta')return'<span class="mt" style="background:#fef9c3;color:#854d0e">✍ Ag. minuta</span>';
+  if(p.agBx)return'<span class="mt t-bx">Ag. baixa</span>';
+  if(p.atrib)return`<span class="mt t-atr">${p.atrib}</span>`;
+  if(p.cpl)return'<span class="mt t-cpl">Complexo</span>';
+  return'<span class="mt t-pnd">Pendente</span>';
+}
 function ctag(p){if(!p.cat||p.cat==='— Selecionar —')return'';if(p.cat.startsWith('Criminal'))return'<span class="mt t-cri">Criminal</span>';if(p.cat.startsWith('Cível'))return'<span class="mt t-civ">Cível</span>';if(p.cat==='Mera ciência')return'<span class="mt t-cie">Mera ciência</span>';return'';}
 function summ(p){if(p.iaStatus==='loading')return'<span class="spin"></span> Analisando...';if(p.cat&&p.cat!=='— Selecionar —')return'<strong>'+p.cat+'</strong>'+(p.cmd?' — '+p.cmd.substring(0,58)+(p.cmd.length>58?'…':''):'');return'Aguardando classificação';}
 function getFilt(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   const s=document.getElementById('srt')?.value||'ent_asc';
-  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q))return false;if(filt==='urg')return p.urg;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
+  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q))return false;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
   if(s==='urg')l=[...l].sort((a,b)=>b.urg-a.urg);else if(s==='ent_desc')l=[...l].sort((a,b)=>b.ent-a.ent);else if(s==='dias')l=[...l].sort((a,b)=>b.d-a.d);else if(s==='pnd')l=[...l].sort((a,b)=>a.ok-b.ok);else l=[...l].sort((a,b)=>a.ent-b.ent);
   return l;
 }
@@ -528,10 +666,10 @@ function renderTri(){
         <div class="fr1"><label class="fl">Comando de minuta</label><textarea class="fc" id="cmd-${p.id}" placeholder="Instrução objetiva para o responsável...">${p.cmd}</textarea></div>
         <div class="sblk sblk-b"><div class="sblk-t">👤 Atribuição ao estagiário</div>
           <div class="fr" style="margin-top:0"><div><label class="fl">Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div>
-          <div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}"><option value="pendente" ${p.esSt==='pendente'?'selected':''}>Pendente</option><option value="em andamento" ${p.esSt==='em andamento'?'selected':''}>Em andamento</option><option value="revisão" ${p.esSt==='revisão'?'selected':''}>Em revisão</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>Concluído</option></select></div></div>
+          <div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Aguardando minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Em protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select></div></div>
         </div>
         ${bxS}
-        <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span>
+        <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span><button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);margin-left:6px" onclick="confirmDelete(${p.id})">🗑 Apagar</button>
           <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'||batching?'disabled':''}>${ibl} IA</button>
         </div>
       </div>
@@ -540,7 +678,7 @@ function renderTri(){
 }
 function renderEst(){
   const el=document.getElementById('estlists');if(!el)return;
-  const stL={'pendente':'🕐 Pendente','em andamento':'⚡ Em andamento','revisão':'🔍 Em revisão','concluido':'✓ Concluído'};
+  const stL={'triagem':'📋 Triagem','atribuido':'👤 Atribuído','aguardando minuta':'✍ Aguardando minuta','minuta pronta':'📄 Minuta pronta','revisao':'🔍 Em revisão','protocolo':'📬 Em protocolo','concluido':'✓ Concluído','pendente':'📋 Triagem'};
   el.innerHTML=ESTAGS.map(nome=>{
     const tasks=procs.filter(p=>p.atrib===nome);
     const pend=tasks.filter(p=>p.esSt!=='concluido'&&!p.ok),done=tasks.filter(p=>p.esSt==='concluido'||p.ok);
@@ -572,9 +710,9 @@ function tkC(p,done=false){
     <div class="tkcat">${p.cat||'Categoria a definir'}</div>
     ${p.cmd?`<div class="tkcmd">${p.cmd}</div>`:''}
     ${!done?`<div style="margin-top:8px"><label class="fl">Observação / andamento</label><textarea class="tkof" id="esob-${p.id}" placeholder="Descreva o andamento ou conclusão...">${p.esObs||''}</textarea></div>
-    <div class="tka"><select class="fc" id="esst-${p.id}" style="width:auto;font-size:12px;padding:5px 8px"><option value="pendente" ${p.esSt==='pendente'?'selected':''}>Pendente</option><option value="em andamento" ${p.esSt==='em andamento'?'selected':''}>Em andamento</option><option value="revisão" ${p.esSt==='revisão'?'selected':''}>Em revisão</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>Concluído</option></select>
+    <div class="tka"><select class="fc" id="esst-${p.id}" style="width:auto;font-size:12px;padding:5px 8px"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Aguardando minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Em protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select>
     <button class="btn btn-sm btn-p" onclick="saveET(${p.id})">Salvar</button>
-    <button class="btn btn-sm btn-g" onclick="document.getElementById('esst-${p.id}').value='concluido';saveET(${p.id})">✓ Feito</button></div>`
+    <button class="btn btn-sm" style="background:#7c3aed;color:#fff;border:none;cursor:pointer;font-family:var(--f);padding:5px 12px;border-radius:var(--r);font-size:12px" onclick="document.getElementById('esst-${p.id}').value='minuta pronta';saveET(${p.id})">📄 Minuta pronta</button><button class="btn btn-sm btn-g" onclick="document.getElementById('esst-${p.id}').value='concluido';saveET(${p.id})">✓ Concluído</button></div>`
     :`<div style="font-size:11px;color:#16a34a;margin-top:5px;font-weight:500">✓ Concluído${p.esObs?' — <em style=color:#64748b>'+p.esObs+'</em>':''}</div>`}
   </div>`;
 }
@@ -623,6 +761,126 @@ function exportCSV(){
   procs.forEach(p=>lines.push([p.num,p.dtStr,p.d,p.yr,p.vr,(p.cat||'').replace(/,/g,';'),(p.resp||'').replace(/,/g,';'),(p.atrib||''),(p.esSt||''),p.prazo,p.urg?'Sim':'Não',p.cpl?'Sim':'Não',p.ok?'Sim':'Não',p.agBx?'Sim':'Não',p.bxOk?'Sim':'Não',(p.bxObs||'').replace(/,/g,';'),(p.cmd||'').replace(/,/g,';').replace(/\n/g,' ')].join(',')));
   const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'triagem_mppa.csv'}).click();toast('CSV exportado');
 }
+
+function renderRev(){
+  const el=document.getElementById('revlist');if(!el)return;
+  const revs=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok);
+  if(!revs.length){el.innerHTML='<div class="empty">Nenhuma minuta aguardando revisão.</div>';return;}
+  el.innerHTML=revs.map(p=>`<div class="bcard${p.urg?' bd':''}">
+    <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+        <button class="pnb" onclick="cpN(${p.id},this)">${p.num}</button>
+        <span class="mt t-yr">${p.yr}</span>${p.urg?'<span class="mt t-urg">Urgente</span>':''}${ctag(p)}
+        ${p.atrib?`<span class="mt t-atr">${p.atrib}</span>`:''}
+      </div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:3px">${p.cat||'Sem categoria'}</div>
+      ${p.cmd?`<div style="font-size:11px;color:var(--tx);background:#f8f9fb;border-left:3px solid #c7d2fe;padding:5px 10px;margin-bottom:6px;border-radius:0 4px 4px 0;line-height:1.5">${p.cmd}</div>`:''}
+      ${p.esObs?`<div style="font-size:11px;color:var(--txm);margin-bottom:6px;font-style:italic">Obs do estagiário: ${p.esObs}</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn btn-p btn-sm" onclick="avancarStatus(${p.id},'protocolo')">📬 Aprovar → Protocolo</button>
+        <button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);padding:5px 12px;border-radius:var(--r);font-size:12px" onclick="avancarStatus(${p.id},'aguardando minuta')">↩ Devolver ao estagiário</button>
+      </div>
+    </div></div>
+  </div>`).join('');
+}
+
+function avancarStatus(id, novoStatus){
+  procs[id].esSt=novoStatus;
+  if(novoStatus==='concluido')procs[id].ok=true;
+  syncSave();updStats();renderRev();renderTri();
+  toast('Status atualizado: '+procs[id].num);
+}
+
+function confirmDelete(id){
+  const p=procs[id];
+  if(!confirm('Apagar o processo '+p.num+'?\n\nEssa ação não pode ser desfeita.'))return;
+  procs.splice(id,1);
+  // Reindex
+  procs.forEach((p,i)=>p.id=i);
+  syncSave();updStats();renderAll();
+  toast('Processo apagado.');
+}
+
+
+function parseBulkLine(line){
+  // Handles: tab-separated, space-separated, multiple columns
+  // Format expected: DD/MM/YYYY HH:MM:SS<TAB>NUMERO or NUMERO only
+  // Also handles SAJ export with many columns: A B C D E F DATE NUM
+  const parts=line.split('\t');
+  if(parts.length>=2){
+    // Find the date (DD/MM/YYYY format) and number (NNNNNNN-NN.NNNN... format)
+    let dtStr='',num='';
+    for(const p of parts){
+      const t=p.trim();
+      if(!dtStr&&/^\d{2}\/\d{2}\/\d{4}/.test(t))dtStr=t;
+      if(!num&&/^\d{7,}-\d{2}\.\d{4}/.test(t))num=t;
+    }
+    if(num)return{dtStr:dtStr||parts[0].trim(),num};
+  }
+  // Single column — just a number
+  const t=line.trim();
+  if(/^\d{7,}-\d{2}\.\d{4}/.test(t))return{dtStr:'',num:t};
+  return null;
+}
+function parseBulk(){
+  const text=document.getElementById('bulk-text').value.trim();
+  if(!text){document.getElementById('bulk-preview').textContent='';document.getElementById('bulk-save').disabled=true;return;}
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  let valid=0,skip=0;
+  lines.forEach(line=>{
+    const parts=parseBulkLine(line);
+    if(parts){
+      if(procs.some(p=>p.num===parts.num))skip++;
+      else valid++;
+    }
+  });
+  const el=document.getElementById('bulk-preview');
+  el.textContent=valid+' processo(s) a importar'+( skip>0?' · '+skip+' já existem (serão ignorados)':'');
+  el.style.color=valid>0?'#16a34a':'#dc2626';
+  document.getElementById('bulk-save').disabled=valid===0;
+}
+function doBulkImport(){
+  const text=document.getElementById('bulk-text').value.trim();
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  let added=0;
+  lines.forEach(line=>{
+    const parts=parseBulkLine(line);
+    if(!parts)return;
+    const{dtStr,num}=parts;
+    if(!num||procs.some(p=>p.num===num))return;
+    const yr=num.match(/\.(?<y>\d{4})\./)?.[1]||String(new Date().getFullYear());
+    const vr=num.match(/\.(\d{4})$/)?.[1]||'0042';
+    let ent;
+    try{
+      const[d,m,y]=dtStr.split(' ')[0].split('/');
+      const t=dtStr.split(' ')[1]||'00:00:00';
+      ent=new Date(`${y}-${m}-${d}T${t}`);
+    }catch(e){ent=new Date();}
+    const d2=dias(ent);
+    procs.push({
+      id:procs.length,num,yr,vr,ent,dtStr,d:d2,
+      cat:'',resp:'',prazo:'',urg:false,cpl:false,ok:false,
+      obs:'',cmd:'',iaStatus:'idle',
+      atrib:'',esObs:'',esSt:'triagem',
+      agBx:false,bxOk:false,bxDt:'',bxObs:''
+    });
+    added++;
+  });
+  document.getElementById('bulk-modal').classList.remove('open');
+  syncSave();updStats();renderAll();
+  toast(added+' processo(s) importados com sucesso');
+}
+
+
+async function savePwdToSheets(hash){
+  if(!GSURL)return;
+  try{
+    await fetch(GSURL,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'saveConfig',pwdHash:hash})});
+  }catch(e){}
+}
+
 function renderAll(){renderTri();}
 
 function openAddModal(){
@@ -662,6 +920,11 @@ function doAddProc(){
   toast('Processo adicionado: '+num);
 }
 loadCfg();
+// Pre-seed password hash if not set (first run)
+if(!localStorage.getItem('mppa_pwd_hash')){
+  localStorage.setItem('mppa_pwd_hash','5658e37e');
+  localStorage.setItem('mppa_pwd_at','0'); // force refresh from Sheets on next login
+}
 </script>
 </body>
 </html>
