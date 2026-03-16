@@ -801,17 +801,15 @@ function renderTriGrouped(fl,wo,co,ro,ao){
   // Group by category
   const groups={};
   fl.forEach(p=>{
-    const key=p.cat&&p.cat!==''&&p.cat!=='— Selecionar —'?p.cat:'📥 Sem categoria';
+    const key=(p.cat&&p.cat!==''&&p.cat!=='— Selecionar —')?p.cat:'📥 Sem categoria';
     if(!groups[key])groups[key]=[];
     groups[key].push(p);
   });
-  // Sort groups: sem categoria last, rest alphabetical
   const sortedKeys=Object.keys(groups).sort((a,b)=>{
     if(a==='📥 Sem categoria')return 1;
     if(b==='📥 Sem categoria')return -1;
     return a.localeCompare(b,'pt-BR');
   });
-  // Color map for group headers
   const groupColor=cat=>{
     if(cat.startsWith('Criminal'))return{bg:'#dbeafe',cl:'#1e40af',br:'#93c5fd'};
     if(cat.startsWith('Execução Penal'))return{bg:'#fce7f3',cl:'#9d174d',br:'#f9a8d4'};
@@ -821,51 +819,63 @@ function renderTriGrouped(fl,wo,co,ro,ao){
     if(cat==='📥 Sem categoria')return{bg:'#fef9c3',cl:'#854d0e',br:'#fde047'};
     return{bg:'#f1f5f9',cl:'#374151',br:'#d1d5db'};
   };
+  // Render group headers only — cards will be rendered inside each group div
   let html='';
   sortedKeys.forEach(key=>{
     const group=groups[key];
     const {bg,cl,br}=groupColor(key);
-    html+=`<div style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${bg};border-radius:var(--r);border-left:4px solid ${br};margin-bottom:8px;cursor:pointer" onclick="toggleGroupSection('grp-${key.replace(/[^a-z0-9]/gi,'_')}')">
-        <span style="font-size:12px;font-weight:700;color:${cl};flex:1">${key}</span>
-        <span style="font-size:11px;font-weight:600;background:rgba(0,0,0,.08);color:${cl};padding:2px 8px;border-radius:99px">${group.length}</span>
-        <button class="btn btn-b btn-xs" style="font-size:10px;padding:3px 8px" onclick="event.stopPropagation();batchIAGroup(${JSON.stringify(group.map(p=>p.id))})" title="Analisar grupo com IA">IA ↗</button>
-        <span style="color:${cl};font-size:14px" id="grp-chv-${key.replace(/[^a-z0-9]/gi,'_')}">⌄</span>
-      </div>
-      <div class="plist" id="grp-${key.replace(/[^a-z0-9]/gi,'_')}">
-        ${group.map(p=>{
-          const op=wo.has(String(p.id));
-          const bc=p.urg?' urg':p.bxOk||p.ok?' done':p.agBx?' bx':p.cpl?' cpl':p.d>7&&!p.ok?' ant':p.atrib?' atr':'';
-          const ibl=p.iaStatus==='loading'?'<span class="spin"></span>':'IA ↗';
-          const bxS=p.agBx?`<div class="sblk sblk-p"><div class="sblk-t">🗂 Aguardando baixa no sistema</div>${p.bxOk?`<div style="font-size:12px;color:#5b21b6"><strong>✓ Baixa registrada</strong> em ${p.bxDt}${p.bxObs?' · '+p.bxObs:''}</div>`:`<div class="fr1"><label class="fl">Observação</label><input class="fc" type="text" id="bxobs-${p.id}" placeholder="Ex: enviado por malote em 15/03" value="${p.bxObs}"></div><div style="margin-top:10px"><button class="btn btn-pu btn-sm" onclick="mrkBx(${p.id})">✓ Registrar baixa</button></div>`}</div>`:'';
-          return \`<div class="pc\${bc}\${op?' open':''}" id="c-\${p.id}">
-            <div class="ch" onclick="tog(\${p.id})">
-              <input type="checkbox" class="pc-cb" id="cb-\${p.id}" onclick="event.stopPropagation();toggleSelect(\${p.id},this)">
-              <button class="pnb" id="nb-\${p.id}" onclick="event.stopPropagation();cpN(\${p.id},this)">\${p.num}</button>
-              <div class="cmeta"><span class="mt t-yr">\${p.yr}</span><span class="mt t-vr">\${p.vr}</span>\${dtag(p)}\${stag(p)}</div>
-              <div class="csum">\${summ(p)}</div>
-              <span class="cent">\${fdt(p.ent)}</span><span class="cchv">⌄</span>
-            </div>
-            <div class="cb-body">
-              <div class="ei"><div class="ei-r"><div class="ei-i"><strong>Entrada:</strong> \${p.dtStr}</div><div class="ei-i"><strong>Espera:</strong> \${p.d}d</div><div class="ei-i"><strong>Vara:</strong> \${p.vr}</div><div class="ei-i"><strong>Ano:</strong> \${p.yr}</div></div></div>
-              <div class="fr"><div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-\${p.id}">\${co(p.id)}</select></div><div><label class="fl">Responsável</label><select class="fc" id="resp-\${p.id}">\${ro(p.id)}</select></div></div>
-              <div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-\${p.id}" value="\${p.prazo}"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-\${p.id}" \${p.urg?'checked':''}> Urgente</label><label class="fi"><input type="checkbox" id="cpl-\${p.id}" \${p.cpl?'checked':''}> Complexo</label><label class="fi"><input type="checkbox" id="ok-\${p.id}" \${p.ok?'checked':''}> Concluído</label><label class="fi"><input type="checkbox" id="agbx-\${p.id}" \${p.agBx?'checked':''}> Ag. baixa</label></div></div></div>
-              <div class="fr1"><label class="fl">Relatório do Processo</label><textarea class="fc" id="obs-\${p.id}" placeholder="Histórico, partes envolvidas, andamento, contexto relevante...">\${p.obs}</textarea></div>
-              <div class="fr1"><label class="fl">Prompt / Comando de IA</label><textarea class="fc" id="cmd-\${p.id}" placeholder="Instrução completa para gerar a minuta via IA..." style="min-height:80px">\${p.cmd}</textarea></div>
-              <div class="fr1"><label class="fl">🔗 Link da minuta / Localização no SAJ</label><div style="display:flex;gap:8px;align-items:center"><input class="fc" type="text" id="lnk-\${p.id}" placeholder="Ex: https://docs.google.com/... ou 'SAJ — Petição 1234'" value="\${p.lnk||''}" style="flex:1">\${p.lnk?`<a href="\${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb;white-space:nowrap;flex-shrink:0">↗ Abrir</a>`:''}</div></div>
-              <div class="fr" style="margin-top:12px"><div><label class="fl">👤 Atribuir para</label><select class="fc" id="atr-\${p.id}">\${ao(p.id)}</select></div><div><label class="fl">Status</label><select class="fc" id="esst-d-\${p.id}"><option value="triagem" \${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" \${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" \${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option><option value="minuta pronta" \${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" \${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" \${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option><option value="concluido" \${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select></div></div>
-              \${bxS}
-              <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(\${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-\${p.id}">✓ Salvo</span><button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);margin-left:6px" onclick="confirmDelete(\${p.id})">🗑 Apagar</button>
-                <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-\${p.id}" onclick="iaOne(\${p.id})" \${p.iaStatus==='loading'||batching?'disabled':''}>\${ibl} IA</button>
-              </div>
-            </div>
-          </div>\`;
-        }).join('')}
-      </div>
-    </div>`;
+    const safeId='grp-'+key.replace(/[^a-z0-9]/gi,'_');
+    const idsJson=JSON.stringify(group.map(p=>p.id));
+    html+='<div style="margin-bottom:20px">';
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:'+bg+';border-radius:var(--r);border-left:4px solid '+br+';margin-bottom:8px;cursor:pointer" onclick="toggleGroupSection(''+safeId+'')">';
+    html+='<span style="font-size:12px;font-weight:700;color:'+cl+';flex:1">'+key+'</span>';
+    html+='<span style="font-size:11px;font-weight:600;background:rgba(0,0,0,.08);color:'+cl+';padding:2px 8px;border-radius:99px">'+group.length+'</span>';
+    html+='<button class="btn btn-b btn-xs" style="font-size:10px;padding:3px 8px" onclick="event.stopPropagation();batchIAGroup('+idsJson+')" title="Analisar grupo com IA">IA ↗</button>';
+    html+='<span style="color:'+cl+';font-size:14px" id="chv-'+safeId+'">⌄</span>';
+    html+='</div>';
+    html+='<div class="plist" id="'+safeId+'" data-ids="'+idsJson.replace(/"/g,"'")+'"></div>';
+    html+='</div>';
   });
   el.innerHTML=html;
+  // Now render each group's cards using the normal card renderer
+  sortedKeys.forEach(key=>{
+    const group=groups[key];
+    const safeId='grp-'+key.replace(/[^a-z0-9]/gi,'_');
+    const groupEl=document.getElementById(safeId);
+    if(!groupEl)return;
+    groupEl.innerHTML=group.map(p=>{
+      const op=wo.has(String(p.id));
+      const bc=p.urg?' urg':p.bxOk||p.ok?' done':p.agBx?' bx':p.cpl?' cpl':p.d>7&&!p.ok?' ant':p.atrib?' atr':'';
+      const ibl=p.iaStatus==='loading'?'<span class="spin"></span>':'IA ↗';
+      const bxS=p.agBx?('<div class="sblk sblk-p"><div class="sblk-t">🗂 Aguardando baixa no sistema</div>'+(p.bxOk?'<div style="font-size:12px;color:#5b21b6"><strong>✓ Baixa registrada</strong> em '+p.bxDt+(p.bxObs?' · '+p.bxObs:'')+'</div>':'<div class="fr1"><label class="fl">Observação</label><input class="fc" type="text" id="bxobs-'+p.id+'" placeholder="Ex: enviado por malote em 15/03" value="'+p.bxObs+'"></div><div style="margin-top:10px"><button class="btn btn-pu btn-sm" onclick="mrkBx('+p.id+')">✓ Registrar baixa</button></div>')+'</div>'):'';
+      return '<div class="pc'+bc+(op?' open':'')+'" id="c-'+p.id+'">'
+        +'<div class="ch" onclick="tog('+p.id+')">'
+        +'<input type="checkbox" class="pc-cb" id="cb-'+p.id+'" onclick="event.stopPropagation();toggleSelect('+p.id+',this)">'
+        +'<button class="pnb" id="nb-'+p.id+'" onclick="event.stopPropagation();cpN('+p.id+',this)">'+p.num+'</button>'
+        +'<div class="cmeta"><span class="mt t-yr">'+p.yr+'</span><span class="mt t-vr">'+p.vr+'</span>'+dtag(p)+stag(p)+ctag(p)+'</div>'
+        +'<div class="csum">'+summ(p)+'</div>'
+        +'<span class="cent">'+fdt(p.ent)+'</span><span class="cchv">⌄</span>'
+        +'</div>'
+        +'<div class="cb-body">'
+        +'<div class="ei"><div class="ei-r"><div class="ei-i"><strong>Entrada:</strong> '+p.dtStr+'</div><div class="ei-i"><strong>Espera:</strong> '+p.d+'d</div><div class="ei-i"><strong>Vara:</strong> '+p.vr+'</div><div class="ei-i"><strong>Ano:</strong> '+p.yr+'</div></div></div>'
+        +'<div class="fr"><div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-'+p.id+'">'+co(p.id)+'</select></div><div><label class="fl">Responsável</label><select class="fc" id="resp-'+p.id+'">'+ro(p.id)+'</select></div></div>'
+        +'<div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-'+p.id+'" value="'+p.prazo+'"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-'+p.id+'" '+(p.urg?'checked':'')+'> Urgente</label><label class="fi"><input type="checkbox" id="cpl-'+p.id+'" '+(p.cpl?'checked':'')+'> Complexo</label><label class="fi"><input type="checkbox" id="ok-'+p.id+'" '+(p.ok?'checked':'')+'> Concluído</label><label class="fi"><input type="checkbox" id="agbx-'+p.id+'" '+(p.agBx?'checked':'')+'>  Ag. baixa</label></div></div></div>'
+        +'<div class="fr1"><label class="fl">Relatório do Processo</label><textarea class="fc" id="obs-'+p.id+'" placeholder="Histórico, partes envolvidas, andamento...">'+p.obs+'</textarea></div>'
+        +'<div class="fr1"><label class="fl">Prompt / Comando de IA</label><textarea class="fc" id="cmd-'+p.id+'" placeholder="Instrução para gerar a minuta via IA..." style="min-height:80px">'+p.cmd+'</textarea></div>'
+        +'<div class="fr1"><label class="fl">🔗 Link da minuta / SAJ</label><div style="display:flex;gap:8px;align-items:center"><input class="fc" type="text" id="lnk-'+p.id+'" placeholder="Cole o link ou localização no SAJ" value="'+(p.lnk||'')+'" style="flex:1">'+(p.lnk?'<a href="'+p.lnk+'" target="_blank" style="font-size:11px;color:#2563eb;white-space:nowrap">↗ Abrir</a>':'')+'</div></div>'
+        +'<div class="fr" style="margin-top:12px"><div><label class="fl">👤 Atribuir para</label><select class="fc" id="atr-'+p.id+'">'+ao(p.id)+'</select></div>'
+        +'<div><label class="fl">Status</label><select class="fc" id="esst-d-'+p.id+'"><option value="triagem" '+(p.esSt==='triagem'||p.esSt==='pendente'?'selected':'')+'>📋 Triagem</option><option value="atribuido" '+(p.esSt==='atribuido'?'selected':'')+'>👤 Atribuído</option><option value="aguardando minuta" '+(p.esSt==='aguardando minuta'?'selected':'')+'>✍ Ag. minuta</option><option value="minuta pronta" '+(p.esSt==='minuta pronta'?'selected':'')+'>📄 Minuta pronta</option><option value="revisao" '+(p.esSt==='revisao'?'selected':'')+'>🔍 Em revisão</option><option value="registro saj" '+(p.esSt==='registro saj'?'selected':'')+'>📝 Registro SAJ</option><option value="protocolo" '+(p.esSt==='protocolo'?'selected':'')+'>📬 Protocolo</option><option value="concluido" '+(p.esSt==='concluido'?'selected':'')+'>✓ Concluído</option></select></div></div>'
+        +bxS
+        +'<div class="fa"><button class="btn btn-p btn-sm" onclick="saveP('+p.id+')">Salvar e sincronizar</button><span class="sm" id="sm-'+p.id+'">✓ Salvo</span>'
+        +'<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);margin-left:6px" onclick="confirmDelete('+p.id+')">🗑 Apagar</button>'
+        +'<button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-'+p.id+'" onclick="iaOne('+p.id+')" '+(p.iaStatus==='loading'||batching?'disabled':'')+'>'+ibl+' IA</button>'
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+  });
 }
+
 function toggleGroupSection(id){
   const el=document.getElementById(id);
   const chv=document.getElementById('grp-chv-'+id.replace('grp-',''));
