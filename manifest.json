@@ -1,0 +1,26 @@
+{
+  "name": "Triagem de Processos — MPPA",
+  "short_name": "Triagem MPPA",
+  "description": "Sistema de triagem de processos judiciais — Promotoria de Ponta de Pedras",
+  "start_url": "/mppa/",
+  "scope": "/mppa/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a2744",
+  "theme_color": "#1a2744",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
