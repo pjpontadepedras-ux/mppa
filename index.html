@@ -518,7 +518,8 @@ function mkP(sv){
 }
 let procs=mkP(null),CU=null,isA=false,filt='all',batching=false,GSURL='',APIKEY='',ACCESS_CODE='',groupMode=false;
 function loadCfg(){
-  GSURL=localStorage.getItem('mppa_gs')||'';
+  const EMBEDDED_URL='https://script.google.com/macros/s/AKfycbwY9TO6Cr2Vy3SLtwk1Kxrwtcc3O_k7bVbeSrJc7YjBWJc_vSE5gqiGmHAuXi4dRcO/exec';
+  GSURL=localStorage.getItem('mppa_gs')||EMBEDDED_URL||'';
   APIKEY=localStorage.getItem('mppa_ak')||'';
   ACCESS_CODE=localStorage.getItem('mppa_code')||'';
   const nome=localStorage.getItem('mppa_nome')||'';
@@ -1592,6 +1593,10 @@ loadCfg();
 // Auto-sync a cada 60s para manter dados atualizados
 setInterval(()=>{if(GSURL&&document.visibilityState==='visible')syncLoad(false);},60000);
 
+// Pre-seed Apps Script URL if not set
+if(!localStorage.getItem('mppa_gs')){
+  localStorage.setItem('mppa_gs','https://script.google.com/macros/s/AKfycbwY9TO6Cr2Vy3SLtwk1Kxrwtcc3O_k7bVbeSrJc7YjBWJc_vSE5gqiGmHAuXi4dRcO/exec');
+}
 // Pre-seed password hash if not set (first run)
 if(!localStorage.getItem('mppa_pwd_hash')){
   localStorage.setItem('mppa_pwd_hash','5658e37e');
