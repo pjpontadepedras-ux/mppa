@@ -58,7 +58,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .ni:hover{background:var(--sb-hv)}.ni.active{background:var(--sb-ac)}
 .nil{display:flex;align-items:center;gap:8px}
 .nd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.d-all{background:#6b7faa}.d-urg{background:#f87171}.d-cri{background:#60a5fa}.d-civ{background:#34d399}.d-cie{background:#a3a3a3}.d-cpl{background:#fbbf24}.d-ant{background:#f97316}.d-bx{background:#a78bfa}.d-ok{background:#4ade80}.d-pnd{background:#94a3b8}
+.d-all{background:#6b7faa}.d-urg{background:#f87171}.d-cri{background:#60a5fa}.d-ep{background:#f472b6}.d-civ{background:#34d399}.d-cie{background:#a3a3a3}.d-cpl{background:#fbbf24}.d-ant{background:#f97316}.d-bx{background:#a78bfa}.d-ok{background:#4ade80}.d-pnd{background:#94a3b8}
 .nl{font-size:13px;color:var(--sb-t)}
 .nc{font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:var(--sb-m);padding:1px 7px;border-radius:99px;min-width:26px;text-align:center}
 .ni.active .nc{background:rgba(255,255,255,.18);color:var(--sb-t)}
@@ -96,7 +96,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .t-d{background:#fee2e2;color:#9a3412;font-weight:600}.t-d.fr{background:#f0fdf4;color:#166534}.t-d.wk{background:#fefce8;color:#854d0e}
 .t-pnd{background:#fef3c7;color:#92400e}.t-ok{background:#dcfce7;color:#166534}.t-urg{background:#fee2e2;color:#991b1b}
 .t-cpl{background:#fef9c3;color:#854d0e}.t-bx{background:#ede9fe;color:#5b21b6}.t-atr{background:#e0f2fe;color:#075985}
-.t-cri{background:#dbeafe;color:#1e40af}.t-civ{background:#d1fae5;color:#065f46}.t-cie{background:#f1f5f9;color:#475569}
+.t-cri{background:#dbeafe;color:#1e40af}.t-ep{background:#fce7f3;color:#9d174d}.t-ali{background:#ffedd5;color:#9a3412}.t-civ{background:#d1fae5;color:#065f46}.t-cie{background:#f1f5f9;color:#475569}
 .csum{flex:1;font-size:12px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:0}
 .csum strong{color:var(--tx);font-weight:500}
 .cent{font-size:11px;color:var(--txm);white-space:nowrap;flex-shrink:0}
@@ -268,6 +268,8 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <div class="ni" onclick="sf('rev',this)"><div class="nil"><span class="nd" style="background:#a78bfa"></span><span class="nl">Ag. revisão</span></div><span class="nc" id="n-rev">0</span></div>
     <div class="ni" onclick="sf('bx',this)"><div class="nil"><span class="nd d-bx"></span><span class="nl">Ag. baixa</span></div><span class="nc" id="n-bx">0</span></div>
     <div class="ni" onclick="sf('cri',this)"><div class="nil"><span class="nd d-cri"></span><span class="nl">Criminal</span></div><span class="nc" id="n-cri">0</span></div>
+    <div class="ni" onclick="sf('ep',this)"><div class="nil"><span class="nd" style="background:#f472b6"></span><span class="nl">Execução Penal</span></div><span class="nc" id="n-ep">0</span></div>
+    <div class="ni" onclick="sf('ali',this)"><div class="nil"><span class="nd" style="background:#fb923c"></span><span class="nl">Alimentos</span></div><span class="nc" id="n-ali">0</span></div>
     <div class="ni" onclick="sf('civ',this)"><div class="nil"><span class="nd d-civ"></span><span class="nl">Cível</span></div><span class="nc" id="n-civ">0</span></div>
     <div class="ni" onclick="sf('cie',this)"><div class="nil"><span class="nd d-cie"></span><span class="nl">Mera ciência</span></div><span class="nc" id="n-cie">0</span></div>
     <div class="ni" onclick="sf('ant',this)"><div class="nil"><span class="nd d-ant"></span><span class="nl">Entrada &gt;7d</span></div><span class="nc" id="n-ant">0</span></div>
@@ -290,7 +292,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button class="tbb active" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
       <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
       <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
-      <button class="tbb" id="tbb-proto" onclick="swTab('proto',this)" style="display:none">Em protocolo <span class="tb" id="tb-proto">0</span></button>
+      <button class="tbb" id="tbb-proto" onclick="swTab('proto',this)" style="display:none">SAJ & Protocolo <span class="tb" id="tb-proto">0</span></button>
       <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa no sistema <span class="tb" id="tb-bx">0</span></button>
       <button class="tbb btn-sm btn-gh" style="margin-left:auto;border-bottom:none;font-size:11px;padding:8px 10px" onclick="syncLoad(true)" title="Recarregar dados">↻</button>
     </div>
@@ -357,8 +359,8 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
   <div class="tc" id="tab-proto">
     <div class="content">
       <div style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;color:var(--tx)">📬 Em protocolo — aguardando protocolamento</div>
-        <div style="font-size:12px;color:var(--txm);margin-top:2px">Minutas aprovadas pelo assessor — pendentes de protocolo no sistema</div>
+        <div style="font-size:14px;font-weight:600;color:var(--tx)">📝 Registro SAJ & Protocolo</div>
+        <div style="font-size:12px;color:var(--txm);margin-top:2px">Minutas aprovadas — pendentes de registro no SAJ e/ou protocolo</div>
       </div>
       <div id="protolist"></div>
     </div>
@@ -422,7 +424,7 @@ function pBR(s){const[d,m,y]=s.split(' ')[0].split('/');return new Date(`${y}-${
 function dias(dt){return Math.floor((HOJE()-dt)/86400000);}
 function fdt(dt){return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();}
 function hoje(){return new Date().toISOString().split('T')[0];}
-const CATS=['— Selecionar —','Mera ciência','Criminal — Representação de delegado (prisão/cautelar)','Criminal — Análise de IPL: minutar denúncia','Criminal — Análise de IPL: diligências','Criminal — Manifestação sobre resposta à acusação','Criminal — Alegações finais','Criminal — Manifestação sobre medida protetiva','Criminal — Contrarrazões de apelação','Cível — Manifestação sobre tutela provisória','Cível — Manifestação final (custos legis)','Outro / Complexo'];
+const CATS=['— Selecionar —','Mera ciência','Criminal — Representação de delegado (prisão/cautelar)','Criminal — Denúncia','Criminal — Análise de TCO','Criminal — Análise de TCO | Criminal — Análise de IPL: minutar denúncia','Criminal — Análise de IPL: diligências','Criminal — Manifestação sobre resposta à acusação','Criminal — Alegações finais','Criminal — Manifestação sobre medida protetiva','Criminal — Contrarrazões de apelação','Criminal — Recurso em sentido estrito','Criminal — Habeas corpus','Execução Penal — Manifestação','Execução Penal — Incidente','Execução Penal — Progressão/Regressão de regime','Execução Penal — Livramento condicional','Execução Penal — Extinção de punibilidade','Alimentos — Cumprimento de sentença: manifestação','Alimentos — Cumprimento de sentença: impugnação','Alimentos — Cumprimento de sentença: habilitação de crédito','Alimentos — Pedido de prisão civil','Cível — Manifestação sobre tutela provisória','Cível — Manifestação final (custos legis)','Cível — Contrarrazões de apelação','Cível — Contrarrazões de recurso especial','Aguardando baixa no sistema','Pesquisa de endereço | Aguardando baixa no sistema | Outro / Complexo'];
 function getRESPS(){return['— Selecionar —','Assessor jurídico (PJ)',...getEstags(),'Promotora (Dra. Francys Lucy)'];}
 function getEstags(){
   return [
@@ -675,14 +677,38 @@ function saveP(id){
   updStats();renderTri();syncSave();
 }
 function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';const lnkEs=document.getElementById('lnk-es-'+id);if(lnkEs)p.lnk=lnkEs.value||'';if(p.esSt==='concluido'){if(!confirm('Confirmar conclusão de '+p.num+'?'))return;}if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
-function mrkBx(id){const p=procs[id];const obs=document.getElementById('bxoi-'+id)?.value||'';p.bxObs=obs;p.bxOk=true;p.ok=true;if(!p.bxDt)p.bxDt=hoje();syncSave();updStats();renderBx();renderAll();toast('Baixa registrada — '+p.num);}
+function mrkBx(id){
+  const p=procs[id];
+  const obs=document.getElementById('bxoi-'+id)?.value||'';
+  p.bxObs=obs;p.bxOk=true;p.ok=true;
+  if(!p.bxDt)p.bxDt=hoje();
+  syncSave();updStats();renderBx();renderAll();
+  toast('Baixa registrada — '+p.num);
+}
+function checkPurgeBtn(){
+  const btn=document.getElementById('btn-purge');
+  if(!btn)return;
+  const n=procs.filter(p=>p.agBx&&p.bxOk).length;
+  btn.style.display=n>0?'':'none';
+  btn.textContent='🗑 Remover '+n+' finalizado(s) da lista';
+}
+function purgeFinalizados(){
+  const lista=procs.filter(p=>p.agBx&&p.bxOk);
+  if(!lista.length)return;
+  if(!confirm('Remover '+lista.length+' processo(s) com baixa registrada da lista geral?\n\nEssa ação não pode ser desfeita.'))return;
+  procs=procs.filter(p=>!(p.agBx&&p.bxOk));
+  procs.forEach((p,i)=>p.id=i);
+  syncSave();updStats();renderBx();renderAll();
+  checkPurgeBtn();
+  toast(lista.length+' processo(s) removidos.');
+}
 function updStats(){
-  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok).length,proto=procs.filter(p=>p.esSt==='protocolo'&&!p.ok).length;
-  const cri=procs.filter(p=>p.cat.startsWith('Criminal')).length,civ=procs.filter(p=>p.cat.startsWith('Cível')).length,cie=procs.filter(p=>p.cat==='Mera ciência').length;
+  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok).length,proto=procs.filter(p=>(p.esSt==='protocolo'||p.esSt==='registro saj')&&!p.ok).length;
+  const cri=procs.filter(p=>p.cat.startsWith('Criminal')).length,ep=procs.filter(p=>p.cat.startsWith('Execução Penal')).length,ali=procs.filter(p=>p.cat.startsWith('Alimentos')).length,civ=procs.filter(p=>p.cat.startsWith('Cível')).length,cie=procs.filter(p=>p.cat==='Mera ciência').length;
   const ant=procs.filter(p=>p.d>7&&!p.ok).length,pnd=procs.filter(p=>!p.ok).length;
   function s(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
   s('st',procs.length);s('st-inbox',inbox);s('su',urg);s('sc2',done);s('sa',atr);s('srev',rev);s('sb2',bx);
-  s('n-inbox',inbox);s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
+  s('n-inbox',inbox);s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-ep',ep||0);s('n-ali',ali||0);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
   const pct=Math.round((done/procs.length)*100);
   document.getElementById('pf').style.width=pct+'%';document.getElementById('ptxt').textContent=done+' / '+procs.length+' concluídos';
   s('tb-tri',procs.length);s('tb-est',atr);s('tb-rev',rev);s('tb-proto',proto);s('tb-bx',bx);
@@ -699,19 +725,19 @@ function stag(p){
   if(p.bxOk||p.ok)return'<span class="mt t-ok">Concluído</span>';
   if(p.esSt==='minuta pronta')return'<span class="mt" style="background:#faf5ff;color:#6d28d9;font-weight:600">📄 Minuta pronta</span>';
   if(p.esSt==='revisao')return'<span class="mt" style="background:#ede9fe;color:#5b21b6;font-weight:600">🔍 Em revisão</span>';
-  if(p.esSt==='protocolo')return'<span class="mt" style="background:#dcfce7;color:#166534">📬 Em protocolo</span>';
+  if(p.esSt==='registro saj')return'<span class="mt" style="background:#fef9c3;color:#854d0e;font-weight:600">📝 Registro SAJ</span>';if(p.esSt==='protocolo')return'<span class="mt" style="background:#dcfce7;color:#166534">📬 Em protocolo</span>';
   if(p.esSt==='aguardando minuta')return'<span class="mt" style="background:#fef9c3;color:#854d0e">✍ Ag. minuta</span>';
   if(p.agBx)return'<span class="mt t-bx">Ag. baixa</span>';
   if(p.atrib)return`<span class="mt t-atr">${p.atrib}</span>`;
   if(p.cpl)return'<span class="mt t-cpl">Complexo</span>';
   return'<span class="mt t-pnd">Pendente</span>';
 }
-function ctag(p){if(!p.cat||p.cat==='— Selecionar —')return'';if(p.cat.startsWith('Criminal'))return'<span class="mt t-cri">Criminal</span>';if(p.cat.startsWith('Cível'))return'<span class="mt t-civ">Cível</span>';if(p.cat==='Mera ciência')return'<span class="mt t-cie">Mera ciência</span>';return'';}
+function ctag(p){if(!p.cat||p.cat==='— Selecionar —')return'';if(p.cat.startsWith('Criminal'))return'<span class="mt t-cri">Criminal</span>';if(p.cat.startsWith('Execução Penal'))return'<span class="mt t-ep">Ex. Penal</span>';if(p.cat.startsWith('Alimentos'))return'<span class="mt t-ali">Alimentos</span>';if(p.cat.startsWith('Cível'))return'<span class="mt t-civ">Cível</span>';if(p.cat==='Mera ciência')return'<span class="mt t-cie">Mera ciência</span>';return'';}
 function summ(p){if(p.iaStatus==='loading')return'<span class="spin"></span> Analisando...';if(p.cat&&p.cat!=='— Selecionar —')return'<strong>'+p.cat+'</strong>'+(p.cmd?' — '+p.cmd.substring(0,58)+(p.cmd.length>58?'…':''):'');return'Aguardando classificação';}
 function getFilt(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   const s=document.getElementById('srt')?.value||'ent_asc';
-  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
+  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='ep')return p.cat.startsWith('Execução Penal');if(filt==='ali')return p.cat.startsWith('Alimentos');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
   if(s==='urg')l=[...l].sort((a,b)=>b.urg-a.urg);else if(s==='ent_desc')l=[...l].sort((a,b)=>b.ent-a.ent);else if(s==='dias')l=[...l].sort((a,b)=>b.d-a.d);else if(s==='pnd')l=[...l].sort((a,b)=>a.ok-b.ok);else l=[...l].sort((a,b)=>a.ent-b.ent);
   return l;
 }
@@ -758,7 +784,7 @@ function renderTri(){
 }
 function renderEst(){
   const el=document.getElementById('estlists');if(!el)return;
-  const stL={'triagem':'📋 Triagem','atribuido':'👤 Atribuído','aguardando minuta':'✍ Aguardando minuta','minuta pronta':'📄 Minuta pronta','revisao':'🔍 Em revisão','protocolo':'📬 Em protocolo','concluido':'✓ Concluído','pendente':'📋 Triagem'};
+  const stL={'triagem':'📋 Triagem','atribuido':'👤 Atribuído','aguardando minuta':'✍ Aguardando minuta','minuta pronta':'📄 Minuta pronta','revisao':'🔍 Em revisão','registro saj':'📝 Registro SAJ','protocolo':'📬 Em protocolo','concluido':'✓ Concluído','pendente':'📋 Triagem'};
   el.innerHTML=getEstags().map(nome=>{
     const tasks=procs.filter(p=>p.atrib===nome);
     const pend=tasks.filter(p=>p.esSt!=='concluido'&&!p.ok),done=tasks.filter(p=>p.esSt==='concluido'||p.ok);
@@ -791,7 +817,7 @@ function tkC(p,done=false){
     ${p.cmd?`<div class="tkcmd">${p.cmd}</div>`:''}
     ${!done?`<div style="margin-top:8px"><label class="fl">Observação / andamento</label><textarea class="tkof" id="esob-${p.id}" placeholder="Descreva o andamento ou conclusão...">${p.esObs||''}</textarea></div>
     <div style="margin-top:6px"><label class="fl">🔗 Link da minuta / SAJ</label><input class="fc" type="text" id="lnk-es-${p.id}" placeholder="Cole o link da minuta ou informe localização no SAJ" value="${p.lnk||''}" style="font-size:12px;padding:5px 8px">${p.lnk?`<a href="${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb;margin-top:3px;display:inline-block">↗ Abrir link</a>`:''}</div>
-    <div class="tka"><select class="fc" id="esst-${p.id}" style="width:auto;font-size:12px;padding:5px 8px"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Aguardando minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Em protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select>
+    <div class="tka"><select class="fc" id="esst-${p.id}" style="width:auto;font-size:12px;padding:5px 8px"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Aguardando minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="registro saj" ${p.esSt==='registro saj'?'selected':''}>📝 Registro SAJ</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Em protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select>
     <button class="btn btn-sm btn-p" onclick="saveET(${p.id})">Salvar</button>
     <button class="btn btn-sm" style="background:#7c3aed;color:#fff;border:none;cursor:pointer;font-family:var(--f);padding:5px 12px;border-radius:var(--r);font-size:12px" onclick="document.getElementById('esst-${p.id}').value='minuta pronta';saveET(${p.id})">📄 Minuta pronta</button><button class="btn btn-sm btn-g" onclick="document.getElementById('esst-${p.id}').value='concluido';saveET(${p.id})">✓ Concluído</button></div>`
     :`<div style="font-size:11px;color:#16a34a;margin-top:5px;font-weight:500">✓ Concluído${p.esObs?' — <em style=color:#64748b>'+p.esObs+'</em>':''}</div>`}
@@ -800,23 +826,52 @@ function tkC(p,done=false){
 function renderBx(){
   const el=document.getElementById('bxlist');if(!el)return;
   const ag=procs.filter(p=>p.agBx);
-  if(!ag.length){el.innerHTML='<div class="empty">Nenhum processo aguardando baixa.</div>';return;}
-  el.innerHTML=ag.map(p=>`<div class="bcard${p.bxOk?' bd':''}">
-    <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+  const pendentes=ag.filter(p=>!p.bxOk);
+  const finalizados=ag.filter(p=>p.bxOk);
+  if(!ag.length){
+    el.innerHTML='<div class="empty">Nenhum processo aguardando baixa.</div>';
+    const btn=document.getElementById('btn-purge');if(btn)btn.style.display='none';
+    return;
+  }
+  const mkBxCard=p=>`<div class="bcard${p.bxOk?' bd':''}">
     <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap"><button class="pnb" onclick="cpN(${p.id},this)">${p.num}</button><span class="mt t-yr">${p.yr}</span>${p.urg?'<span class="mt t-urg">Urgente</span>':''}${ctag(p)}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+        <button class="pnb" onclick="cpN(${p.id},this)">${p.num}</button>
+        <span class="mt t-yr">${p.yr}</span>${p.urg?'<span class="mt t-urg">Urgente</span>':''}${ctag(p)}
+      </div>
       <div style="font-size:12px;color:var(--tx2);margin-bottom:3px">${p.cat||'Sem categoria'}</div>
-      ${p.cmd?`<div style="font-size:11px;color:var(--txm);font-style:italic">${p.cmd.substring(0,90)}${p.cmd.length>90?'…':''}</div>`:''}
-      ${p.bxOk?`<div style="margin-top:6px;font-size:11px;color:#5b21b6;font-weight:500">✓ Baixa registrada em ${p.bxDt}${p.bxObs?' · '+p.bxObs:''}</div>`
-      :`<div style="font-size:11px;color:#92400e;margin-top:4px">Aguardando devolução · ${p.d} dias em espera</div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><input class="fc" type="text" id="bxoi-${p.id}" placeholder="Observação livre (opcional)" value="${p.bxObs}" style="flex:1;min-width:150px;font-size:12px;padding:5px 8px"><button class="btn btn-pu btn-sm" onclick="mrkBx(${p.id})">✓ Registrar baixa</button></div>`}
-    </div></div>
-  </div>`).join('');
+      ${p.cmd?`<div style="font-size:11px;color:var(--txm);font-style:italic;margin-bottom:4px">${p.cmd.substring(0,90)}${p.cmd.length>90?'…':''}</div>`:''}
+      ${p.bxOk
+        ?`<div style="margin-top:6px;font-size:11px;color:#5b21b6;font-weight:500">✓ Baixa registrada em ${p.bxDt}${p.bxObs?' · '+p.bxObs:''}</div>
+          <div style="margin-top:6px">
+            <button class="btn btn-xs" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f)" onclick="removerDaLista(${p.id})">🗑 Remover da lista</button>
+          </div>`
+        :`<div style="font-size:11px;color:#92400e;margin-top:4px">Aguardando devolução · ${p.d} dias em espera</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">
+            <input class="fc" type="text" id="bxoi-${p.id}" placeholder="Observação livre (opcional)" value="${p.bxObs}" style="flex:1;min-width:150px;font-size:12px;padding:5px 8px">
+            <button class="btn btn-pu btn-sm" onclick="mrkBx(${p.id})">✓ Registrar baixa</button>
+          </div>`
+      }
+    </div>
+  </div>`;
+  let html='';
+  if(pendentes.length){
+    html+='<div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #fcd34d">⏳ Aguardando baixa — '+pendentes.length+' processo(s)</div>';
+    html+=pendentes.map(mkBxCard).join('');
+  }
+  if(finalizados.length){
+    html+=(pendentes.length?'<div style="margin-top:20px"></div>':'');
+    html+='<div style="font-size:11px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #ddd6fe">✓ Baixa registrada — '+finalizados.length+' processo(s)</div>';
+    html+=finalizados.map(mkBxCard).join('');
+  }
+  el.innerHTML=html;
+  checkPurgeBtn();
 }
+
 async function iaOne(id){
   if(!APIKEY.startsWith('sk-ant-')){toast('Configure a chave API nas ⚙ Configurações');return;}
   const p=procs[id];p.iaStatus='loading';renderTri();
-  const pr=`Assessor jurídico MPPA Ponta de Pedras.\nProcesso: ${p.num} | Ano: ${p.yr} | Vara: ${p.vr} | Dias: ${p.d}\n${p.obs?'Contexto: '+p.obs:''}\nCategorias exatas: Mera ciência | Criminal — Representação de delegado (prisão/cautelar) | Criminal — Análise de IPL: minutar denúncia | Criminal — Análise de IPL: diligências | Criminal — Manifestação sobre resposta à acusação | Criminal — Alegações finais | Criminal — Manifestação sobre medida protetiva | Criminal — Contrarrazões de apelação | Cível — Manifestação sobre tutela provisória | Cível — Manifestação final (custos legis) | Outro / Complexo\nJSON sem markdown: {"cat":"texto exato","urg":true|false,"cpl":true|false,"atrib":"Estagiário 1|Estagiário 2|Assessor jurídico (PJ)","cmd":"instrução 1-2 frases"}\nurgente=réu preso/flagrante 2025-26/>10d. complexo=antes 2018/vara 0059/0401. simples→estagiário;urgente/complexo→assessor.`;
+  const pr=`Assessor jurídico MPPA Ponta de Pedras.\nProcesso: ${p.num} | Ano: ${p.yr} | Vara: ${p.vr} | Dias: ${p.d}\n${p.obs?'Contexto: '+p.obs:''}\nCategorias exatas: Mera ciência | Criminal — Representação de delegado (prisão/cautelar) | Criminal — Análise de IPL: minutar denúncia | Criminal — Análise de IPL: diligências | Criminal — Manifestação sobre resposta à acusação | Criminal — Alegações finais | Criminal — Manifestação sobre medida protetiva | Criminal — Contrarrazões de apelação | Execução Penal — Manifestação | Execução Penal — Incidente | Execução Penal — Progressão/Regressão de regime | Execução Penal — Livramento condicional | Execução Penal — Extinção de punibilidade | Alimentos — Cumprimento de sentença: manifestação | Alimentos — Cumprimento de sentença: impugnação | Alimentos — Pedido de prisão civil | Cível — Manifestação sobre tutela provisória | Cível — Manifestação final (custos legis) | Cível — Contrarrazões de apelação | Cível — Contrarrazões de recurso especial | Outro / Complexo\nJSON sem markdown: {"cat":"texto exato","urg":true|false,"cpl":true|false,"atrib":"Estagiário 1|Estagiário 2|Assessor jurídico (PJ)","cmd":"instrução 1-2 frases"}\nurgente=réu preso/flagrante 2025-26/>10d. complexo=antes 2018/vara 0059/0401. simples→estagiário;urgente/complexo→assessor.`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':APIKEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:pr}]})});
     const data=await r.json();const raw=data.content?.find(b=>b.type==='text')?.text||'{}';
@@ -860,7 +915,7 @@ function renderRev(){
       ${p.esObs?`<div style="font-size:11px;color:var(--txm);margin-bottom:6px;font-style:italic">Obs do estagiário: ${p.esObs}</div>`:''}
       ${p.lnk?`<div style="margin-bottom:6px"><a href="${p.lnk}" target="_blank" style="font-size:12px;color:#2563eb;font-weight:500">🔗 ${p.lnk.startsWith('http')?'Abrir minuta':p.lnk}</a></div>`:''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="btn btn-p btn-sm" onclick="avancarStatus(${p.id},'protocolo')">📬 Aprovar → Protocolo</button>
+        <button class="btn btn-p btn-sm" onclick="avancarStatus(${p.id},'registro saj')">📝 Aprovar → Registrar no SAJ</button>
         <button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);padding:5px 12px;border-radius:var(--r);font-size:12px" onclick="avancarStatus(${p.id},'aguardando minuta')">↩ Devolver ao estagiário</button>
       </div>
     </div></div>
@@ -1039,30 +1094,41 @@ function migrateEstagNames(){
 
 function renderProto(){
   const el=document.getElementById('protolist');if(!el)return;
-  const list=procs.filter(p=>p.esSt==='protocolo'&&!p.ok);
-  if(!list.length){el.innerHTML='<div class="empty">Nenhum processo aguardando protocolo.</div>';return;}
-  el.innerHTML=list.map(p=>`<div class="bcard${p.urg?' bd':''}">
+  const saj=procs.filter(p=>p.esSt==='registro saj'&&!p.ok);
+  const proto=procs.filter(p=>p.esSt==='protocolo'&&!p.ok);
+  if(!saj.length&&!proto.length){el.innerHTML='<div class="empty">Nenhum processo aguardando registro SAJ ou protocolo.</div>';return;}
+  const mkCard=(p,isSaj)=>`<div class="bcard${p.urg?' bd':''}">
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
         <button class="pnb" onclick="cpN(${p.id},this)">${p.num}</button>
-        <span class="mt t-yr">${p.yr}</span>
-        <span class="mt t-vr">${p.vr}</span>
-        ${dtag(p)}
-        ${p.urg?'<span class="mt t-urg">Urgente</span>':''}
-        ${ctag(p)}
+        <span class="mt t-yr">${p.yr}</span><span class="mt t-vr">${p.vr}</span>
+        ${dtag(p)}${p.urg?'<span class="mt t-urg">Urgente</span>':''}${ctag(p)}
         ${p.atrib?`<span class="mt t-atr">${p.atrib}</span>`:''}
-        <span class="mt" style="background:#fef3c7;color:#92400e;font-weight:600">📬 Em protocolo</span>
+        ${isSaj?'<span class="mt" style="background:#fef9c3;color:#854d0e;font-weight:600">📝 Registro SAJ</span>':'<span class="mt" style="background:#dcfce7;color:#166534;font-weight:600">📬 Em protocolo</span>'}
       </div>
       <div style="font-size:12px;color:var(--tx2);margin-bottom:4px">${p.cat||'Sem categoria'}</div>
-      ${p.cmd?`<div style="font-size:11px;color:var(--tx);background:#f8f9fb;border-left:3px solid #fcd34d;padding:5px 10px;border-radius:0 4px 4px 0;line-height:1.5;margin-bottom:6px">${p.cmd}</div>`:''}
-      ${p.lnk?`<div style="margin-bottom:8px"><a href="${p.lnk}" target="_blank" style="font-size:12px;color:#2563eb;font-weight:500">🔗 ${p.lnk.startsWith('http')?'Abrir minuta':p.lnk}</a></div>`:''}
-      ${p.esObs?`<div style="font-size:11px;color:var(--txm);margin-bottom:8px;font-style:italic">Obs: ${p.esObs}</div>`:''}
+      ${p.lnk?`<div style="margin-bottom:6px"><a href="${p.lnk}" target="_blank" style="font-size:12px;color:#2563eb;font-weight:500">🔗 ${p.lnk.startsWith('http')?'Abrir minuta':p.lnk}</a></div>`:''}
+      ${p.esObs?`<div style="font-size:11px;color:var(--txm);margin-bottom:6px;font-style:italic">Obs: ${p.esObs}</div>`:''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="btn btn-p btn-sm" onclick="marcarProtocolado(${p.id})">✓ Marcar como protocolado</button>
+        ${isSaj
+          ?`<button class="btn btn-p btn-sm" onclick="avancarStatus(${p.id},'protocolo')">📬 Confirmado no SAJ → Protocolo</button>`
+          :`<button class="btn btn-g btn-sm" onclick="marcarProtocolado(${p.id})">✓ Protocolado → Mover para baixa</button>`
+        }
         <button class="btn btn-sm btn-gh" onclick="avancarStatus(${p.id},'revisao')">↩ Voltar para revisão</button>
       </div>
     </div>
-  </div>`).join('');
+  </div>`;
+  let html='';
+  if(saj.length){
+    html+='<div style="font-size:11px;font-weight:700;color:#854d0e;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #fcd34d">📝 Aguardando Registro no SAJ — '+saj.length+' processo(s)</div>';
+    html+=saj.map(p=>mkCard(p,true)).join('');
+  }
+  if(proto.length){
+    html+=(saj.length?'<div style="margin-top:20px"></div>':'');
+    html+='<div style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #86efac">📬 Em Protocolo — '+proto.length+' processo(s)</div>';
+    html+=proto.map(p=>mkCard(p,false)).join('');
+  }
+  el.innerHTML=html;
 }
 
 function marcarProtocolado(id){
