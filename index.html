@@ -162,6 +162,10 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .spin{width:11px;height:11px;border:1.5px solid #bfdbfe;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px;line-height:1.8}
+.qa{display:none;align-items:center;gap:4px;margin-left:4px;flex-shrink:0}
+.pc:hover .qa{display:flex}
+.qab{padding:2px 8px;border-radius:var(--rs);font-size:11px;font-weight:500;cursor:pointer;border:1px solid;font-family:var(--f);white-space:nowrap;transition:all .15s}
+.qab:hover{opacity:.85}
 .sel-bar{display:none;align-items:center;gap:10px;padding:8px 16px;background:#eff6ff;border-bottom:1px solid #bfdbfe;font-size:12px;color:#1e40af;position:sticky;top:0;z-index:40}
 .sel-bar.visible{display:flex}
 .pc-cb{width:16px;height:16px;cursor:pointer;accent-color:var(--if);flex-shrink:0}
@@ -462,7 +466,7 @@ function pBR(s){const[d,m,y]=s.split(' ')[0].split('/');return new Date(`${y}-${
 function dias(dt){return Math.floor((HOJE()-dt)/86400000);}
 function fdt(dt){return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();}
 function hoje(){return new Date().toISOString().split('T')[0];}
-const CATS=['— Selecionar —','Mera ciência','Criminal — Representação de delegado (prisão/cautelar)','Criminal — Denúncia','Criminal — Análise de TCO','Criminal — Análise de IPL: minutar denúncia','Criminal — Análise de IPL: diligências','Criminal — Manifestação sobre resposta à acusação','Criminal — Alegações finais','Criminal — Manifestação sobre medida protetiva','Criminal — Contrarrazões de apelação','Criminal — Recurso em sentido estrito','Criminal — Habeas corpus','Execução Penal — Manifestação','Execução Penal — Incidente','Execução Penal — Progressão/Regressão de regime','Execução Penal — Livramento condicional','Execução Penal — Extinção de punibilidade','Alimentos — Cumprimento de sentença: manifestação','Alimentos — Cumprimento de sentença: impugnação','Alimentos — Cumprimento de sentença: habilitação de crédito','Alimentos — Pedido de prisão civil','Cível — Manifestação sobre tutela provisória','Cível — Manifestação final (custos legis)','Cível — Contrarrazões de apelação','Cível — Contrarrazões de recurso especial','Aguardando baixa no sistema','Pesquisa de endereço | Aguardando baixa no sistema | Outro / Complexo'];
+const CATS=['— Selecionar —','Mera ciência','Criminal — Representação de delegado (prisão/cautelar)','Criminal — Denúncia','Criminal — Análise de TCO','Criminal — Análise de IPL: minutar denúncia','Criminal — Análise de IPL: diligências','Criminal — Manifestação sobre resposta à acusação','Criminal — Alegações finais','Criminal — Manifestação sobre medida protetiva','Criminal — Contrarrazões de apelação','Criminal — Recurso em sentido estrito','Criminal — Habeas corpus','Execução Penal — Manifestação','Execução Penal — Incidente','Execução Penal — Progressão/Regressão de regime','Execução Penal — Livramento condicional','Execução Penal — Extinção de punibilidade','Alimentos — Cumprimento de sentença: manifestação','Alimentos — Cumprimento de sentença: impugnação','Alimentos — Cumprimento de sentença: habilitação de crédito','Alimentos — Pedido de prisão civil','Cível — Manifestação sobre tutela provisória','Cível — Manifestação final (custos legis)','Cível — Contrarrazões de apelação','Cível — Contrarrazões de recurso especial','Pesquisa de endereço','Outro / Complexo'];
 function getRESPS(){return['— Selecionar —','Assessor jurídico (PJ)',...getEstags(),'Promotora (Dra. Francys Lucy)'];}
 function getEstags(){
   return [
@@ -720,6 +724,7 @@ function mrkBx(id){
   const obs=document.getElementById('bxoi-'+id)?.value||'';
   p.bxObs=obs;p.bxOk=true;p.ok=true;
   if(!p.bxDt)p.bxDt=hoje();
+  if(!p.cat||p.cat===''||p.cat==='— Selecionar —')p.cat='Mera ciência'; // ensure exits inbox
   syncSave();updStats();renderBx();renderAll();
   toast('Baixa registrada — '+p.num);
 }
@@ -741,7 +746,7 @@ function purgeFinalizados(){
   toast(lista.length+' processo(s) removidos.');
 }
 function updStats(){
-  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok).length,proto=procs.filter(p=>(p.esSt==='protocolo'||p.esSt==='registro saj')&&!p.ok).length;
+  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok&&!p.agBx&&p.esSt==='triagem').length,proto=procs.filter(p=>(p.esSt==='protocolo'||p.esSt==='registro saj')&&!p.ok).length;
   const cri=procs.filter(p=>p.cat.startsWith('Criminal')).length,ep=procs.filter(p=>p.cat.startsWith('Execução Penal')).length,ali=procs.filter(p=>p.cat.startsWith('Alimentos')).length,civ=procs.filter(p=>p.cat.startsWith('Cível')).length,cie=procs.filter(p=>p.cat==='Mera ciência').length;
   const ant=procs.filter(p=>p.d>7&&!p.ok).length,pnd=procs.filter(p=>!p.ok).length;
   function s(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
@@ -755,6 +760,31 @@ function updStats(){
   const protoTab=document.getElementById('tb-proto');
   if(protoTab){protoTab.style.background=proto>0?'#d97706':'';protoTab.style.color=proto>0?'#fff':'';}
   const mf=document.getElementById('tb-mf');if(mf)mf.textContent=procs.filter(p=>p.atrib===CU&&!p.ok).length;
+  // subcategory counters
+  s('n-cat-cri-0',procs.filter(p=>p.cat==='Criminal — Representação de delegado (prisão/cautelar)').length);
+  s('n-cat-cri-1',procs.filter(p=>p.cat==='Criminal — Denúncia').length);
+  s('n-cat-cri-2',procs.filter(p=>p.cat==='Criminal — Análise de TCO').length);
+  s('n-cat-cri-3',procs.filter(p=>p.cat==='Criminal — Análise de IPL: minutar denúncia').length);
+  s('n-cat-cri-4',procs.filter(p=>p.cat==='Criminal — Análise de IPL: diligências').length);
+  s('n-cat-cri-5',procs.filter(p=>p.cat==='Criminal — Manifestação sobre resposta à acusação').length);
+  s('n-cat-cri-6',procs.filter(p=>p.cat==='Criminal — Alegações finais').length);
+  s('n-cat-cri-7',procs.filter(p=>p.cat==='Criminal — Manifestação sobre medida protetiva').length);
+  s('n-cat-cri-8',procs.filter(p=>p.cat==='Criminal — Contrarrazões de apelação').length);
+  s('n-cat-cri-9',procs.filter(p=>p.cat==='Criminal — Recurso em sentido estrito').length);
+  s('n-cat-cri-10',procs.filter(p=>p.cat==='Criminal — Habeas corpus').length);
+  s('n-cat-ep-0',procs.filter(p=>p.cat==='Execução Penal — Manifestação').length);
+  s('n-cat-ep-1',procs.filter(p=>p.cat==='Execução Penal — Incidente').length);
+  s('n-cat-ep-2',procs.filter(p=>p.cat==='Execução Penal — Progressão/Regressão de regime').length);
+  s('n-cat-ep-3',procs.filter(p=>p.cat==='Execução Penal — Livramento condicional').length);
+  s('n-cat-ep-4',procs.filter(p=>p.cat==='Execução Penal — Extinção de punibilidade').length);
+  s('n-cat-ali-0',procs.filter(p=>p.cat==='Alimentos — Cumprimento de sentença: manifestação').length);
+  s('n-cat-ali-1',procs.filter(p=>p.cat==='Alimentos — Cumprimento de sentença: impugnação').length);
+  s('n-cat-ali-2',procs.filter(p=>p.cat==='Alimentos — Cumprimento de sentença: habilitação de crédito').length);
+  s('n-cat-ali-3',procs.filter(p=>p.cat==='Alimentos — Pedido de prisão civil').length);
+  s('n-cat-civ-0',procs.filter(p=>p.cat==='Cível — Manifestação sobre tutela provisória').length);
+  s('n-cat-civ-1',procs.filter(p=>p.cat==='Cível — Manifestação final (custos legis)').length);
+  s('n-cat-civ-2',procs.filter(p=>p.cat==='Cível — Contrarrazões de apelação').length);
+  s('n-cat-civ-3',procs.filter(p=>p.cat==='Cível — Contrarrazões de recurso especial').length);
 }
 function sf(f,el){filt=f;document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));el.classList.add('active');renderTri();}
 function dtag(p){const d=p.d,c=d<=3?'fr':d<=7?'wk':'';return`<span class="mt t-d ${c}">${d}d</span>`;}
@@ -775,7 +805,7 @@ function summ(p){if(p.iaStatus==='loading')return'<span class="spin"></span> Ana
 function getFilt(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   const s=document.getElementById('srt')?.value||'ent_asc';
-  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok;if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='ep')return p.cat.startsWith('Execução Penal');if(filt==='ali')return p.cat.startsWith('Alimentos');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='cat')return p.cat===filtCat;if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
+  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok&&!p.agBx&&p.esSt==='triagem';if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='ep')return p.cat.startsWith('Execução Penal');if(filt==='ali')return p.cat.startsWith('Alimentos');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='cat')return p.cat===filtCat;if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
   if(s==='urg')l=[...l].sort((a,b)=>b.urg-a.urg);else if(s==='ent_desc')l=[...l].sort((a,b)=>b.ent-a.ent);else if(s==='dias')l=[...l].sort((a,b)=>b.d-a.d);else if(s==='pnd')l=[...l].sort((a,b)=>a.ok-b.ok);else l=[...l].sort((a,b)=>a.ent-b.ent);
   return l;
 }
@@ -805,12 +835,26 @@ function renderTri(){
         <button class="pnb" id="nb-${p.id}" onclick="event.stopPropagation();cpN(${p.id},this)">${p.num}</button>
         <div class="cmeta"><span class="mt t-yr">${p.yr}</span><span class="mt t-vr">${p.vr}</span>${dtag(p)}${stag(p)}${ctag(p)}</div>
         <div class="csum">${summ(p)}</div>
-        <span class="cent">${fdt(p.ent)}</span><span class="cchv">⌄</span>
+        <span class="cent">${fdt(p.ent)}</span>
+        <div class="qa" onclick="event.stopPropagation()">
+          ${!p.ok&&(!p.cat||p.cat===''||p.cat==='— Selecionar —')?`
+            <button class="qab" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0" onclick="acaoRapida(${p.id},'ciencia')" title="Dar ciência — classifica como Mera ciência">✓ Ciência</button>
+            <button class="qab" style="background:#faf5ff;color:#6d28d9;border-color:#ddd6fe" onclick="acaoRapida(${p.id},'baixa')" title="Marcar para baixa sem categoria">⬇ Baixa</button>
+          `:''}
+          ${p.cat&&p.cat!==''&&p.cat!=='— Selecionar —'&&!p.agBx&&!p.ok?`
+            <button class="qab" style="background:#faf5ff;color:#6d28d9;border-color:#ddd6fe" onclick="acaoRapida(${p.id},'baixa')" title="Marcar para baixa">⬇ Baixa</button>
+          `:''}
+        </div>
+        <span class="cchv">⌄</span>
       </div>
       <div class="cb-body">
         <div class="ei"><div class="ei-r"><div class="ei-i"><strong>Entrada:</strong> ${p.dtStr}</div><div class="ei-i"><strong>Espera:</strong> ${p.d}d</div><div class="ei-i"><strong>Vara:</strong> ${p.vr}</div><div class="ei-i"><strong>Ano:</strong> ${p.yr}</div></div></div>
         <div class="fr"><div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select></div><div><label class="fl">Responsável</label><select class="fc" id="resp-${p.id}">${ro(p.id)}</select></div></div>
-        <div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label><label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label><label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label><label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label></div></div></div>
+        <div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label><label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label><label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label><label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label></div></div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          ${p.cat==='Mera ciência'?`<button class="btn btn-xs" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;cursor:pointer;font-family:var(--f)" onclick="darCiencia(${p.id})">✓ Dar ciência e protocolar</button>`:''}
+          ${p.agBx&&!p.bxOk?`<button class="btn btn-xs btn-pu" onclick="darBaixa(${p.id})">✓ Dar baixa rápida</button>`:''}
+        </div></div>
         <div class="fr1"><label class="fl">Relatório do Processo</label><textarea class="fc" id="obs-${p.id}" placeholder="Histórico, partes envolvidas, andamento, contexto relevante...">${p.obs}</textarea></div>
         <div class="fr1"><label class="fl">Prompt / Comando de IA <span style="font-size:9px;color:var(--txm);font-weight:400;text-transform:none;letter-spacing:0">— cole no ChatGPT, Claude ou outro</span></label><textarea class="fc" id="cmd-${p.id}" placeholder="Instrução completa para gerar a minuta via IA..." style="min-height:80px">${p.cmd}</textarea></div>
         <div class="fr" style="margin-top:12px"><div><label class="fl">👤 Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div><div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select></div></div>
@@ -1319,6 +1363,44 @@ function sfCat(cat, el){
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
   renderTri();
+}
+
+
+function acaoRapida(id, tipo){
+  const p=procs[id];
+  if(tipo==='ciencia'){
+    p.cat='Mera ciência';
+    p.esSt='triagem';
+    toast('✓ Ciência registrada: '+p.num);
+  } else if(tipo==='baixa'){
+    if(!p.cat||p.cat===''||p.cat==='— Selecionar —'){
+      p.cat='Aguardando baixa';
+    }
+    p.agBx=true;
+    p.esSt='protocolo';
+    toast('⬇ Marcado para baixa: '+p.num);
+  }
+  syncSave();updStats();renderAll();
+}
+
+
+function darCiencia(id){
+  const p=procs[id];
+  if(!confirm('Confirmar ciência no processo '+p.num+'?\n\nO processo será marcado como concluído.'))return;
+  p.cat='Mera ciência';
+  p.esSt='concluido';
+  p.ok=true;
+  syncSave();updStats();renderAll();
+  toast('Ciência registrada — '+p.num);
+}
+function darBaixa(id){
+  const p=procs[id];
+  const obs=prompt('Observação de baixa (opcional):','') || '';
+  p.bxObs=obs;p.bxOk=true;p.ok=true;
+  if(!p.bxDt)p.bxDt=hoje();
+  if(!p.cat||p.cat===''||p.cat==='— Selecionar —')p.cat='Mera ciência';
+  syncSave();updStats();renderBx();renderAll();
+  toast('Baixa registrada — '+p.num);
 }
 
 function renderAll(){renderTri();}
