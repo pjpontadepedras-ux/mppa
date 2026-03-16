@@ -290,6 +290,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button class="tbb active" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
       <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
       <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
+      <button class="tbb" id="tbb-proto" onclick="swTab('proto',this)" style="display:none">Em protocolo <span class="tb" id="tb-proto">0</span></button>
       <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa no sistema <span class="tb" id="tb-bx">0</span></button>
       <button class="tbb btn-sm btn-gh" style="margin-left:auto;border-bottom:none;font-size:11px;padding:8px 10px" onclick="syncLoad(true)" title="Recarregar dados">↻</button>
     </div>
@@ -352,6 +353,17 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 
   <!-- TAB MINHA FILA -->
   <div class="tc" id="tab-mf"><div class="ev" id="evw"></div></div>
+  <!-- TAB PROTOCOLO -->
+  <div class="tc" id="tab-proto">
+    <div class="content">
+      <div style="margin-bottom:14px">
+        <div style="font-size:14px;font-weight:600;color:var(--tx)">📬 Em protocolo — aguardando protocolamento</div>
+        <div style="font-size:12px;color:var(--txm);margin-top:2px">Minutas aprovadas pelo assessor — pendentes de protocolo no sistema</div>
+      </div>
+      <div id="protolist"></div>
+    </div>
+  </div>
+
   <!-- TAB BAIXA -->
   <div class="tc" id="tab-bx">
     <div class="content">
@@ -628,7 +640,7 @@ async function doLogin(){
   document.getElementById('mc').style.display='flex';
   document.getElementById('ubadge').textContent=isA?'Assessor (PJ)':CU;
   loadCfg();
-  if(isA){document.getElementById('tbb-est').style.display='';document.getElementById('tbb-rev').style.display='';document.getElementById('aact').style.display='';}
+  if(isA){document.getElementById('tbb-est').style.display='';document.getElementById('tbb-rev').style.display='';document.getElementById('tbb-proto').style.display='';document.getElementById('aact').style.display='';}
   else{
     document.getElementById('tbb-tri').style.display='none';document.getElementById('tbb-est').style.display='none';document.getElementById('aact').style.display='none';
     const nb=document.createElement('button');nb.className='tbb active';nb.id='tbb-mf';nb.innerHTML='Minha fila <span class="tb" id="tb-mf">—</span>';nb.onclick=function(){swTab('mf',this);};
@@ -640,7 +652,7 @@ async function doLogin(){
   if(GSURL)syncLoad(false);else{updStats();renderAll();}
 }
 function doLogout(){CU=null;isA=false;document.getElementById('ls').style.display='flex';document.getElementById('sdb').style.display='none';document.getElementById('mc').style.display='none';document.getElementById('lsel').value='';document.getElementById('lbtn').disabled=true;const old=document.getElementById('tbb-mf');if(old)old.remove();}
-function swTab(n,el){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tbb').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='est')renderEst();if(n==='rev')renderRev();if(n==='bx')renderBx();if(n==='mf')renderMF();}
+function swTab(n,el){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tbb').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='est')renderEst();if(n==='rev')renderRev();if(n==='proto')renderProto();if(n==='bx')renderBx();if(n==='mf')renderMF();}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 function cpN(id,el){const n=procs[id].num;(navigator.clipboard?navigator.clipboard.writeText(n):Promise.reject()).catch(()=>{const ta=Object.assign(document.createElement('textarea'),{value:n,style:'position:fixed;opacity:0'});document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();});el.classList.add('cp');el.textContent='copiado ✓';toast('Copiado: '+n);setTimeout(()=>{el.classList.remove('cp');el.textContent=n;},1500);}
 function tog(id){document.getElementById('c-'+id)?.classList.toggle('open');}
@@ -665,7 +677,7 @@ function saveP(id){
 function saveET(id){const p=procs[id];p.esObs=g('esob-'+id)||'';p.esSt=g('esst-'+id)||'pendente';const lnkEs=document.getElementById('lnk-es-'+id);if(lnkEs)p.lnk=lnkEs.value||'';if(p.esSt==='concluido'){if(!confirm('Confirmar conclusão de '+p.num+'?'))return;}if(p.esSt==='concluido')p.ok=true;else p.ok=false;syncSave();updStats();renderMF();toast('Atualizado — '+p.num);}
 function mrkBx(id){const p=procs[id];const obs=document.getElementById('bxoi-'+id)?.value||'';p.bxObs=obs;p.bxOk=true;p.ok=true;if(!p.bxDt)p.bxDt=hoje();syncSave();updStats();renderBx();renderAll();toast('Baixa registrada — '+p.num);}
 function updStats(){
-  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok).length;
+  const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok).length,proto=procs.filter(p=>p.esSt==='protocolo'&&!p.ok).length;
   const cri=procs.filter(p=>p.cat.startsWith('Criminal')).length,civ=procs.filter(p=>p.cat.startsWith('Cível')).length,cie=procs.filter(p=>p.cat==='Mera ciência').length;
   const ant=procs.filter(p=>p.d>7&&!p.ok).length,pnd=procs.filter(p=>!p.ok).length;
   function s(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
@@ -673,9 +685,11 @@ function updStats(){
   s('n-inbox',inbox);s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
   const pct=Math.round((done/procs.length)*100);
   document.getElementById('pf').style.width=pct+'%';document.getElementById('ptxt').textContent=done+' / '+procs.length+' concluídos';
-  s('tb-tri',procs.length);s('tb-est',atr);s('tb-rev',rev);s('tb-bx',bx);
+  s('tb-tri',procs.length);s('tb-est',atr);s('tb-rev',rev);s('tb-proto',proto);s('tb-bx',bx);
   const revTab=document.getElementById('tb-rev');
   if(revTab){revTab.style.background=rev>0?'#dc2626':'';revTab.style.color=rev>0?'#fff':'';}
+  const protoTab=document.getElementById('tb-proto');
+  if(protoTab){protoTab.style.background=proto>0?'#d97706':'';protoTab.style.color=proto>0?'#fff':'';}
   const mf=document.getElementById('tb-mf');if(mf)mf.textContent=procs.filter(p=>p.atrib===CU&&!p.ok).length;
 }
 function sf(f,el){filt=f;document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));el.classList.add('active');renderTri();}
@@ -1020,6 +1034,44 @@ function migrateEstagNames(){
       p.atrib=legacyMap[p.atrib];
     }
   });
+}
+
+
+function renderProto(){
+  const el=document.getElementById('protolist');if(!el)return;
+  const list=procs.filter(p=>p.esSt==='protocolo'&&!p.ok);
+  if(!list.length){el.innerHTML='<div class="empty">Nenhum processo aguardando protocolo.</div>';return;}
+  el.innerHTML=list.map(p=>`<div class="bcard${p.urg?' bd':''}">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <button class="pnb" onclick="cpN(${p.id},this)">${p.num}</button>
+        <span class="mt t-yr">${p.yr}</span>
+        <span class="mt t-vr">${p.vr}</span>
+        ${dtag(p)}
+        ${p.urg?'<span class="mt t-urg">Urgente</span>':''}
+        ${ctag(p)}
+        ${p.atrib?`<span class="mt t-atr">${p.atrib}</span>`:''}
+        <span class="mt" style="background:#fef3c7;color:#92400e;font-weight:600">📬 Em protocolo</span>
+      </div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:4px">${p.cat||'Sem categoria'}</div>
+      ${p.cmd?`<div style="font-size:11px;color:var(--tx);background:#f8f9fb;border-left:3px solid #fcd34d;padding:5px 10px;border-radius:0 4px 4px 0;line-height:1.5;margin-bottom:6px">${p.cmd}</div>`:''}
+      ${p.lnk?`<div style="margin-bottom:8px"><a href="${p.lnk}" target="_blank" style="font-size:12px;color:#2563eb;font-weight:500">🔗 ${p.lnk.startsWith('http')?'Abrir minuta':p.lnk}</a></div>`:''}
+      ${p.esObs?`<div style="font-size:11px;color:var(--txm);margin-bottom:8px;font-style:italic">Obs: ${p.esObs}</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn btn-p btn-sm" onclick="marcarProtocolado(${p.id})">✓ Marcar como protocolado</button>
+        <button class="btn btn-sm btn-gh" onclick="avancarStatus(${p.id},'revisao')">↩ Voltar para revisão</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function marcarProtocolado(id){
+  if(!confirm('Confirmar que o processo '+procs[id].num+' foi protocolado?\n\nEle será movido para Baixa no sistema.'))return;
+  procs[id].esSt='concluido';
+  procs[id].ok=true;
+  procs[id].agBx=true;
+  syncSave();updStats();renderProto();renderAll();
+  toast('Processo marcado como protocolado: '+procs[id].num);
 }
 
 function renderAll(){renderTri();}
