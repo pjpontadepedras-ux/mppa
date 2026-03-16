@@ -53,7 +53,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .sc .num.red{color:#f87171}.sc .num.green{color:#4ade80}.sc .num.amber{color:#fbbf24}.sc .num.blue{color:#60a5fa}
 .sc .lbl{font-size:9px;color:var(--sb-m);text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
 .sb-nav{padding:10px;flex:1}
-.nsl{font-size:9px;font-weight:600;letter-spacing:.12em;color:var(--sb-m);text-transform:uppercase;padding:0 8px 6px}
+.nsl{font-size:9px;font-weight:600;letter-spacing:.12em;color:var(--sb-m);text-transform:uppercase;padding:0 8px 6px;margin-top:2px}
 .ni{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:var(--rs);cursor:pointer;transition:background .12s;margin-bottom:1px;user-select:none}
 .ni:hover{background:var(--sb-hv)}.ni.active{background:var(--sb-ac)}
 .nil{display:flex;align-items:center;gap:8px}
@@ -162,6 +162,11 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .spin{width:11px;height:11px;border:1.5px solid #bfdbfe;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px;line-height:1.8}
+.qact{display:flex;align-items:center;gap:4px;margin-left:8px;flex-shrink:0}
+.qa-btn{background:transparent;border:1px solid transparent;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:11px;line-height:1;transition:all .15s;color:var(--txm)}
+.qa-btn:hover{background:#f1f5f9;border-color:var(--cb)}.qa-btn.qa-active{background:#fee2e2;border-color:#fca5a5}
+.qa-sel{font-size:11px;padding:2px 4px;border:1px solid var(--ib);border-radius:4px;background:#fff;cursor:pointer;color:var(--tx);font-family:var(--f);max-width:90px}
+.qa-sel:focus{border-color:var(--if);outline:none}
 .qa{display:none;align-items:center;gap:4px;margin-left:4px;flex-shrink:0}
 .pc:hover .qa{display:flex}
 .qab{padding:2px 8px;border-radius:var(--rs);font-size:11px;font-weight:500;cursor:pointer;border:1px solid;font-family:var(--f);white-space:nowrap;transition:all .15s}
@@ -265,10 +270,26 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     </div>
   </div>
   <nav class="sb-nav">
-    <div class="nsl">Filtrar</div>
+    <div class="nsl">⚡ Acesso rápido</div>
+    <div class="ni" onclick="sfCat('Criminal — Representação de delegado (prisão/cautelar)',this)"><div class="nil"><span class="nd" style="background:#f87171"></span><span class="nl" style="font-size:12px">Prisão / cautelar</span></div><span class="nc" id="n-aq-preso">0</span></div>
+    <div class="ni" onclick="sfCat('Criminal — Análise de IPL: minutar denúncia',this)"><div class="nil"><span class="nd" style="background:#f87171"></span><span class="nl" style="font-size:12px">Minutar denúncia</span></div><span class="nc" id="n-aq-den">0</span></div>
+    <div class="ni" onclick="sfCat('Criminal — Análise de TCO',this)"><div class="nil"><span class="nd" style="background:#f87171"></span><span class="nl" style="font-size:12px">Minutar TCO</span></div><span class="nc" id="n-aq-tco">0</span></div>
+    <div class="ni" onclick="sfCat('Criminal — Alegações finais',this)"><div class="nil"><span class="nd" style="background:#fb923c"></span><span class="nl" style="font-size:12px">Alegações finais</span></div><span class="nc" id="n-aq-alg">0</span></div>
+    <div class="ni" onclick="sfCat('Criminal — Manifestação sobre resposta à acusação',this)"><div class="nil"><span class="nd" style="background:#fb923c"></span><span class="nl" style="font-size:12px">Resposta à acusação</span></div><span class="nc" id="n-aq-resp">0</span></div>
+    <div class="ni" onclick="sfCat('Criminal — Manifestação sobre medida protetiva',this)"><div class="nil"><span class="nd" style="background:#f87171"></span><span class="nl" style="font-size:12px">Medida protetiva</span></div><span class="nc" id="n-aq-mp">0</span></div>
+    <div class="ni" onclick="sfUrgCat('contrarrazoes',this)"><div class="nil"><span class="nd" style="background:#fb923c"></span><span class="nl" style="font-size:12px">Contrarrazões</span></div><span class="nc" id="n-aq-cr">0</span></div>
+    <div class="ni" onclick="sfCivelTipo('simples',this)"><div class="nil"><span class="nd" style="background:#34d399"></span><span class="nl" style="font-size:12px">Cível simples</span></div><span class="nc" id="n-aq-civs">0</span></div>
+    <div class="ni" onclick="sfCivelTipo('complexo',this)"><div class="nil"><span class="nd" style="background:#34d399"></span><span class="nl" style="font-size:12px">Cível complexo</span></div><span class="nc" id="n-aq-civc">0</span></div>
+    <div class="nsl" style="margin-top:8px">Filtrar</div>
     <div class="ni active" onclick="sf('inbox',this)" id="ni-inbox"><div class="nil"><span class="nd" style="background:#2563eb"></span><span class="nl">📥 Caixa de entrada</span></div><span class="nc" id="n-inbox">—</span></div>
     <div class="ni" onclick="sf('all',this)"><div class="nil"><span class="nd d-all"></span><span class="nl">Todos</span></div><span class="nc" id="n-all">—</span></div>
-    <div class="ni" onclick="sf('urg',this)"><div class="nil"><span class="nd d-urg"></span><span class="nl">Urgentes</span></div><span class="nc" id="n-urg">0</span></div>
+    <div class="ni" id="ni-urg" onclick="toggleNavGroup('urg-sub',this)"><div class="nil"><span class="nd d-urg"></span><span class="nl">Urgentes</span></div><div style="display:flex;align-items:center;gap:4px"><span class="nc" id="n-urg">0</span><span id="chv-urg-sub" style="color:var(--sb-m);font-size:10px">›</span></div></div>
+    <div id="sub-urg-sub" style="display:none;padding-left:14px">
+      <div class="ni" onclick="sfUrgCat('Criminal — Representação de delegado (prisão/cautelar)',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Réu preso / cautelar</span></div><span class="nc" id="n-urg-preso">0</span></div>
+      <div class="ni" onclick="sfUrgCat('Criminal — Manifestação sobre medida protetiva',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Medida protetiva</span></div><span class="nc" id="n-urg-mp">0</span></div>
+      <div class="ni" onclick="sfUrgCat('contrarrazoes',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Contrarrazões</span></div><span class="nc" id="n-urg-cr">0</span></div>
+      <div class="ni" onclick="sfUrgCat('Alimentos — Pedido de prisão civil',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Prisão civil alimentos</span></div><span class="nc" id="n-urg-ali">0</span></div>
+    </div>
     <div class="ni" onclick="sf('rev',this)"><div class="nil"><span class="nd" style="background:#a78bfa"></span><span class="nl">Ag. revisão</span></div><span class="nc" id="n-rev">0</span></div>
     <div class="ni" onclick="sf('bx',this)"><div class="nil"><span class="nd d-bx"></span><span class="nl">Ag. baixa</span></div><span class="nc" id="n-bx">0</span></div>
     <!-- Criminal group -->
@@ -313,6 +334,8 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     </div>
     <!-- Mera ciência -->
     <div class="ni" onclick="sf('cie',this)"><div class="nil"><span class="nd d-cie"></span><span class="nl">Mera ciência</span></div><span class="nc" id="n-cie">0</span></div>
+    <div class="ni" onclick="sfCat('Pesquisa de endereço',this)"><div class="nil"><span class="nd" style="background:#a78bfa"></span><span class="nl">Pesquisa de endereço</span></div><span class="nc" id="n-pesq">0</span></div>
+    <div class="ni" onclick="sfCat('Outro / Complexo',this)"><div class="nil"><span class="nd" style="background:#94a3b8"></span><span class="nl">Outro / Complexo</span></div><span class="nc" id="n-outro">0</span></div>
     <div class="ni" onclick="sf('ant',this)"><div class="nil"><span class="nd d-ant"></span><span class="nl">Entrada &gt;7d</span></div><span class="nc" id="n-ant">0</span></div>
     <div class="ni" onclick="sf('pnd',this)"><div class="nil"><span class="nd d-pnd"></span><span class="nl">Pendentes</span></div><span class="nc" id="n-pnd">—</span></div>
     <div class="ni" onclick="sf('ok',this)"><div class="nil"><span class="nd d-ok"></span><span class="nl">Concluídos</span></div><span class="nc" id="n-ok">0</span></div>
@@ -369,6 +392,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     </select>
     <span style="color:#93c5fd">·</span>
     <button class="btn btn-sm" style="background:#dc2626;color:#fff;border:none;cursor:pointer;font-family:var(--f);padding:4px 10px;border-radius:var(--rs);font-size:12px" onclick="deleteSelected()">🗑 Apagar</button>
+    <button class="btn btn-sm" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;cursor:pointer;font-family:var(--f);padding:4px 10px;border-radius:var(--rs);font-size:12px" onclick="darCienciaLote()">✓ Dar ciência</button>
     <button class="btn btn-sm btn-gh" style="font-size:12px;padding:4px 10px" onclick="clearSelection()">✕ Cancelar</button>
     <label style="margin-left:auto;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;white-space:nowrap"><input type="checkbox" id="sel-all" onchange="toggleSelectAll(this.checked)" style="width:13px;height:13px;accent-color:var(--if)"> Todos</label>
   </div>
@@ -705,6 +729,7 @@ function gc(id){return document.getElementById(id)?.checked||false;}
 function saveP(id){
   const p=procs[id];
   p.cat=g('cat-'+id);p.resp=g('resp-'+id);p.prazo=g('pr-'+id);
+  if(isUrgentCat(p.cat)&&!p.urg){p.urg=true;} // auto-urgente
   p.urg=gc('urg-'+id);p.cpl=gc('cpl-'+id);p.agBx=gc('agbx-'+id);
   const novoOk=gc('ok-'+id);
   if(novoOk&&!p.ok){if(!confirm('Confirmar conclusão do processo '+p.num+'?\n\nO ciclo será encerrado.')){document.getElementById('ok-'+id).checked=false;return;}p.esSt='concluido';}
@@ -760,6 +785,22 @@ function updStats(){
   const protoTab=document.getElementById('tb-proto');
   if(protoTab){protoTab.style.background=proto>0?'#d97706':'';protoTab.style.color=proto>0?'#fff':'';}
   const mf=document.getElementById('tb-mf');if(mf)mf.textContent=procs.filter(p=>p.atrib===CU&&!p.ok).length;
+  s('n-pesq',procs.filter(p=>p.cat==='Pesquisa de endereço').length);
+  s('n-outro',procs.filter(p=>p.cat==='Outro / Complexo').length);
+  s('n-urg-preso',procs.filter(p=>p.cat==='Criminal — Representação de delegado (prisão/cautelar)'&&!p.ok).length);
+  s('n-urg-mp',procs.filter(p=>p.cat==='Criminal — Manifestação sobre medida protetiva'&&!p.ok).length);
+  s('n-urg-cr',procs.filter(p=>p.cat&&p.cat.toLowerCase().includes('contrarrazões')&&!p.ok).length);
+  s('n-urg-ali',procs.filter(p=>p.cat==='Alimentos — Pedido de prisão civil'&&!p.ok).length);
+  // acesso rápido counters
+  s('n-aq-preso',procs.filter(p=>p.cat==='Criminal — Representação de delegado (prisão/cautelar)'&&!p.ok).length);
+  s('n-aq-den',procs.filter(p=>p.cat==='Criminal — Análise de IPL: minutar denúncia'&&!p.ok).length);
+  s('n-aq-tco',procs.filter(p=>p.cat==='Criminal — Análise de TCO'&&!p.ok).length);
+  s('n-aq-alg',procs.filter(p=>p.cat==='Criminal — Alegações finais'&&!p.ok).length);
+  s('n-aq-resp',procs.filter(p=>p.cat==='Criminal — Manifestação sobre resposta à acusação'&&!p.ok).length);
+  s('n-aq-mp',procs.filter(p=>p.cat==='Criminal — Manifestação sobre medida protetiva'&&!p.ok).length);
+  s('n-aq-cr',procs.filter(p=>p.cat&&p.cat.toLowerCase().includes('contrarrazões')&&!p.ok).length);
+  s('n-aq-civs',procs.filter(p=>p.cat&&p.cat.startsWith('Cível')&&!p.cpl&&!p.ok).length);
+  s('n-aq-civc',procs.filter(p=>p.cat&&p.cat.startsWith('Cível')&&p.cpl&&!p.ok).length);
   // subcategory counters
   s('n-cat-cri-0',procs.filter(p=>p.cat==='Criminal — Representação de delegado (prisão/cautelar)').length);
   s('n-cat-cri-1',procs.filter(p=>p.cat==='Criminal — Denúncia').length);
@@ -789,7 +830,13 @@ function updStats(){
 function sf(f,el){filt=f;document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));el.classList.add('active');renderTri();}
 function dtag(p){const d=p.d,c=d<=3?'fr':d<=7?'wk':'';return`<span class="mt t-d ${c}">${d}d</span>`;}
 function stag(p){
-  if(p.urg)return'<span class="mt t-urg">Urgente</span>';
+  if(p.urg){
+    const urgReason=p.cat==='Criminal — Representação de delegado (prisão/cautelar)'?'Réu preso':
+      p.cat==='Criminal — Manifestação sobre medida protetiva'?'Medida protetiva':
+      p.cat&&p.cat.toLowerCase().includes('contrarrazões')?'Contrarrazões':
+      p.cat==='Alimentos — Pedido de prisão civil'?'Prisão civil':'Urgente';
+    return '<span class="mt t-urg" title="'+urgReason+'">⚠ '+urgReason+'</span>';
+  }
   if(p.bxOk||p.ok)return'<span class="mt t-ok">Concluído</span>';
   if(p.esSt==='minuta pronta')return'<span class="mt" style="background:#faf5ff;color:#6d28d9;font-weight:600">📄 Minuta pronta</span>';
   if(p.esSt==='revisao')return'<span class="mt" style="background:#ede9fe;color:#5b21b6;font-weight:600">🔍 Em revisão</span>';
@@ -805,7 +852,15 @@ function summ(p){if(p.iaStatus==='loading')return'<span class="spin"></span> Ana
 function getFilt(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   const s=document.getElementById('srt')?.value||'ent_asc';
-  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok&&!p.agBx&&p.esSt==='triagem';if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='ep')return p.cat.startsWith('Execução Penal');if(filt==='ali')return p.cat.startsWith('Alimentos');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='cat')return p.cat===filtCat;if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
+  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok&&!p.agBx&&p.esSt==='triagem';if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='ep')return p.cat.startsWith('Execução Penal');if(filt==='ali')return p.cat.startsWith('Alimentos');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='cat')return p.cat===filtCat;
+    if(filt==='civeltipo'){
+      if(filtCat==='civel-simples')return p.cat&&p.cat.startsWith('Cível')&&!p.cpl&&!p.ok;
+      if(filtCat==='civel-complexo')return p.cat&&p.cat.startsWith('Cível')&&p.cpl&&!p.ok;
+    }
+    if(filt==='urgcat'){
+      if(filtCat==='contrarrazoes')return p.cat.toLowerCase().includes('contrarrazões')&&!p.ok;
+      return p.cat===filtCat&&!p.ok;
+    }if(filt==='ant')return p.d>7&&!p.ok;if(filt==='pnd')return!p.ok;if(filt==='ok')return p.ok;return true;});
   if(s==='urg')l=[...l].sort((a,b)=>b.urg-a.urg);else if(s==='ent_desc')l=[...l].sort((a,b)=>b.ent-a.ent);else if(s==='dias')l=[...l].sort((a,b)=>b.d-a.d);else if(s==='pnd')l=[...l].sort((a,b)=>a.ok-b.ok);else l=[...l].sort((a,b)=>a.ent-b.ent);
   return l;
 }
@@ -836,14 +891,34 @@ function renderTri(){
         <div class="cmeta"><span class="mt t-yr">${p.yr}</span><span class="mt t-vr">${p.vr}</span>${dtag(p)}${stag(p)}${ctag(p)}</div>
         <div class="csum">${summ(p)}</div>
         <span class="cent">${fdt(p.ent)}</span>
-        <div class="qa" onclick="event.stopPropagation()">
-          ${!p.ok&&(!p.cat||p.cat===''||p.cat==='— Selecionar —')?`
-            <button class="qab" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0" onclick="acaoRapida(${p.id},'ciencia')" title="Dar ciência — classifica como Mera ciência">✓ Ciência</button>
-            <button class="qab" style="background:#faf5ff;color:#6d28d9;border-color:#ddd6fe" onclick="acaoRapida(${p.id},'baixa')" title="Marcar para baixa sem categoria">⬇ Baixa</button>
-          `:''}
-          ${p.cat&&p.cat!==''&&p.cat!=='— Selecionar —'&&!p.agBx&&!p.ok?`
-            <button class="qab" style="background:#faf5ff;color:#6d28d9;border-color:#ddd6fe" onclick="acaoRapida(${p.id},'baixa')" title="Marcar para baixa">⬇ Baixa</button>
-          `:''}
+        <div class="qact" onclick="event.stopPropagation()">
+          <button class="qa-btn${p.urg?' qa-active':''}" onclick="toggleUrgente(${p.id})" title="Urgente">🔴</button>
+          <select class="qa-sel" onchange="quickAtrib(${p.id},this)" title="Atribuir para estagiário">
+            <option value="">👤</option>
+            ${getEstags().map(e=>`<option value="${e}" ${p.atrib===e?'selected':''}>${e}</option>`).join('')}
+          </select>
+          <select class="qa-sel" onchange="quickCat(${p.id},this)" title="Categoria rápida" style="max-width:140px">
+            <option value="">🏷 Categoria</option>
+            <optgroup label="⚠ Urgentes">
+              <option value="Criminal — Representação de delegado (prisão/cautelar)" ${p.cat==='Criminal — Representação de delegado (prisão/cautelar)'?'selected':''}>🔴 Réu preso / cautelar</option>
+              <option value="Criminal — Manifestação sobre medida protetiva" ${p.cat==='Criminal — Manifestação sobre medida protetiva'?'selected':''}>🔴 Medida protetiva</option>
+              <option value="Criminal — Contrarrazões de apelação" ${p.cat==='Criminal — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões criminal</option>
+              <option value="Cível — Contrarrazões de apelação" ${p.cat==='Cível — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões cível</option>
+              <option value="Cível — Contrarrazões de recurso especial" ${p.cat==='Cível — Contrarrazões de recurso especial'?'selected':''}>🔴 Contrarrazões REsp</option>
+              <option value="Alimentos — Pedido de prisão civil" ${p.cat==='Alimentos — Pedido de prisão civil'?'selected':''}>🔴 Prisão civil alimentos</option>
+            </optgroup>
+            <optgroup label="Frequentes">
+              <option value="Mera ciência" ${p.cat==='Mera ciência'?'selected':''}>Mera ciência</option>
+              <option value="Criminal — Denúncia" ${p.cat==='Criminal — Denúncia'?'selected':''}>Denúncia</option>
+              <option value="Criminal — Alegações finais" ${p.cat==='Criminal — Alegações finais'?'selected':''}>Alegações finais</option>
+              <option value="Criminal — Análise de IPL: minutar denúncia" ${p.cat==='Criminal — Análise de IPL: minutar denúncia'?'selected':''}>IPL: denúncia</option>
+              <option value="Criminal — Análise de TCO" ${p.cat==='Criminal — Análise de TCO'?'selected':''}>TCO</option>
+              <option value="Execução Penal — Manifestação" ${p.cat==='Execução Penal — Manifestação'?'selected':''}>EP: Manifestação</option>
+              <option value="Pesquisa de endereço" ${p.cat==='Pesquisa de endereço'?'selected':''}>Pesquisa endereço</option>
+            </optgroup>
+          </select>
+          ${p.cat==='Mera ciência'&&!p.ok?`<button class="qa-btn" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0" onclick="darCiencia(${p.id})" title="Dar ciência e concluir">✓ Ciência</button>`:''}
+          ${p.agBx&&!p.bxOk?`<button class="qa-btn" style="background:#faf5ff;color:#6d28d9;border-color:#ddd6fe" onclick="darBaixa(${p.id})" title="Registrar baixa">⬇ Baixa</button>`:''}
         </div>
         <span class="cchv">⌄</span>
       </div>
@@ -1384,6 +1459,25 @@ function acaoRapida(id, tipo){
 }
 
 
+function darCienciaLote(){
+  if(!selectedIds.size)return;
+  if(!confirm('Dar ciência em '+selectedIds.size+' processo(s)?\n\nTodos serão marcados como Mera ciência e concluídos.'))return;
+  const n=selectedIds.size;
+  selectedIds.forEach(id=>{
+    if(procs[id]){procs[id].cat='Mera ciência';procs[id].esSt='concluido';procs[id].ok=true;}
+  });
+  clearSelection();
+  syncSave();updStats();renderAll();
+  toast('Ciência registrada em '+n+' processo(s).');
+}
+function darCienciaTodos(){
+  const lista=procs.filter(p=>p.cat==='Mera ciência'&&!p.ok);
+  if(!lista.length){toast('Nenhum processo de Mera ciência pendente.');return;}
+  if(!confirm('Dar ciência em todos os '+lista.length+' processos de Mera ciência?\n\nTodos serão marcados como concluídos.'))return;
+  lista.forEach(p=>{p.esSt='concluido';p.ok=true;});
+  syncSave();updStats();renderAll();
+  toast('Ciência registrada em '+lista.length+' processo(s).');
+}
 function darCiencia(id){
   const p=procs[id];
   if(!confirm('Confirmar ciência no processo '+p.num+'?\n\nO processo será marcado como concluído.'))return;
@@ -1401,6 +1495,49 @@ function darBaixa(id){
   if(!p.cat||p.cat===''||p.cat==='— Selecionar —')p.cat='Mera ciência';
   syncSave();updStats();renderBx();renderAll();
   toast('Baixa registrada — '+p.num);
+}
+
+
+function toggleUrgente(id){
+  procs[id].urg=!procs[id].urg;
+  syncSave();updStats();renderTri();
+  toast((procs[id].urg?'Marcado urgente':'Urgente removido')+' — '+procs[id].num);
+}
+function quickAtrib(id, sel){
+  const nome=sel.value;
+  procs[id].atrib=nome;
+  if(nome&&procs[id].esSt==='triagem')procs[id].esSt='atribuido';
+  if(!nome&&procs[id].esSt==='atribuido')procs[id].esSt='triagem';
+  syncSave();updStats();renderTri();
+  toast(nome?('Atribuído para '+nome+' — '+procs[id].num):('Atribuição removida — '+procs[id].num));
+}
+
+function sfCivelTipo(tipo, el){
+  filtCat = tipo==='simples' ? 'civel-simples' : 'civel-complexo';
+  filt='civeltipo';
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderTri();
+}
+function sfUrgCat(cat, el){
+  if(cat==='contrarrazoes'){
+    filtCat='contrarrazoes';
+  } else {
+    filtCat=cat;
+  }
+  filt='urgcat';
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderTri();
+}
+
+function isUrgentCat(cat){return cat==='Criminal — Representação de delegado (prisão/cautelar)'||cat==='Criminal — Manifestação sobre medida protetiva'||cat==='Criminal — Contrarrazões de apelação'||cat==='Criminal — Recurso em sentido estrito'||cat==='Cível — Contrarrazões de apelação'||cat==='Cível — Contrarrazões de recurso especial'||cat==='Alimentos — Pedido de prisão civil';}
+function quickCat(id, sel){
+  const cat=sel.value;
+  if(!cat)return;
+  procs[id].cat=cat;
+  if(isUrgentCat(cat)&&!procs[id].urg){procs[id].urg=true;toast('⚠ Marcado como URGENTE: '+cat.split(' — ').pop());}
+  syncSave();updStats();renderTri();
 }
 
 function renderAll(){renderTri();}
