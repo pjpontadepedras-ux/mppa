@@ -409,6 +409,7 @@ function HOJE(){return new Date();}
 function pBR(s){const[d,m,y]=s.split(' ')[0].split('/');return new Date(`${y}-${m}-${d}T${s.split(' ')[1]||'00:00:00'}`);}
 function dias(dt){return Math.floor((HOJE()-dt)/86400000);}
 function fdt(dt){return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();}
+func //
 function hoje(){return new Date().toISOString().split('T')[0];}
 const CATS=['— Selecionar —','Mera ciência','Criminal — Representação de delegado (prisão/cautelar)','Criminal — Análise de IPL: minutar denúncia','Criminal — Análise de IPL: diligências','Criminal — Manifestação sobre resposta à acusação','Criminal — Alegações finais','Criminal — Manifestação sobre medida protetiva','Criminal — Contrarrazões de apelação','Cível — Manifestação sobre tutela provisória','Cível — Manifestação final (custos legis)','Outro / Complexo'];
 function getRESPS(){return['— Selecionar —','Assessor jurídico (PJ)',...getEstags(),'Promotora (Dra. Francys Lucy)'];}
