@@ -23,6 +23,7 @@
 }
 html,body{height:100%;overflow-x:hidden}
 body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-height:100vh;font-size:14px;max-width:100vw}
+@media(max-width:700px){body{font-size:13px}}
 .login-screen{position:fixed;inset:0;background:var(--sb);display:flex;align-items:center;justify-content:center;z-index:999}
 .login-box{background:#fff;border-radius:16px;padding:40px 48px;max-width:420px;width:92%;text-align:center}
 .l-org{font-size:10px;font-weight:700;letter-spacing:.15em;color:#8892aa;text-transform:uppercase;margin-bottom:6px}
@@ -44,7 +45,8 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .setup-step .sn{font-size:10px;font-weight:700;color:var(--if);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
 .setup-step p{font-size:12px;color:var(--tx2);line-height:1.6}
 .setup-step code{font-family:var(--fm);font-size:11px;background:#e8f0fe;color:#1a56db;padding:1px 5px;border-radius:3px}
-.sidebar{width:215px;min-width:215px;background:var(--sb);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100}
+.sidebar{width:215px;min-width:215px;background:var(--sb);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;transition:transform .25s}
+@media(max-width:700px){.sidebar{transform:translateX(-100%);width:260px}.sidebar.mob-open{transform:translateX(0)}.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}.mob-overlay.show{display:block}}
 .sb-brand{padding:18px 18px 12px;border-bottom:1px solid var(--sb-br)}
 .sb-brand .org{font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--sb-m);text-transform:uppercase;margin-bottom:3px}
 .sb-brand h1{font-size:15px;font-weight:700;color:var(--sb-t);line-height:1.2}
@@ -77,18 +79,23 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .sbtn{display:block;width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,.07);color:var(--sb-m);border:none;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:var(--f);text-align:center;transition:background .12s}
 .sbtn:hover{background:rgba(255,255,255,.12);color:var(--sb-t)}
 .main{margin-left:215px;flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden}
+@media(max-width:700px){.main{margin-left:0}}
 .tabbar{background:#fff;border-bottom:1px solid var(--cb);padding:0;display:flex;flex-direction:column;position:sticky;top:0;z-index:50}
-.tabbar-tabs{display:flex;align-items:flex-end;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tabbar-tabs{display:flex;align-items:flex-end;padding:0 8px;overflow-x:auto;scrollbar-width:none}
+@media(max-width:700px){.tabbar-tabs{padding:0 4px}.tbb{padding:10px 10px 8px;font-size:12px}}
 .tabbar-acts{display:flex;align-items:center;gap:6px;padding:6px 16px;border-top:1px solid #f0f2f5;background:#fafbfc;flex-wrap:wrap}
+@media(max-width:700px){.tabbar-acts{padding:5px 10px;gap:4px}.tabbar-acts .btn{font-size:11px;padding:4px 8px}.tabbar-acts select{font-size:11px;padding:3px 6px}}
 .tbb{padding:12px 16px 10px;font-size:13px;font-weight:500;color:var(--txm);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--f);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tbb:hover{color:var(--tx)}.tbb.active{color:var(--if);border-bottom-color:var(--if)}
 .tbb .tb{font-size:10px;background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:99px;font-weight:600}
 .tbb.active .tb{background:var(--if);color:#fff}
 
 .sync-bar{background:#eff6ff;border-bottom:1px solid #bfdbfe;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:12px;color:#1e40af;flex-wrap:wrap;overflow:hidden}
+@media(max-width:700px){.sync-bar{padding:4px 10px;font-size:11px}}
 .ss{font-size:11px;color:#64748b}.ss.ok{color:#16a34a}.ss.err{color:#dc2626}.ss.loading{color:#f59e0b}
 .tc{display:none;flex:1}.tc.active{display:flex;flex-direction:column;flex:1}
 .content{padding:16px 18px;flex:1;min-width:0;overflow-x:hidden}
+@media(max-width:700px){.content{padding:10px 10px}}
 .plist{display:flex;flex-direction:column;gap:5px}
 .pc{background:var(--card);border:1px solid var(--cb);border-radius:var(--r);overflow:hidden;transition:border-color .15s,box-shadow .15s;min-width:0}
 .pc:hover{border-color:var(--cbh);box-shadow:0 1px 4px rgba(0,0,0,.06)}
@@ -169,7 +176,11 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .spin{width:11px;height:11px;border:1.5px solid #bfdbfe;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px;line-height:1.8}
+.upl-btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#f8f9fb;border:1px solid var(--ib);border-radius:var(--rs);padding:4px 10px;font-size:11px;color:var(--tx2);transition:all .15s}
+.upl-btn:hover{border-color:var(--if);background:#eff6ff}
 .qact{display:flex;align-items:center;gap:4px;margin-left:8px;flex-shrink:0}
+@media(max-width:700px){.qact{display:none}}
+@media(max-width:700px){.cmeta{gap:3px}.mt{font-size:9px;padding:1px 4px}}
 .qa-btn{background:transparent;border:1px solid transparent;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:11px;line-height:1;transition:all .15s;color:var(--txm)}
 .qa-btn:hover{background:#f1f5f9;border-color:var(--cb)}.qa-btn.qa-active{background:#fee2e2;border-color:#fca5a5}
 .qa-sel{font-size:11px;padding:2px 4px;border:1px solid var(--ib);border-radius:4px;background:#fff;cursor:pointer;color:var(--tx);font-family:var(--f);max-width:90px}
@@ -182,6 +193,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .sel-bar.visible{display:flex}
 .pc-cb{width:16px;height:16px;cursor:pointer;accent-color:var(--if);flex-shrink:0}
 .gp{height:2px;background:#dbeafe;position:fixed;top:0;left:215px;right:0;z-index:200;display:none}
+@media(max-width:700px){.gp{left:0}}
 .gpf{height:100%;background:#2563eb;transition:width .3s}
 .toast{position:fixed;bottom:20px;right:24px;background:#1c2333;color:#fff;font-size:12px;padding:8px 16px;border-radius:6px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999}
 .toast.show{opacity:1;transform:translateY(0)}
@@ -360,6 +372,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 <div class="main" id="mc" style="display:none">
   <div class="tabbar" id="tbr">
     <div class="tabbar-tabs" id="tbr-tabs">
+      <button id="mob-menu-btn" onclick="toggleMobSidebar()" style="display:none;background:none;border:none;cursor:pointer;padding:10px 8px;font-size:18px;color:var(--tx2);flex-shrink:0" title="Menu">☰</button>
       <button class="tbb active" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
       <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
       <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
@@ -488,6 +501,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
   </div>
 </div>
 
+<div class="mob-overlay" id="mob-overlay" onclick="toggleMobSidebar()"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -518,7 +532,7 @@ function mkP(sv){
 }
 let procs=mkP(null),CU=null,isA=false,filt='all',batching=false,GSURL='',APIKEY='',ACCESS_CODE='',groupMode=false;
 function loadCfg(){
-  const EMBEDDED_URL='https://script.google.com/macros/s/AKfycbwY9TO6Cr2Vy3SLtwk1Kxrwtcc3O_k7bVbeSrJc7YjBWJc_vSE5gqiGmHAuXi4dRcO/exec';
+  const EMBEDDED_URL='https://script.google.com/macros/s/AKfycbwlceuoDc3ZUxPI6iY5IvhGVqAHc4zDYVAJlPItmxIQ6W0Ysm-Y1luJzPb3sS22C5VzBQ/exec';
   GSURL=localStorage.getItem('mppa_gs')||EMBEDDED_URL||'';
   APIKEY=localStorage.getItem('mppa_ak')||'';
   ACCESS_CODE=localStorage.getItem('mppa_code')||'';
@@ -1033,7 +1047,14 @@ function renderTriGrouped(fl,wo,co,ro,ao){
         +'<div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-'+p.id+'" value="'+p.prazo+'"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-'+p.id+'" '+(p.urg?'checked':'')+'> Urgente</label><label class="fi"><input type="checkbox" id="cpl-'+p.id+'" '+(p.cpl?'checked':'')+'> Complexo</label><label class="fi"><input type="checkbox" id="ok-'+p.id+'" '+(p.ok?'checked':'')+'> Concluído</label><label class="fi"><input type="checkbox" id="agbx-'+p.id+'" '+(p.agBx?'checked':'')+'>  Ag. baixa</label></div></div></div>'
         +'<div class="fr1"><label class="fl">Relatório do Processo</label><textarea class="fc" id="obs-'+p.id+'" placeholder="Histórico, partes envolvidas...">'+p.obs+'</textarea></div>'
         +'<div class="fr1"><label class="fl">Prompt / Comando de IA</label><textarea class="fc" id="cmd-'+p.id+'" style="min-height:80px">'+p.cmd+'</textarea></div>'
-        +'<div class="fr1"><label class="fl">🔗 Link da minuta / SAJ</label><div style="display:flex;gap:8px;align-items:center"><input class="fc" type="text" id="lnk-'+p.id+'" value="'+(p.lnk||'')+'" style="flex:1">'+(p.lnk?'<a href="'+p.lnk+'" target="_blank" style="font-size:11px;color:#2563eb">↗ Abrir</a>':'')+'</div></div>'
+        +'<div class="fr1"><label class="fl">🔗 Link da minuta / SAJ</label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input class="fc" type="text" id="lnk-'+p.id+'" value="'+(p.lnk||'')+'" style="flex:1;min-width:200px">'+(p.lnk?'<a href="'+p.lnk+'" target="_blank" style="font-size:11px;color:#2563eb;white-space:nowrap">↗ Abrir</a>':'')+'</div>'
+        +'<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        +'<label class="upl-btn">'
+        +'📎 Anexar PDF'
+        +'<input type="file" accept=".pdf,.doc,.docx" style="display:none" onchange="uploadMinuta('+p.id+',this)">'
+        +'</label>'
+        +'<span id="upl-st-'+p.id+'" style="font-size:11px;color:var(--txm)"></span>'
+        +'</div></div>'
         +'<div class="fr" style="margin-top:12px"><div><label class="fl">👤 Atribuir para</label><select class="fc" id="atr-'+p.id+'">'+ao(p.id)+'</select></div>'
         +'<div><label class="fl">Status</label><select class="fc" id="esst-d-'+p.id+'"><option value="triagem" '+(p.esSt==='triagem'||p.esSt==='pendente'?'selected':'')+'>📋 Triagem</option><option value="atribuido" '+(p.esSt==='atribuido'?'selected':'')+'>👤 Atribuído</option><option value="aguardando minuta" '+(p.esSt==='aguardando minuta'?'selected':'')+'>✍ Ag. minuta</option><option value="minuta pronta" '+(p.esSt==='minuta pronta'?'selected':'')+'>📄 Minuta pronta</option><option value="revisao" '+(p.esSt==='revisao'?'selected':'')+'>🔍 Em revisão</option><option value="registro saj" '+(p.esSt==='registro saj'?'selected':'')+'>📝 Registro SAJ</option><option value="protocolo" '+(p.esSt==='protocolo'?'selected':'')+'>📬 Protocolo</option><option value="concluido" '+(p.esSt==='concluido'?'selected':'')+'>✓ Concluído</option></select></div></div>'
         +bxS
@@ -1548,6 +1569,82 @@ function quickCat(id, sel){
   syncSave();updStats();renderTri();
 }
 
+
+function isMobile(){return window.innerWidth<=700;}
+function toggleMobSidebar(){
+  const sb=document.getElementById('sdb');
+  const ov=document.getElementById('mob-overlay');
+  if(!sb||!ov)return;
+  const open=sb.classList.contains('mob-open');
+  sb.classList.toggle('mob-open',!open);
+  ov.classList.toggle('show',!open);
+}
+function setupMobile(){
+  const btn=document.getElementById('mob-menu-btn');
+  if(btn)btn.style.display=isMobile()?'':'none';
+}
+window.addEventListener('resize',setupMobile);
+
+
+async function uploadMinuta(id, input){
+  const file = input.files[0];
+  if(!file)return;
+  const stEl = document.getElementById('upl-st-'+id);
+  if(stEl){stEl.textContent='⏳ Enviando...';stEl.style.color='#f59e0b';}
+  
+  if(!GSURL){
+    if(stEl){stEl.textContent='⚠ Configure o Google Sheets primeiro';stEl.style.color='#dc2626';}
+    return;
+  }
+  
+  // Size check: 6MB limit
+  if(file.size > 6 * 1024 * 1024){
+    if(stEl){stEl.textContent='⚠ Arquivo muito grande (máx 6MB)';stEl.style.color='#dc2626';}
+    return;
+  }
+  
+  try{
+    // Read file as base64
+    const base64 = await new Promise((res,rej)=>{
+      const r = new FileReader();
+      r.onload = ()=>res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+    
+    const p = procs[id];
+    const payload = {
+      action: 'uploadFile',
+      fileName: (p.num||'proc')+' — '+file.name,
+      base64,
+      mimeType: file.type||'application/pdf',
+      procNum: p.num||''
+    };
+    
+    const r = await fetch(GSURL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    
+    if(d.ok && d.url){
+      procs[id].lnk = d.url;
+      // Update the link input
+      const lnkEl = document.getElementById('lnk-'+id);
+      if(lnkEl) lnkEl.value = d.url;
+      if(stEl){stEl.textContent='✓ '+d.fileName+' enviado';stEl.style.color='#16a34a';}
+      syncSave();
+      toast('PDF enviado para o Google Drive');
+    } else {
+      if(stEl){stEl.textContent='⚠ Erro: '+(d.error||'falha no envio');stEl.style.color='#dc2626';}
+    }
+  } catch(e){
+    if(stEl){stEl.textContent='⚠ Erro de conexão';stEl.style.color='#dc2626';}
+  }
+  input.value=''; // reset input
+}
+
 function renderAll(){renderTri();}
 
 function openAddModal(){
@@ -1593,9 +1690,10 @@ loadCfg();
 // Auto-sync a cada 60s para manter dados atualizados
 setInterval(()=>{if(GSURL&&document.visibilityState==='visible')syncLoad(false);},60000);
 
+setupMobile();
 // Pre-seed Apps Script URL if not set
 if(!localStorage.getItem('mppa_gs')){
-  localStorage.setItem('mppa_gs','https://script.google.com/macros/s/AKfycbwY9TO6Cr2Vy3SLtwk1Kxrwtcc3O_k7bVbeSrJc7YjBWJc_vSE5gqiGmHAuXi4dRcO/exec');
+  localStorage.setItem('mppa_gs','https://script.google.com/macros/s/AKfycbwlceuoDc3ZUxPI6iY5IvhGVqAHc4zDYVAJlPItmxIQ6W0Ysm-Y1luJzPb3sS22C5VzBQ/exec');
 }
 // Pre-seed password hash if not set (first run)
 if(!localStorage.getItem('mppa_pwd_hash')){
