@@ -45,7 +45,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .setup-step .sn{font-size:10px;font-weight:700;color:var(--if);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
 .setup-step p{font-size:12px;color:var(--tx2);line-height:1.6}
 .setup-step code{font-family:var(--fm);font-size:11px;background:#e8f0fe;color:#1a56db;padding:1px 5px;border-radius:3px}
-.sidebar{width:215px;min-width:215px;background:var(--sb);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;transition:transform .25s}
+.sidebar{width:195px;min-width:195px;background:var(--sb);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;transition:transform .25s}
 @media(max-width:700px){.sidebar{transform:translateX(-100%);width:260px}.sidebar.mob-open{transform:translateX(0)}.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}.mob-overlay.show{display:block}}
 .sb-brand{padding:18px 18px 12px;border-bottom:1px solid var(--sb-br)}
 .sb-brand .org{font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--sb-m);text-transform:uppercase;margin-bottom:3px}
@@ -62,13 +62,13 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .sc .num.red{color:#f87171}.sc .num.green{color:#4ade80}.sc .num.amber{color:#fbbf24}.sc .num.blue{color:#60a5fa}
 .sc .lbl{font-size:9px;color:var(--sb-m);text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
 .sb-nav{padding:10px;flex:1}
-.nsl{font-size:9px;font-weight:600;letter-spacing:.12em;color:var(--sb-m);text-transform:uppercase;padding:0 8px 6px;margin-top:2px}
+.nsl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--sb-m);text-transform:uppercase;padding:0 8px 5px;margin-top:2px}
 .ni{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:var(--rs);cursor:pointer;transition:background .12s;margin-bottom:1px;user-select:none}
 .ni:hover{background:var(--sb-hv)}.ni.active{background:var(--sb-ac)}
 .nil{display:flex;align-items:center;gap:8px}
 .nd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .d-all{background:#6b7faa}.d-urg{background:#f87171}.d-cri{background:#60a5fa}.d-ep{background:#f472b6}.d-civ{background:#34d399}.d-cie{background:#a3a3a3}.d-cpl{background:#fbbf24}.d-ant{background:#f97316}.d-bx{background:#a78bfa}.d-ok{background:#4ade80}.d-pnd{background:#94a3b8}
-.nl{font-size:13px;color:var(--sb-t)}
+.nl{font-size:12px;color:var(--sb-t)}
 .nc{font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:var(--sb-m);padding:1px 7px;border-radius:99px;min-width:26px;text-align:center}
 .ni.active .nc{background:rgba(255,255,255,.18);color:var(--sb-t)}
 .sb-foot{padding:10px 18px;border-top:1px solid var(--sb-br)}
@@ -78,7 +78,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .pts{font-size:11px;color:var(--sb-m)}
 .sbtn{display:block;width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,.07);color:var(--sb-m);border:none;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:var(--f);text-align:center;transition:background .12s}
 .sbtn:hover{background:rgba(255,255,255,.12);color:var(--sb-t)}
-.main{margin-left:215px;flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden}
+.main{margin-left:195px;flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden}
 @media(max-width:700px){.main{margin-left:0}}
 .tabbar{background:#fff;border-bottom:1px solid var(--cb);padding:0;display:flex;flex-direction:column;position:sticky;top:0;z-index:50}
 .tabbar-tabs{display:flex;align-items:flex-end;padding:0 8px;overflow-x:auto;scrollbar-width:none}
@@ -120,7 +120,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .pc.open .cb-body{display:block}
 .fr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
 .fr1{margin-top:12px}
-.fl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--txm);margin-bottom:4px;display:block}
+.fl{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--tx2);margin-bottom:4px;display:block}
 .fc{width:100%;padding:7px 10px;border:1px solid var(--ib);border-radius:var(--rs);font-size:13px;color:var(--tx);background:#fff;outline:none;font-family:var(--f);transition:border-color .15s}
 .fc:focus{border-color:var(--if);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
 .fc::placeholder{color:#b0b8c8}
@@ -176,6 +176,20 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .spin{width:11px;height:11px;border:1.5px solid #bfdbfe;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px;line-height:1.8}
+.sec{border-radius:var(--rs);padding:12px 14px;margin-top:10px}
+.sec-hd{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-a{background:#f8f9fb;border:1px solid #eaecef}.sec-a .sec-hd{color:#64748b}
+.sec-b{background:#f0f7ff;border:1px solid #bfdbfe}.sec-b .sec-hd{color:#1e40af}
+.sec-c{background:#f8f7ff;border:1px solid #ddd6fe}.sec-c .sec-hd{color:#5b21b6}
+.flow-bar{display:flex;align-items:center;gap:0;margin:12px 0 4px;overflow-x:auto;scrollbar-width:none}
+.flow-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;position:relative}
+.flow-step:not(:last-child)::after{content:'';position:absolute;top:10px;left:50%;width:100%;height:2px;background:var(--cb);z-index:0}
+.flow-step.done::after{background:#2563eb}
+.flow-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--cb);background:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;z-index:1;position:relative;flex-shrink:0;transition:all .2s}
+.flow-step.done .flow-dot{background:#2563eb;border-color:#2563eb;color:#fff}
+.flow-step.active .flow-dot{background:#fff;border-color:#2563eb;border-width:3px;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.flow-lbl{font-size:9px;color:var(--txm);margin-top:3px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px}
+.flow-step.active .flow-lbl{color:#2563eb;font-weight:600}
 .upl-btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#f8f9fb;border:1px solid var(--ib);border-radius:var(--rs);padding:4px 10px;font-size:11px;color:var(--tx2);transition:all .15s}
 .upl-btn:hover{border-color:var(--if);background:#eff6ff}
 .qact{display:flex;align-items:center;gap:4px;margin-left:8px;flex-shrink:0}
@@ -192,7 +206,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .sel-bar{display:none;align-items:center;gap:10px;padding:8px 16px;background:#eff6ff;border-bottom:1px solid #bfdbfe;font-size:12px;color:#1e40af;position:sticky;top:0;z-index:40}
 .sel-bar.visible{display:flex}
 .pc-cb{width:16px;height:16px;cursor:pointer;accent-color:var(--if);flex-shrink:0}
-.gp{height:2px;background:#dbeafe;position:fixed;top:0;left:215px;right:0;z-index:200;display:none}
+.gp{height:2px;background:#dbeafe;position:fixed;top:0;left:195px;right:0;z-index:200;display:none}
 @media(max-width:700px){.gp{left:0}}
 .gpf{height:100%;background:#2563eb;transition:width .3s}
 .toast{position:fixed;bottom:20px;right:24px;background:#1c2333;color:#fff;font-size:12px;padding:8px 16px;border-radius:6px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999}
@@ -378,7 +392,9 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
       <button class="tbb" id="tbb-proto" onclick="swTab('proto',this)" style="display:none">SAJ & Protocolo <span class="tb" id="tb-proto">0</span></button>
       <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa no sistema <span class="tb" id="tb-bx">0</span></button>
-      <button class="tbb btn-sm btn-gh" style="margin-left:auto;border-bottom:none;font-size:11px;padding:8px 10px" onclick="syncLoad(true)" title="Recarregar dados">↻</button>
+      <button class="tbb btn-sm btn-gh" style="margin-left:auto;border-bottom:none;font-size:11px;padding:8px 10px;display:flex;align-items:center;gap:5px" onclick="syncLoad(true)" title="Recarregar dados">
+        <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#94a3b8;flex-shrink:0;transition:background .3s"></span>↻
+      </button>
     </div>
     <div class="tabbar-acts" id="aact" style="display:none">
       <button class="btn btn-sm btn-gh" id="btn-group" onclick="toggleGroup()" title="Agrupar por categoria">⊞ Agrupar</button>
@@ -396,11 +412,12 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button class="btn btn-p btn-sm" onclick="exportCSV()">CSV</button>
     </div>
   </div>
-  <div class="sync-bar">
+  <div class="sync-bar" id="sync-bar" style="display:none">
     <span>🔗 Google Sheets:</span>
-    <span id="sync-disp" style="font-family:var(--fm);font-size:11px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;display:inline-block">não configurado</span>
+    <span id="sync-disp" style="font-family:var(--fm);font-size:11px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;display:inline-block">não configurado</span>
     <span class="ss" id="sync-st">—</span>
     <button class="btn btn-xs btn-gh" onclick="openCfg()" style="margin-left:auto">Configurar</button>
+    <button onclick="document.getElementById('sync-bar').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--txm);font-size:16px;padding:0 4px;line-height:1">×</button>
   </div>
   <!-- SELECTION BAR -->
   <div class="sel-bar" id="sel-bar">
@@ -640,7 +657,15 @@ function openCfg(){
   document.getElementById('cfg-modal').classList.add('open');
 }
 function closeCfg(){document.getElementById('cfg-modal').classList.remove('open');}
-function setSS(t,c){const el=document.getElementById('sync-st');el.textContent=t;el.className='ss'+(c?' '+c:'');}
+function setSS(t,cls){
+  const el=document.getElementById('sync-st');
+  if(el){el.textContent=t;el.className='ss'+(cls?' '+cls:'');}
+  const dot=document.getElementById('sync-dot');
+  if(dot){dot.style.background=cls==='ok'?'#16a34a':cls==='err'?'#dc2626':cls==='loading'?'#f59e0b':'#94a3b8';}
+  // Show sync bar briefly on error
+  const bar=document.getElementById('sync-bar');
+  if(bar&&cls==='err'){bar.style.display='flex';setTimeout(()=>{if(bar)bar.style.display='none';},4000);}
+}
 async function syncLoad(msg){
   if(!GSURL){if(msg)toast('Apps Script não configurado');return;}
   setSS('Carregando…','loading');
@@ -909,67 +934,105 @@ function renderTri(){
     return`<div class="pc${bc}${op?' open':''}" id="c-${p.id}">
       <div class="ch" onclick="tog(${p.id})">
         <input type="checkbox" class="pc-cb" id="cb-${p.id}" onclick="event.stopPropagation();toggleSelect(${p.id},this)">
-        <button class="pnb" id="nb-${p.id}" onclick="event.stopPropagation();cpN(${p.id},this)">${p.num}</button>
-        <div class="cmeta"><span class="mt t-yr">${p.yr}</span><span class="mt t-vr">${p.vr}</span>${dtag(p)}${stag(p)}${ctag(p)}</div>
-        <div class="csum">${summ(p)}</div>
-        <span class="cent">${fdt(p.ent)}</span>
-        <div class="qact" onclick="event.stopPropagation()">
-          <button class="qa-btn${p.urg?' qa-active':''}" onclick="toggleUrgente(${p.id})" title="Urgente">🔴</button>
-          <select class="qa-sel" onchange="quickAtrib(${p.id},this)" title="Atribuir para estagiário">
-            <option value="">👤</option>
-            ${getEstags().map(e=>`<option value="${e}" ${p.atrib===e?'selected':''}>${e}</option>`).join('')}
-          </select>
-          <select class="qa-sel" onchange="quickCat(${p.id},this)" title="Categoria rápida" style="max-width:140px">
-            <option value="">🏷 Categoria</option>
-            <optgroup label="⚠ Urgentes">
-              <option value="Criminal — Representação de delegado (prisão/cautelar)" ${p.cat==='Criminal — Representação de delegado (prisão/cautelar)'?'selected':''}>🔴 Réu preso / cautelar</option>
-              <option value="Criminal — Manifestação sobre medida protetiva" ${p.cat==='Criminal — Manifestação sobre medida protetiva'?'selected':''}>🔴 Medida protetiva</option>
-              <option value="Criminal — Contrarrazões de apelação" ${p.cat==='Criminal — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões criminal</option>
-              <option value="Cível — Contrarrazões de apelação" ${p.cat==='Cível — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões cível</option>
-              <option value="Cível — Contrarrazões de recurso especial" ${p.cat==='Cível — Contrarrazões de recurso especial'?'selected':''}>🔴 Contrarrazões REsp</option>
-              <option value="Alimentos — Pedido de prisão civil" ${p.cat==='Alimentos — Pedido de prisão civil'?'selected':''}>🔴 Prisão civil alimentos</option>
-            </optgroup>
-            <optgroup label="Frequentes">
-              <option value="Mera ciência" ${p.cat==='Mera ciência'?'selected':''}>Mera ciência</option>
-              <option value="Criminal — Denúncia" ${p.cat==='Criminal — Denúncia'?'selected':''}>Denúncia</option>
-              <option value="Criminal — Alegações finais" ${p.cat==='Criminal — Alegações finais'?'selected':''}>Alegações finais</option>
-              <option value="Criminal — Análise de IPL: minutar denúncia" ${p.cat==='Criminal — Análise de IPL: minutar denúncia'?'selected':''}>IPL: denúncia</option>
-              <option value="Criminal — Análise de TCO" ${p.cat==='Criminal — Análise de TCO'?'selected':''}>TCO</option>
-              <option value="Execução Penal — Manifestação" ${p.cat==='Execução Penal — Manifestação'?'selected':''}>EP: Manifestação</option>
-              <option value="Pesquisa de endereço" ${p.cat==='Pesquisa de endereço'?'selected':''}>Pesquisa endereço</option>
-            </optgroup>
-          </select>
-          ${p.cat==='Mera ciência'&&!p.ok?`<button class="qa-btn" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0" onclick="darCiencia(${p.id})" title="Dar ciência e concluir">✓ Ciência</button>`:''}
-          ${p.agBx&&!p.bxOk?`<button class="qa-btn" style="background:#faf5ff;color:#6d28d9;border-color:#ddd6fe" onclick="darBaixa(${p.id})" title="Registrar baixa">⬇ Baixa</button>`:''}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden">
+            <button class="pnb" id="nb-${p.id}" onclick="event.stopPropagation();cpN(${p.id},this)" style="flex-shrink:0">${p.num}</button>
+            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">${stag(p)}${ctag(p)}</div>
+            <div class="csum" style="flex:1">${summ(p)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:nowrap">
+            <span style="font-size:10px;color:var(--txm);flex-shrink:0">${fdt(p.ent)}</span>
+            <span style="font-size:10px;color:var(--txm);flex-shrink:0">${p.yr} · ${p.vr}</span>
+            ${dtag(p)}
+            <div style="display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="event.stopPropagation()">
+              <button class="qa-btn${p.urg?' qa-active':''}" onclick="toggleUrgente(${p.id})" title="Urgente" style="padding:2px 6px">🔴</button>
+              <select class="qa-sel" onchange="quickAtrib(${p.id},this)" title="Atribuir">
+                <option value="">👤</option>
+                ${getEstags().map(e=>`<option value="${e}" ${p.atrib===e?'selected':''}>${e}</option>`).join('')}
+              </select>
+              <select class="qa-sel" onchange="quickCat(${p.id},this)" title="Categoria" style="max-width:120px">
+                <option value="">🏷</option>
+                <optgroup label="⚠ Urgentes">
+                  <option value="Criminal — Representação de delegado (prisão/cautelar)" ${p.cat==='Criminal — Representação de delegado (prisão/cautelar)'?'selected':''}>🔴 Réu preso</option>
+                  <option value="Criminal — Manifestação sobre medida protetiva" ${p.cat==='Criminal — Manifestação sobre medida protetiva'?'selected':''}>🔴 Med. protetiva</option>
+                  <option value="Criminal — Contrarrazões de apelação" ${p.cat==='Criminal — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões crim.</option>
+                  <option value="Cível — Contrarrazões de apelação" ${p.cat==='Cível — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões cív.</option>
+                  <option value="Alimentos — Pedido de prisão civil" ${p.cat==='Alimentos — Pedido de prisão civil'?'selected':''}>🔴 Prisão civil ali.</option>
+                </optgroup>
+                <optgroup label="Frequentes">
+                  <option value="Mera ciência" ${p.cat==='Mera ciência'?'selected':''}>Mera ciência</option>
+                  <option value="Criminal — Denúncia" ${p.cat==='Criminal — Denúncia'?'selected':''}>Denúncia</option>
+                  <option value="Criminal — Alegações finais" ${p.cat==='Criminal — Alegações finais'?'selected':''}>Alegações finais</option>
+                  <option value="Criminal — Análise de IPL: minutar denúncia" ${p.cat==='Criminal — Análise de IPL: minutar denúncia'?'selected':''}>IPL: denúncia</option>
+                  <option value="Criminal — Análise de TCO" ${p.cat==='Criminal — Análise de TCO'?'selected':''}>TCO</option>
+                  <option value="Execução Penal — Manifestação" ${p.cat==='Execução Penal — Manifestação'?'selected':''}>EP: Manifestação</option>
+                  <option value="Pesquisa de endereço" ${p.cat==='Pesquisa de endereço'?'selected':''}>Pesquisa endereço</option>
+                </optgroup>
+              </select>
+              ${p.cat==='Mera ciência'&&!p.ok?`<button class="qa-btn" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;font-size:11px;padding:2px 7px" onclick="darCiencia(${p.id})">✓</button>`:''}
+            </div>
+          </div>
         </div>
-        <span class="cchv">⌄</span>
+        <span class="cchv" style="flex-shrink:0;margin-left:6px">⌄</span>
       </div>
       <div class="cb-body">
-        <div class="ei"><div class="ei-r"><div class="ei-i"><strong>Entrada:</strong> ${p.dtStr}</div><div class="ei-i"><strong>Espera:</strong> ${p.d}d</div><div class="ei-i"><strong>Vara:</strong> ${p.vr}</div><div class="ei-i"><strong>Ano:</strong> ${p.yr}</div></div></div>
-        <div class="fr"><div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select></div><div><label class="fl">Responsável</label><select class="fc" id="resp-${p.id}">${ro(p.id)}</select></div></div>
-        <div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label><label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label><label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label><label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label></div></div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-          ${p.cat==='Mera ciência'?`<button class="btn btn-xs" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;cursor:pointer;font-family:var(--f)" onclick="darCiencia(${p.id})">✓ Dar ciência e protocolar</button>`:''}
-          ${p.agBx&&!p.bxOk?`<button class="btn btn-xs btn-pu" onclick="darBaixa(${p.id})">✓ Dar baixa rápida</button>`:''}
-        </div></div>
-        <div class="fr1"><label class="fl">Relatório do Processo</label><textarea class="fc" id="obs-${p.id}" placeholder="Histórico, partes envolvidas, andamento, contexto relevante...">${p.obs}</textarea></div>
-        <div class="fr1"><label class="fl">Prompt / Comando de IA <span style="font-size:9px;color:var(--txm);font-weight:400;text-transform:none;letter-spacing:0">— cole no ChatGPT, Claude ou outro</span></label><textarea class="fc" id="cmd-${p.id}" placeholder="Instrução completa para gerar a minuta via IA..." style="min-height:80px">${p.cmd}</textarea></div>
-        <div class="fr" style="margin-top:12px"><div><label class="fl">👤 Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div><div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}"><option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option><option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option><option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option><option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option><option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option><option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option><option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option></select></div></div>
-        <div class="fr1"><label class="fl">🔗 Link da minuta / Localização no SAJ <span style="font-size:9px;color:var(--txm);font-weight:400;text-transform:none;letter-spacing:0">— cole o link ou informe onde está no SAJ</span></label>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <input class="fc" type="text" id="lnk-${p.id}" placeholder="Ex: https://docs.google.com/... ou 'SAJ — Petição 1234'" value="${p.lnk||''}" style="flex:1;min-width:200px">
-            ${p.lnk?`<a href="${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb;white-space:nowrap">↗ Abrir</a>`:''}
+        <div class="sec sec-a">
+          <div class="sec-hd">📁 Informação básica</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--tx2)">
+            <span><strong>Entrada:</strong> ${p.dtStr}</span>
+            <span><strong>Espera:</strong> ${p.d}d</span>
+            <span><strong>Vara:</strong> ${p.vr}</span>
+            <span><strong>Ano:</strong> ${p.yr}</span>
           </div>
-          <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <label class="upl-btn">
-              📎 Anexar PDF / Minuta
-              <input type="file" accept=".pdf,.doc,.docx" style="display:none" onchange="uploadMinuta(${p.id},this)">
-            </label>
-            <span id="upl-st-${p.id}" style="font-size:11px;color:var(--txm)"></span>
+          <div class="fr" style="margin-top:8px">
+            <div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select></div>
+            <div><label class="fl">Responsável</label><select class="fc" id="resp-${p.id}">${ro(p.id)}</select></div>
+          </div>
+          <div class="fr">
+            <div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div>
+            <div><label class="fl">Flags</label><div class="flags" style="margin-top:6px">
+              <label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label>
+              <label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label>
+              <label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label>
+              <label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label>
+            </div></div>
+          </div>
+        </div>
+        <div class="sec sec-b">
+          <div class="sec-hd">✍ Trabalho do estagiário</div>
+          <div><label class="fl">Relatório do processo</label><textarea class="fc" id="obs-${p.id}" placeholder="Histórico, partes envolvidas, andamento...">${p.obs}</textarea></div>
+          <div style="margin-top:8px"><label class="fl">Prompt / Comando de IA <span style="font-size:10px;color:#3b82f6;font-weight:400;text-transform:none;letter-spacing:0">— cole no ChatGPT ou Claude</span></label>
+            <textarea class="fc" id="cmd-${p.id}" placeholder="Instrução completa para gerar a minuta via IA..." style="min-height:72px">${p.cmd}</textarea></div>
+          <div style="margin-top:8px"><label class="fl">Link da minuta / SAJ</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input class="fc" type="text" id="lnk-${p.id}" placeholder="https://... ou SAJ — Petição 1234" value="${p.lnk||''}" style="flex:1;min-width:180px">
+              ${p.lnk?`<a href="${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb">↗ Abrir</a>`:''}
+            </div>
+            <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+              <label class="upl-btn">📎 Anexar PDF<input type="file" accept=".pdf,.doc,.docx" style="display:none" onchange="uploadMinuta(${p.id},this)"></label>
+              <span id="upl-st-${p.id}" style="font-size:11px;color:var(--txm)"></span>
+            </div>
+          </div>
+        </div>
+        <div class="sec sec-c">
+          <div class="sec-hd">⚖ Decisão do assessor</div>
+          ${flowBar(p.esSt||'triagem')}
+          <div class="fr" style="margin-top:8px">
+            <div><label class="fl">Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div>
+            <div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}">
+              <option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option>
+              <option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option>
+              <option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option>
+              <option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option>
+              <option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option>
+              <option value="registro saj" ${p.esSt==='registro saj'?'selected':''}>📝 Registro SAJ</option>
+              <option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option>
+              <option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option>
+            </select></div>
           </div>
         </div>
         ${bxS}
-        <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span><button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);margin-left:6px" onclick="confirmDelete(${p.id})">🗑 Apagar</button>
+        <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span><button class="btn btn-sm" class="btn btn-d btn-sm" onclick="confirmDelete(${p.id})">🗑 Apagar</button>
           <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'||batching?'disabled':''}>${ibl} IA</button>
         </div>
       </div>
@@ -1066,7 +1129,7 @@ function renderTriGrouped(fl,wo,co,ro,ao){
         +'<div><label class="fl">Status</label><select class="fc" id="esst-d-'+p.id+'"><option value="triagem" '+(p.esSt==='triagem'||p.esSt==='pendente'?'selected':'')+'>📋 Triagem</option><option value="atribuido" '+(p.esSt==='atribuido'?'selected':'')+'>👤 Atribuído</option><option value="aguardando minuta" '+(p.esSt==='aguardando minuta'?'selected':'')+'>✍ Ag. minuta</option><option value="minuta pronta" '+(p.esSt==='minuta pronta'?'selected':'')+'>📄 Minuta pronta</option><option value="revisao" '+(p.esSt==='revisao'?'selected':'')+'>🔍 Em revisão</option><option value="registro saj" '+(p.esSt==='registro saj'?'selected':'')+'>📝 Registro SAJ</option><option value="protocolo" '+(p.esSt==='protocolo'?'selected':'')+'>📬 Protocolo</option><option value="concluido" '+(p.esSt==='concluido'?'selected':'')+'>✓ Concluído</option></select></div></div>'
         +bxS
         +'<div class="fa"><button class="btn btn-p btn-sm" onclick="saveP('+p.id+')">Salvar e sincronizar</button><span class="sm" id="sm-'+p.id+'">✓ Salvo</span>'
-        +'<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f);margin-left:6px" onclick="confirmDelete('+p.id+')">🗑 Apagar</button>'
+        +'<button class="btn btn-sm" class="btn btn-d btn-sm" onclick="confirmDelete('+p.id+')">🗑 Apagar</button>'
         +'<button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-'+p.id+'" onclick="iaOne('+p.id+')" '+(p.iaStatus==='loading'||batching?'disabled':'')+'>'+ibl+' IA</button>'
         +'</div></div></div>';
     }).join('');
@@ -1156,7 +1219,7 @@ function renderBx(){
       ${p.bxOk
         ?`<div style="margin-top:6px;font-size:11px;color:#5b21b6;font-weight:500">✓ Baixa registrada em ${p.bxDt}${p.bxObs?' · '+p.bxObs:''}</div>
           <div style="margin-top:6px">
-            <button class="btn btn-xs" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;cursor:pointer;font-family:var(--f)" onclick="removerDaLista(${p.id})">🗑 Remover da lista</button>
+            <button class="btn btn-xs" class="btn btn-d btn-xs" onclick="removerDaLista(${p.id})">🗑 Remover da lista</button>
           </div>`
         :`<div style="font-size:11px;color:#92400e;margin-top:4px">Aguardando devolução · ${p.d} dias em espera</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">
@@ -1650,6 +1713,26 @@ async function uploadMinuta(id, input){
     if(stEl){stEl.textContent='⚠ Erro de conexão';stEl.style.color='#dc2626';}
   }
   input.value=''; // reset input
+}
+
+
+const FLOW_STEPS=[
+  {k:'triagem',l:'Triagem'},
+  {k:'atribuido',l:'Atribuído'},
+  {k:'aguardando minuta',l:'Ag. minuta'},
+  {k:'minuta pronta',l:'Minuta pronta'},
+  {k:'revisao',l:'Revisão'},
+  {k:'registro saj',l:'Reg. SAJ'},
+  {k:'protocolo',l:'Protocolo'},
+  {k:'concluido',l:'Concluído'},
+];
+function flowBar(esSt){
+  const cur=FLOW_STEPS.findIndex(s=>s.k===esSt);
+  return '<div class="flow-bar">'+FLOW_STEPS.map((s,i)=>{
+    const cls=i<cur?'done':i===cur?'active':'';
+    const icon=i<cur?'✓':i===cur?'●':'';
+    return '<div class="flow-step '+cls+'"><div class="flow-dot">'+icon+'</div><div class="flow-lbl">'+s.l+'</div></div>';
+  }).join('')+'</div>';
 }
 
 function renderAll(){renderTri();}
