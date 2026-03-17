@@ -2127,9 +2127,21 @@ async function gerarDocx(id) {
   }
 
   function parseTxt(txt) {
+    // Remove fixed header/footer lines if IA included them (we add them separately)
+    var skipPatterns = [
+      /^AO JU[IÍ]ZO DE DIREITO DA VARA/i,
+      /^Autos n[º°]/i,
+      /^Ponta de Pedras,/i,
+      /^FRANCYS GALHARDO/i,
+      /^Promotora de Justi/i,
+      /^Assinado eletronicamente/i,
+    ];
     var lines = txt.replace(/\r\n/g,"\n").split("\n");
     var pars = [];
     for(var li=0;li<lines.length;li++) {
+      var skipLine=false;
+      for(var si=0;si<skipPatterns.length;si++){if(skipPatterns[si].test(lines[li].trim())){skipLine=true;break;}}
+      if(skipLine) continue;
       var line = lines[li].trim();
       if(!line) { pars.push.apply(pars,emptyPar(1)); continue; }
       if(/^AO JU/.test(line)||/^EGR/.test(line)||/^COL/.test(line)) {
@@ -2220,7 +2232,36 @@ async function gerarDocx(id) {
       }},
       headers:{default:header},
       footers:{default:footer},
-      children:emptyPar(1).concat(parseTxt(texto)),
+      children:(function(){
+      var today = new Date();
+      var d = today.getDate().toString().padStart(2,'0');
+      var m = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][today.getMonth()];
+      var y = today.getFullYear();
+      var dataFormatada = d + ' de ' + m + ' de ' + y;
+
+      var fixedTop = [
+        mkPar('AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS',{center:true,bold:true,before:80,after:80}),
+      ].concat(emptyPar(1)).concat([
+        mkPar('Autos nº ' + (p.num||''),{noIndent:true}),
+      ]).concat(emptyPar(1));
+
+      var fixedBottom = emptyPar(1).concat([
+        mkPar('Ponta de Pedras, ' + dataFormatada + '.',{center:true,before:80}),
+      ]).concat(emptyPar(1)).concat([
+        mkPar('FRANCYS GALHARDO DO VALE',{center:true,bold:true}),
+        mkPar('Promotora de Justiça – Titular de Ponta de Pedras',{center:true}),
+      ]);
+
+      // Strip fixed parts if IA already included them (avoid duplication)
+      var corpo = parseTxt(texto);
+      // Remove leading empty pars and "AO JUÍZO" if present
+      while(corpo.length && corpo[0] && corpo[0].root && corpo[0].root.key==='p') {
+        // can't easily inspect paragraph content, use text check instead
+        break;
+      }
+
+      return emptyPar(1).concat(fixedTop).concat(corpo).concat(fixedBottom);
+    })(),
     }],
   });
 
