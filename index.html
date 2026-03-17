@@ -176,6 +176,14 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .spin{width:11px;height:11px;border:1.5px solid #bfdbfe;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:3rem;color:var(--txm);font-size:13px;line-height:1.8}
+.tpl-wrap{position:relative;display:inline-block}
+.tpl-btn{background:#f5f3ff;color:#5b21b6;border:1px solid #ddd6fe;padding:4px 10px;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.tpl-btn:hover{background:#ede9fe}
+.tpl-dd{position:absolute;top:100%;left:0;background:#fff;border:1px solid var(--cb);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;min-width:220px;display:none;margin-top:2px;overflow:hidden}
+.tpl-item{padding:9px 14px;font-size:12px;color:var(--tx);cursor:pointer;transition:background .12s;border-bottom:1px solid #f8f9fb}
+.tpl-item:last-child{border-bottom:none}
+.tpl-item:hover{background:#f5f3ff;color:#5b21b6}
+.tpl-item .tpl-lbl{font-weight:500}
 .sec{border-radius:var(--rs);padding:12px 14px;margin-top:10px}
 .sec-hd{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .sec-a{background:#f8f9fb;border:1px solid #eaecef}.sec-a .sec-hd{color:#64748b}
@@ -976,61 +984,78 @@ function renderTri(){
         <span class="cchv" style="flex-shrink:0;margin-left:6px">⌄</span>
       </div>
       <div class="cb-body">
-        <div class="sec sec-a">
-          <div class="sec-hd">📁 Informação básica</div>
-          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--tx2)">
-            <span><strong>Entrada:</strong> ${p.dtStr}</span>
-            <span><strong>Espera:</strong> ${p.d}d</span>
-            <span><strong>Vara:</strong> ${p.vr}</span>
-            <span><strong>Ano:</strong> ${p.yr}</span>
-          </div>
-          <div class="fr" style="margin-top:8px">
-            <div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select></div>
-            <div><label class="fl">Responsável</label><select class="fc" id="resp-${p.id}">${ro(p.id)}</select></div>
-          </div>
-          <div class="fr">
-            <div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div>
-            <div><label class="fl">Flags</label><div class="flags" style="margin-top:6px">
-              <label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label>
-              <label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label>
-              <label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label>
-              <label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label>
-            </div></div>
-          </div>
+        <div class="ei-r" style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--tx2);padding:10px 0 6px;border-bottom:1px solid #f0f2f5;margin-bottom:10px">
+          <span><strong>Entrada:</strong> ${p.dtStr}</span>
+          <span><strong>Espera:</strong> ${p.d}d</span>
+          <span><strong>Vara:</strong> ${p.vr}</span>
+          <span><strong>Ano:</strong> ${p.yr}</span>
         </div>
-        <div class="sec sec-b">
-          <div class="sec-hd">✍ Trabalho do estagiário</div>
-          <div><label class="fl">Relatório do processo</label><textarea class="fc" id="obs-${p.id}" placeholder="Histórico, partes envolvidas, andamento...">${p.obs}</textarea></div>
-          <div style="margin-top:8px"><label class="fl">Prompt / Comando de IA <span style="font-size:10px;color:#3b82f6;font-weight:400;text-transform:none;letter-spacing:0">— cole no ChatGPT ou Claude</span></label>
-            <textarea class="fc" id="cmd-${p.id}" placeholder="Instrução completa para gerar a minuta via IA..." style="min-height:72px">${p.cmd}</textarea></div>
-          <div style="margin-top:8px"><label class="fl">Link da minuta / SAJ</label>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <input class="fc" type="text" id="lnk-${p.id}" placeholder="https://... ou SAJ — Petição 1234" value="${p.lnk||''}" style="flex:1;min-width:180px">
-              ${p.lnk?`<a href="${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb">↗ Abrir</a>`:''}
+
+        <div class="fr">
+          <div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select></div>
+          <div><label class="fl">Responsável</label><select class="fc" id="resp-${p.id}">${ro(p.id)}</select></div>
+        </div>
+        <div class="fr">
+          <div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div>
+          <div><label class="fl">Flags</label><div class="flags" style="margin-top:6px">
+            <label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label>
+            <label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label>
+            <label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label>
+            <label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label>
+          </div></div>
+        </div>
+
+        <div class="fr" style="margin-top:4px">
+          <div><label class="fl">Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div>
+          <div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}">
+            <option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option>
+            <option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option>
+            <option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option>
+            <option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option>
+            <option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option>
+            <option value="registro saj" ${p.esSt==='registro saj'?'selected':''}>📝 Registro SAJ</option>
+            <option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option>
+            <option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option>
+          </select></div>
+        </div>
+
+        ${flowBar(p.esSt||'triagem')}
+
+        <div style="margin-top:10px">
+          <label class="fl">Relatório do processo</label>
+          <textarea class="fc" id="obs-${p.id}" placeholder="Partes, fatos, histórico, andamento, diligências realizadas, contexto relevante..." style="min-height:88px">${p.obs}</textarea>
+        </div>
+
+        <div style="margin-top:10px;background:#faf8ff;border:1px solid #ede9fe;border-radius:var(--rs);padding:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+            <label class="fl" style="margin-bottom:0;color:#5b21b6">📝 Peça a minutar</label>
+            <div class="tpl-wrap">
+              <button class="tpl-btn" onclick="toggleTplDropdown(${p.id}, event)">Escolher peça ⌄</button>
+              <div class="tpl-dd" id="tpl-dd-${p.id}">
+                ${Object.entries(PROMPT_TEMPLATES).map(([k,v])=>`<div class="tpl-item" onclick="applyTemplate(${p.id},'${k}')"><span class="tpl-lbl">${v.label}</span></div>`).join('')}
+              </div>
             </div>
-            <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
-              <label class="upl-btn">📎 Anexar PDF<input type="file" accept=".pdf,.doc,.docx" style="display:none" onchange="uploadMinuta(${p.id},this)"></label>
-              <span id="upl-st-${p.id}" style="font-size:11px;color:var(--txm)"></span>
-            </div>
+          </div>
+          <textarea class="fc" id="cmd-${p.id}" placeholder="Escolha a peça acima — o prompt será montado automaticamente com os dados do processo e o relatório." style="min-height:72px;font-size:12px;background:#fff">${p.cmd}</textarea>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:8px;justify-content:flex-end">
+            <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 14px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:5px" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'?'disabled':''}>
+              ${p.iaStatus==='loading'?'<span class="spin"></span>':'🤖'} Gerar com IA
+            </button>
           </div>
         </div>
-        <div class="sec sec-c">
-          <div class="sec-hd">⚖ Decisão do assessor</div>
-          ${flowBar(p.esSt||'triagem')}
-          <div class="fr" style="margin-top:8px">
-            <div><label class="fl">Atribuir para</label><select class="fc" id="atr-${p.id}">${ao(p.id)}</select></div>
-            <div><label class="fl">Status</label><select class="fc" id="esst-d-${p.id}">
-              <option value="triagem" ${p.esSt==='triagem'||p.esSt==='pendente'?'selected':''}>📋 Triagem</option>
-              <option value="atribuido" ${p.esSt==='atribuido'?'selected':''}>👤 Atribuído</option>
-              <option value="aguardando minuta" ${p.esSt==='aguardando minuta'?'selected':''}>✍ Ag. minuta</option>
-              <option value="minuta pronta" ${p.esSt==='minuta pronta'?'selected':''}>📄 Minuta pronta</option>
-              <option value="revisao" ${p.esSt==='revisao'?'selected':''}>🔍 Em revisão</option>
-              <option value="registro saj" ${p.esSt==='registro saj'?'selected':''}>📝 Registro SAJ</option>
-              <option value="protocolo" ${p.esSt==='protocolo'?'selected':''}>📬 Protocolo</option>
-              <option value="concluido" ${p.esSt==='concluido'?'selected':''}>✓ Concluído</option>
-            </select></div>
+
+        <div style="margin-top:10px">
+          <label class="fl">Link da minuta / SAJ</label>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input class="fc" type="text" id="lnk-${p.id}" placeholder="https://... ou SAJ — Petição 1234" value="${p.lnk||''}" style="flex:1;min-width:180px">
+            ${p.lnk?`<a href="${p.lnk}" target="_blank" style="font-size:11px;color:#2563eb">↗ Abrir</a>`:''}
+          </div>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+            <label class="upl-btn">📎 Anexar PDF<input type="file" accept=".pdf,.doc,.docx" style="display:none" onchange="uploadMinuta(${p.id},this)"></label>
+            <span id="upl-st-${p.id}" style="font-size:11px;color:var(--txm)"></span>
           </div>
         </div>
+
         ${bxS}
         <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span><button class="btn btn-sm" class="btn btn-d btn-sm" onclick="confirmDelete(${p.id})">🗑 Apagar</button>
           <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'||batching?'disabled':''}>${ibl} IA</button>
@@ -1734,6 +1759,196 @@ function flowBar(esSt){
     return '<div class="flow-step '+cls+'"><div class="flow-dot">'+icon+'</div><div class="flow-lbl">'+s.l+'</div></div>';
   }).join('')+'</div>';
 }
+
+
+const PROMPT_TEMPLATES = {
+  'alegacoes': {
+    label: 'Alegações finais',
+    fn: (p) => `Você deve atuar como Promotora de Justiça do Ministério Público do Estado do Pará e redigir alegações finais em processo criminal em formato de texto corrido, analisando as provas produzidas no inquérito policial e na fase judicial para formar sua convicção sobre a procedência ou improcedência da ação penal. Mantenha linguagem técnica, formal e objetiva.
+
+AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+Réu: [NOME DO RÉU]
+
+DADOS DO PROCESSO:
+${p.obs ? 'RELATÓRIO: ' + p.obs : ''}
+Categoria: ${p.cat}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+O MINISTÉRIO PÚBLICO DO ESTADO DO PARÁ, no uso de suas atribuições legais e constitucionais, vem apresentar ALEGAÇÕES FINAIS.
+
+DIRETRIZES: Redigir em texto corrido, sem tópicos ou marcadores. Estrutura: (1) Relatório até "É o relatório." (2) Análise de materialidade, autoria, provas e teses defensivas (3) Conclusão pela procedência ou improcedência. Assinatura: FRANCYS GALHARDO DO VALE — Promotora de Justiça Titular de Ponta de Pedras.`
+  },
+  'denuncia': {
+    label: 'Denúncia criminal',
+    fn: (p) => `Você é Assessor Jurídico do Ministério Público do Pará. Redija uma DENÚNCIA criminal baseada no Inquérito Policial abaixo, seguindo rigorosamente a estrutura.
+
+AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+
+DADOS DO PROCESSO:
+${p.obs ? 'RELATÓRIO DO CASO: ' + p.obs : ''}
+Categoria: ${p.cat}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+ESTRUTURA OBRIGATÓRIA:
+I - DOS FATOS: Narrativa cronológica. Iniciar com "Consta dos autos de inquérito policial que no dia [DIA], o acusado [NOME]..."
+II - DA MATERIALIDADE E AUTORIA: Elementos probatórios específicos.
+III - DO DIREITO: Capitulação e afastamento de ANPP/transação/sursis.
+IV - DOS PEDIDOS: Recebimento da denúncia e rol de testemunhas.
+
+REGRAS: Texto corrido, sem marcadores. Nomear policiais como "O policial militar [NOME]". Assinatura: FRANCYS GALHARDO DO VALE — Promotora de Justiça Titular de Ponta de Pedras.`
+  },
+  'mpu': {
+    label: 'Medida protetiva (MPU)',
+    fn: (p) => `Você é assistente jurídico especializado na atuação do Ministério Público. Redija manifestação ministerial em Medida Protetiva de Urgência (MPU) com base na Lei Maria da Penha (Lei 11.340/06).
+
+AO JUÍZO DE VARA ÚNICA DA COMARCA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+
+DADOS DO CASO:
+${p.obs ? 'RELATÓRIO: ' + p.obs : ''}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+REGRAS RIGOROSAS:
+- Texto corrido, parágrafos simples, PROIBIDO listas/marcadores/numeração
+- Analisar: violência baseada em gênero, âmbito doméstico/familiar, medidas requeridas
+- Opinar pelo deferimento ou indeferimento fundamentado
+- Fecho: "É a manifestação."
+- Assinatura centralizada: FRANCYS GALHARDO DO VALE — Promotora de Justiça – Titular de Ponta de Pedras`
+  },
+  'flagrante': {
+    label: 'Manifestação em flagrante',
+    fn: (p) => `Atue como Promotora de Justiça do MP-PA e elabore manifestação ministerial analisando Auto de Prisão em Flagrante: (i) legalidade do flagrante; (ii) necessidade de conversão em prisão preventiva ou medidas cautelares diversas; (iii) eventuais diligências investigativas.
+
+Autos nº: ${p.num}
+Flagranteado: [NOME DO FLAGRANTEADO]
+
+DADOS DO PROCESSO:
+${p.obs ? 'RELATÓRIO: ' + p.obs : ''}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+MODELO OBRIGATÓRIO — seguir sem alteração estrutural:
+"O MINISTÉRIO PÚBLICO DO ESTADO DO PARÁ, por meio do promotor de Justiça signatário, no uso de suas atribuições constitucionais e legais, vem apresentar MANIFESTAÇÃO..."
+
+REGRAS: NÃO dividir em tópicos. NÃO usar lista, marcadores ou citação de jurisprudência. Texto corrido. Mencionar arts. 302 CPP, 5º CF, 306 CPP e 312 CPP. Assinatura: FRANCYS LUCY GALHARDO DO VALE — Promotora de Justiça - Titular da Comarca de Ponta de Pedras.`
+  },
+  'contrarrazoes': {
+    label: 'Contrarrazões de apelação',
+    fn: (p) => `Elabore contrarrazões ao recurso de apelação criminal. A peça tem DUAS PARTES: endereçamento ao juízo a quo e razões dirigidas ao Tribunal.
+
+PARTE 1 — AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+
+O MINISTÉRIO PÚBLICO DO ESTADO DO PARÁ, por intermédio do promotor de Justiça que ao fim subscreve, no uso de suas atribuições constitucionais e legais, vem oferecer CONTRARRAZÕES AO RECURSO DE APELAÇÃO, conforme art. 600 do CPP, pugnando pela remessa à instância superior.
+Ponta de Pedras, data do sistema. [Assinatura]
+
+PARTE 2 — EGRÉGIO TRIBUNAL DE JUSTIÇA DO ESTADO DO PARÁ, COLENDA TURMA CRIMINAL...
+Autos nº: ${p.num} | Recorrente: [RÉU] | Recorrido: MP-PA
+
+DADOS DO PROCESSO:
+${p.obs ? 'RELATÓRIO DO CASO: ' + p.obs : ''}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+ESTRUTURA DAS RAZÕES: 1. Relatório (histórico, denúncia, sentença, pontos do recurso). 2. Mérito (contrargumentação tópico a tópico). 3. Conclusão: NEGADO PROVIMENTO. Assinatura: FRANCYS GALHARDO DO VALE — Promotora de Justiça - Titular de Ponta de Pedras.`
+  },
+  'resposta': {
+    label: 'Manifestação — resposta à acusação',
+    fn: (p) => `Atue como Promotora de Justiça e elabore manifestação ministerial analisando resposta à acusação apresentada pela defesa.
+
+AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+Réu: [NOME DO RÉU]
+
+DADOS DO PROCESSO:
+${p.obs ? 'RELATÓRIO: ' + p.obs : ''}
+Categoria: ${p.cat}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+ESTRUTURA: (1) Relatório com crime imputado, denúncia, citação, preliminares e teses defensivas até "É o relatório." (2) Análise de cada preliminar (3) Demonstração de justa causa — art. 395 CPP (4) Refutação das teses (5) Conclusão pelo prosseguimento com audiência de instrução.
+
+REGRAS: Linguagem técnica-formal. Texto corrido sem marcadores. Assinatura: FRANCYS GALHARDO DO VALE — Promotora de Justiça Titular de Ponta de Pedras.`
+  },
+  'anpp': {
+    label: 'Proposta de ANPP',
+    fn: (p) => `Você deve atuar como Promotora de Justiça do MP-PA e redigir manifestação propondo ACORDO DE NÃO PERSECUÇÃO PENAL com fundamento no art. 28-A do CPP.
+
+AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+
+DADOS DO PROCESSO:
+${p.obs ? 'RELATÓRIO DO CASO: ' + p.obs : ''}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+ESTRUTURA OBRIGATÓRIA:
+I. DOS FATOS E DA IMPUTAÇÃO
+II. DOS REQUISITOS LEGAIS (sem violência/grave ameaça; pena mínima < 4 anos; não doméstico; não reincidente; não beneficiado em 5 anos)
+III. DAS CONDIÇÕES PROPOSTAS: (1) Confissão formal; (2) Reparação do dano; (3) PSC ou prestação pecuniária R$ 1.412,00 conforme Res. CNJ 558/2024; (4) Comunicar mudança de endereço; (5) Comparecimento mensal. Incluir cláusula subsidiária de PSC por 6 meses/1h diária se sem condições financeiras.
+IV. DAS CONSEQUÊNCIAS
+V. DOS REQUERIMENTOS
+
+Assinatura: FRANCYS DO VALE — Promotora de Justiça Titular de Ponta de Pedras.`
+  },
+  'concisa': {
+    label: 'Manifestação concisa',
+    fn: (p) => `Você deve atuar como Promotora de Justiça do MP-PA e redigir manifestação concisa (máximo 3 parágrafos) em processo, em formato de texto corrido.
+
+AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+
+DADOS DO PROCESSO:
+${p.obs ? 'CONTEXTO: ' + p.obs : ''}
+Categoria: ${p.cat}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+DIRETRIZES: Máximo 3 parágrafos. Texto corrido, sem marcadores. Concisão sem perder precisão técnica. Foco nos elementos determinantes. Conclusão clara.
+Assinatura: Ponta de Pedras, data do sistema. FRANCYS DO VALE — Promotora de Justiça Titular de Ponta de Pedras.`
+  },
+};
+
+function applyTemplate(id, key) {
+  const p = procs[id];
+  if(!p) return;
+  const tpl = PROMPT_TEMPLATES[key];
+  if(!tpl) return;
+  const prompt = tpl.fn(p);
+  const cmdEl = document.getElementById('cmd-'+id);
+  if(cmdEl) {
+    cmdEl.value = prompt;
+    cmdEl.style.borderColor = '#6366f1';
+    setTimeout(()=>{ if(cmdEl) cmdEl.style.borderColor = ''; }, 1500);
+    cmdEl.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  // Close dropdown
+  const dd = document.getElementById('tpl-dd-'+id);
+  if(dd) dd.style.display = 'none';
+  toast('Prompt carregado: ' + tpl.label);
+}
+
+function toggleTplDropdown(id, event) {
+  event.stopPropagation();
+  const dd = document.getElementById('tpl-dd-'+id);
+  if(!dd) return;
+  const isOpen = dd.style.display === 'block';
+  // Close all other dropdowns
+  document.querySelectorAll('[id^="tpl-dd-"]').forEach(el => el.style.display = 'none');
+  dd.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen) {
+    // Position above if near bottom
+    const rect = dd.previousElementSibling?.getBoundingClientRect();
+    if(rect && rect.bottom + 300 > window.innerHeight) {
+      dd.style.top = 'auto';
+      dd.style.bottom = '100%';
+    } else {
+      dd.style.top = '100%';
+      dd.style.bottom = 'auto';
+    }
+  }
+}
+// Close dropdowns on outside click
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('[id^="tpl-dd-"]').forEach(el => el.style.display = 'none');
+});
 
 function renderAll(){renderTri();}
 
