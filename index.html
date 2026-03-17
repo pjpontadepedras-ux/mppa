@@ -589,6 +589,7 @@ async function saveCfg(){
     const e2=(el('cfg-estag2')?.value||'').trim();
     if(e1)localStorage.setItem('mppa_estag1',e1);
     if(e2)localStorage.setItem('mppa_estag2',e2);
+    const gk=(el('cfg-gemini')?.value||'').trim();if(gk)localStorage.setItem('mppa_gemini',gk);GEMINI_KEY=localStorage.getItem('mppa_gemini')||'';
     localStorage.setItem('mppa_gs',GSURL);
     localStorage.setItem('mppa_ak',APIKEY);
     if(ACCESS_CODE){localStorage.setItem('mppa_code',ACCESS_CODE);if(GSURL)await saveCodeToSheets(GSURL,ACCESS_CODE);}
@@ -1029,8 +1030,15 @@ function renderTri(){
         ${flowBar(p.esSt||'triagem')}
 
         <div style="margin-top:10px">
-          <label class="fl">Relatório do processo</label>
-          <textarea class="fc" id="obs-${p.id}" placeholder="Partes, fatos, histórico, andamento, diligências realizadas, contexto relevante..." style="min-height:88px">${p.obs}</textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:6px">
+            <label class="fl" style="margin-bottom:0">Relatório do processo</label>
+            <label id="gemini-btn-${p.id}" class="upl-btn" style="background:#f0fdf4;border-color:#86efac;color:#166534;cursor:pointer;font-size:11px;padding:3px 10px" title="Enviar PDF do processo para o Gemini gerar o relatório automaticamente">
+              🤖 Analisar PDF
+              <input type="file" accept=".pdf" style="display:none" onchange="analisarComGemini(${p.id},this)">
+            </label>
+            <span id="gemini-st-${p.id}" style="font-size:11px;color:var(--txm)"></span>
+          </div>
+          <textarea class="fc" id="obs-${p.id}" placeholder="Partes, fatos, histórico... ou clique em 🤖 Analisar PDF para gerar automaticamente." style="min-height:88px">${p.obs}</textarea>
         </div>
 
         <div style="margin-top:10px;background:#faf8ff;border:1px solid #ede9fe;border-radius:var(--rs);padding:12px">
@@ -2361,6 +2369,91 @@ function gerarPDF(id) {
   toast("🖨 Janela aberta — escolha Salvar como PDF");
 }
 
+
+
+async function analisarComGemini(id, input) {
+  const p = procs[id];
+  if(!p) return;
+
+  const key = GEMINI_KEY || localStorage.getItem('mppa_gemini') || '';
+  if(!key) {
+    toast('Configure a chave API Gemini nas ⚙ Configurações');
+    return;
+  }
+
+  const file = input.files[0];
+  if(!file) return;
+
+  const btnEl = document.getElementById('gemini-btn-'+id);
+  const stEl  = document.getElementById('gemini-st-'+id);
+  const obsEl = document.getElementById('obs-'+id);
+
+  if(btnEl) { btnEl.disabled=true; btnEl.textContent='⏳ Analisando...'; }
+  if(stEl)  { stEl.textContent='Enviando PDF...'; stEl.style.color='#f59e0b'; }
+
+  try {
+    // Read file as base64
+    const b64 = await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>res(r.result.split(',')[1]);
+      r.onerror=rej;
+      r.readAsDataURL(file);
+    });
+
+    if(stEl) stEl.textContent='Gerando relatório...';
+
+    const prompt = `Você é um assistente jurídico do Ministério Público. Analise o processo judicial anexado e redija um RELATÓRIO DO CASO objetivo e estruturado para análise do Promotor de Justiça.
+
+O relatório deve conter em texto corrido (sem listas ou marcadores):
+- Partes do processo (autor, réu, tipo de ação)
+- Fatos narrados de forma sintética
+- Histórico processual relevante (principais despachos, decisões, perícias)
+- Situação atual do processo e diligências pendentes
+- Documentos existentes nos autos
+
+Seja objetivo. Máximo 15 linhas. Não emita opinião jurídica.`;
+
+    const resp = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key,
+      {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents:[{parts:[
+            {text: prompt},
+            {inline_data:{mime_type: file.type||'application/pdf', data: b64}}
+          ]}],
+          generationConfig:{temperature:0.2, maxOutputTokens:800}
+        })
+      }
+    );
+
+    if(!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || 'Erro na API Gemini');
+    }
+
+    const data = await resp.json();
+    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    if(texto && obsEl) {
+      obsEl.value = texto.trim();
+      obsEl.style.borderColor = '#16a34a';
+      setTimeout(()=>{ if(obsEl) obsEl.style.borderColor=''; }, 2000);
+    }
+
+    if(stEl) { stEl.textContent='✓ Relatório gerado'; stEl.style.color='#16a34a'; }
+    toast('✓ Relatório gerado pelo Gemini');
+
+  } catch(e) {
+    if(stEl) { stEl.textContent='⚠ '+e.message; stEl.style.color='#dc2626'; }
+    toast('Erro Gemini: '+e.message);
+    console.error(e);
+  } finally {
+    if(btnEl) { btnEl.disabled=false; btnEl.innerHTML='🤖 Analisar PDF'; }
+    input.value='';
+  }
+}
 
 function renderAll(){renderTri();}
 
