@@ -99,7 +99,10 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .plist{display:flex;flex-direction:column;gap:5px}
 .pc{background:var(--card);border:1px solid var(--cb);border-radius:var(--r);overflow:hidden;transition:border-color .15s,box-shadow .15s;min-width:0}
 .pc:hover{border-color:var(--cbh);box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.pc.urg{border-left:3px solid #ef4444}.pc.done{border-left:3px solid #22c55e}.pc.bx{border-left:3px solid #a78bfa}.pc.cpl{border-left:3px solid #f59e0b}.pc.ant{border-left:3px solid #f97316}.pc.atr{border-left:3px solid #38bdf8}
+.pc.urg{border-left:3px solid #ef4444}
+.pc.proto{border-left:3px solid #d97706;background:#fffbeb}
+.pc.proto .ch{background:#fffbeb}
+.pc.proto .ch:hover{background:#fef3c7}.pc.done{border-left:3px solid #22c55e}.pc.bx{border-left:3px solid #a78bfa}.pc.cpl{border-left:3px solid #f59e0b}.pc.ant{border-left:3px solid #f97316}.pc.atr{border-left:3px solid #38bdf8}
 .ch{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;min-width:0;overflow:hidden}
 .ch:hover{background:#fafbfc}
 .pnb{font-family:var(--fm);font-size:12px;font-weight:600;color:var(--tx);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid transparent;transition:all .15s;background:transparent;white-space:nowrap;flex-shrink:0}
@@ -938,7 +941,7 @@ function renderTri(){
   if(groupMode){renderTriGrouped(fl,wo,co,ro,ao);return;}
   el.innerHTML=fl.map(p=>{
     const op=wo.has(String(p.id));
-    const bc=p.urg?' urg':p.bxOk||p.ok?' done':p.agBx?' bx':p.cpl?' cpl':p.d>7&&!p.ok?' ant':p.atrib?' atr':'';
+    const bc=p.urg?' urg':p.bxOk||p.ok?' done':p.agBx?' bx':p.esSt==='protocolo'?' proto':p.cpl?' cpl':p.d>7&&!p.ok?' ant':p.atrib?' atr':'';
     const ibl=p.iaStatus==='loading'?'<span class="spin"></span>':'IA ↗';
     const bxS=p.agBx?`<div class="sblk sblk-p"><div class="sblk-t">🗂 Aguardando baixa no sistema</div>${p.bxOk?`<div style="font-size:12px;color:#5b21b6"><strong>✓ Baixa registrada</strong> em ${p.bxDt}${p.bxObs?' · '+p.bxObs:''}</div>`:`<div class="fr1"><label class="fl">Observação</label><input class="fc" type="text" id="bxobs-${p.id}" placeholder="Ex: enviado por malote em 15/03" value="${p.bxObs}"></div><div style="margin-top:10px"><button class="btn btn-pu btn-sm" onclick="mrkBx(${p.id})">✓ Registrar baixa</button></div>`}</div>`:'';
     return`<div class="pc${bc}${op?' open':''}" id="c-${p.id}">
