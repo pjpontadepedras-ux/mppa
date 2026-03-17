@@ -183,7 +183,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .tpl-wrap{position:relative;display:inline-block}
 .tpl-btn{background:#f5f3ff;color:#5b21b6;border:1px solid #ddd6fe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500}
 .tpl-btn:hover{background:#ede9fe;border-color:#c4b5fd}
-.tpl-dd{position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid var(--cb);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.13);z-index:500;width:280px;display:none;overflow:hidden;max-height:420px;overflow-y:auto}
+.tpl-dd{position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid var(--cb);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.13);z-index:500;width:280px;display:none;overflow:hidden;max-height:500px;overflow-y:auto}
 .tpl-grp{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;padding:10px 14px 4px;background:#f8f9fb;border-bottom:1px solid #f1f3f5}
 .tpl-item{padding:8px 14px 8px 18px;font-size:12px;color:var(--tx);cursor:pointer;transition:background .1s;border-bottom:1px solid #f8f9fb;display:flex;align-items:center;gap:8px}
 .tpl-item:last-child{border-bottom:none}
@@ -2036,19 +2036,20 @@ function toggleTplDropdown(id, event) {
   const dd = document.getElementById('tpl-dd-'+id);
   if(!dd) return;
   const isOpen = dd.style.display === 'block';
-  // Close all other dropdowns
   document.querySelectorAll('[id^="tpl-dd-"]').forEach(el => el.style.display = 'none');
-  dd.style.display = isOpen ? 'none' : 'block';
-  if(!isOpen) {
-    // Position above if near bottom
-    const rect = dd.previousElementSibling?.getBoundingClientRect();
-    if(rect && rect.bottom + 300 > window.innerHeight) {
-      dd.style.top = 'auto';
-      dd.style.bottom = '100%';
-    } else {
-      dd.style.top = '100%';
-      dd.style.bottom = 'auto';
-    }
+  if(isOpen) return;
+  dd.style.display = 'block';
+  // Smart positioning: open upward if not enough space below
+  const btn = event.currentTarget;
+  const btnRect = btn.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - btnRect.bottom;
+  const spaceNeeded = 400;
+  if(spaceBelow < spaceNeeded) {
+    dd.style.top = 'auto';
+    dd.style.bottom = 'calc(100% + 4px)';
+  } else {
+    dd.style.top = 'calc(100% + 4px)';
+    dd.style.bottom = 'auto';
   }
 }
 // Close dropdowns on outside click
@@ -2094,7 +2095,24 @@ async function gerarDocx(id) {
   let texto = cmdEl ? cmdEl.value : '';
   if(!texto.trim()) { toast('Cole o texto gerado pela IA no campo de prompt primeiro'); return; }
 
-  if(typeof docx === 'undefined') { toast('Biblioteca DOCX ainda carregando, tente novamente'); return; }
+  // Wait for docx library to load (up to 5 seconds)
+  if(typeof docx === 'undefined') {
+    const btn2 = document.getElementById('docx-btn-'+id);
+    if(btn2){btn2.disabled=true;btn2.textContent='⏳ Carregando...';}
+    let tries=0;
+    await new Promise(resolve=>{
+      const interval=setInterval(()=>{
+        tries++;
+        if(typeof docx!=='undefined'||tries>25){clearInterval(interval);resolve();}
+      },200);
+    });
+    if(typeof docx==='undefined'){
+      toast('Não foi possível carregar a biblioteca DOCX. Verifique sua conexão.');
+      if(btn2){btn2.disabled=false;btn2.innerHTML='📄 Gerar DOCX';}
+      return;
+    }
+    if(btn2){btn2.disabled=false;btn2.innerHTML='📄 Gerar DOCX';}
+  }
 
   const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
            AlignmentType, WidthType, VerticalAlign, ImageRun, BorderStyle,
