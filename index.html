@@ -1049,11 +1049,15 @@ function renderTri(){
             </div>
           </div>
           <textarea class="fc" id="cmd-${p.id}" placeholder="Escolha a peça acima — o prompt será montado automaticamente com os dados do processo e o relatório." style="min-height:72px;font-size:12px;background:#fff">${p.cmd}</textarea>
-          <div style="margin-top:8px;display:flex;align-items:center;gap:8px;justify-content:flex-end">
-            <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 14px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:5px" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'?'disabled':''}>
-              ${p.iaStatus==='loading'?'<span class="spin"></span>':'🤖'} Gerar com IA
-            </button>
-          </div>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <button id="copy-cmd-${p.id}" onclick="copyPrompt(${p.id})" style="background:#f0fdf4;color:#166534;border:1px solid #86efac;padding:5px 14px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:5px">
+                📋 Copiar prompt
+              </button>
+              <span id="copy-st-${p.id}" style="font-size:11px;color:#16a34a;opacity:0;transition:opacity .3s;flex:1"></span>
+              <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 14px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:5px" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'?'disabled':''}>
+                ${p.iaStatus==='loading'?'<span class="spin"></span>':'🤖'} Gerar com IA
+              </button>
+            </div>
         </div>
 
         <div style="margin-top:10px">
@@ -2027,18 +2031,24 @@ function applyTemplate(id, key) {
   if(!p) return;
   const tpl = PROMPT_TEMPLATES[key];
   if(!tpl) return;
-  const prompt = tpl.fn(p);
+  // Pull live relatório from textarea (may differ from saved p.obs)
+  const obsEl = document.getElementById('obs-'+id);
+  const relatorio = obsEl ? obsEl.value : p.obs;
+  const pWithObs = {...p, obs: relatorio};
+  const prompt = tpl.fn(pWithObs);
   const cmdEl = document.getElementById('cmd-'+id);
   if(cmdEl) {
     cmdEl.value = prompt;
     cmdEl.style.borderColor = '#6366f1';
     setTimeout(()=>{ if(cmdEl) cmdEl.style.borderColor = ''; }, 1500);
-    cmdEl.scrollIntoView({behavior:'smooth', block:'nearest'});
   }
   // Close dropdown
   const dd = document.getElementById('tpl-dd-'+id);
   if(dd) dd.style.display = 'none';
-  toast('Prompt carregado: ' + tpl.label);
+  // Auto-focus copy button
+  const cpBtn = document.getElementById('copy-cmd-'+id);
+  if(cpBtn) { cpBtn.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  toast('Prompt pronto — clique em Copiar para colar na IA');
 }
 
 function toggleTplDropdown(id, event) {
@@ -2065,6 +2075,35 @@ function toggleTplDropdown(id, event) {
 document.addEventListener('click', ()=>{
   document.querySelectorAll('[id^="tpl-dd-"]').forEach(el => el.style.display = 'none');
 });
+
+
+function copyPrompt(id) {
+  const cmdEl = document.getElementById('cmd-'+id);
+  if(!cmdEl || !cmdEl.value.trim()) {
+    toast('Escolha uma peça primeiro');
+    return;
+  }
+  navigator.clipboard.writeText(cmdEl.value).then(()=>{
+    const btn = document.getElementById('copy-cmd-'+id);
+    const st  = document.getElementById('copy-st-'+id);
+    if(btn) { btn.style.background='#dcfce7'; btn.textContent='✓ Copiado!'; }
+    if(st)  { st.textContent='Cole no ChatGPT, Claude ou outro'; st.style.opacity='1'; }
+    setTimeout(()=>{
+      if(btn) { btn.style.background='#f0fdf4'; btn.innerHTML='📋 Copiar prompt'; }
+      if(st)  { st.style.opacity='0'; }
+    }, 2500);
+  }).catch(()=>{
+    // Fallback for older browsers / non-HTTPS
+    const ta = document.createElement('textarea');
+    ta.value = cmdEl.value;
+    ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Prompt copiado!');
+  });
+}
 
 function renderAll(){renderTri();}
 
