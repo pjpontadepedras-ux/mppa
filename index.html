@@ -33,7 +33,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 .l-select{width:100%;padding:10px 14px;border:1.5px solid var(--ib);border-radius:var(--r);font-size:14px;color:var(--tx);background:#fff;outline:none;font-family:var(--f);margin-bottom:16px;cursor:pointer}
 .l-select:focus{border-color:var(--if)}
 .l-btn{width:100%;padding:11px;background:var(--sb);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f);transition:background .15s}
-.l-btn:hover{background:var(--bph)}.l-btn:disabled{opacity:.5;cursor:default}
+.l-btn:hover{background:#253561}.l-btn:disabled{opacity:.5;cursor:default}
 .l-note{font-size:11px;color:#a0aec0;margin-top:14px;line-height:1.5}
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;align-items:center;justify-content:center;display:none}
 .mo.open{display:flex}
@@ -98,7 +98,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--tx);display:flex;min-
 @media(max-width:700px){.content{padding:10px 10px}}
 .plist{display:flex;flex-direction:column;gap:5px}
 .pc{background:var(--card);border:1px solid var(--cb);border-radius:var(--r);overflow:hidden;transition:border-color .15s,box-shadow .15s;min-width:0}
-.pc:hover{border-color:var(--cbh);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.pc:hover{border-color:#c8cdd6;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .pc.urg{border-left:3px solid #ef4444}
 .pc.proto{border-left:3px solid #d97706}
 .pc.proto>.ch{background:#fffbeb !important}
@@ -155,7 +155,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .est .lbl{font-size:10px;color:var(--txm);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
 .tst{font-size:12px;font-weight:600;color:var(--tx);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
 .tkc{background:#fff;border:1px solid var(--cb);border-radius:var(--r);padding:12px 16px;margin-bottom:6px;transition:border-color .15s}
-.tkc:hover{border-color:var(--cbh)}
+.tkc:hover{border-color:#c8cdd6}
 .tkc.tku{border-left:3px solid #ef4444}.tkc.tkd{border-left:3px solid #22c55e;opacity:.7}
 .tktop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .tknum{font-family:var(--fm);font-size:12px;font-weight:600;color:var(--tx);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid transparent;transition:all .15s;background:transparent}
@@ -167,7 +167,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 .tka{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
 .btn{padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--f);border:none;transition:all .15s;white-space:nowrap}
 .btn-sm{padding:5px 12px;font-size:12px}.btn-xs{padding:3px 8px;font-size:11px;border-radius:var(--rs)}
-.btn-p{background:var(--bp);color:#fff}.btn-p:hover{background:var(--bph)}
+.btn-p{background:var(--bp);color:#fff}.btn-p:hover{background:#253561}
 .btn-b{background:#2563eb;color:#fff}.btn-b:hover{background:#1d4ed8}.btn-b:disabled{opacity:.5;cursor:default}
 .btn-g{background:#16a34a;color:#fff}.btn-g:hover{background:#15803d}
 .btn-gh{background:transparent;color:var(--tx2);border:1px solid var(--ib)}.btn-gh:hover{background:#f1f5f9}
@@ -328,16 +328,10 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
     <div class="ni" onclick="sfUrgCat('contrarrazoes',this)"><div class="nil"><span class="nd" style="background:#fb923c"></span><span class="nl" style="font-size:12px">Contrarrazões</span></div><span class="nc" id="n-aq-cr">0</span></div>
     <div class="ni" onclick="sfCivelTipo('simples',this)"><div class="nil"><span class="nd" style="background:#34d399"></span><span class="nl" style="font-size:12px">Cível simples</span></div><span class="nc" id="n-aq-civs">0</span></div>
     <div class="ni" onclick="sfCivelTipo('complexo',this)"><div class="nil"><span class="nd" style="background:#34d399"></span><span class="nl" style="font-size:12px">Cível complexo</span></div><span class="nc" id="n-aq-civc">0</span></div>
-    <div class="nsl" style="margin-top:8px">Filtrar</div>
+    <div class="nsl" style="margin-top:8px">Filtros</div>
     <div class="ni active" onclick="sf('inbox',this)" id="ni-inbox"><div class="nil"><span class="nd" style="background:#2563eb"></span><span class="nl">📥 Caixa de entrada</span></div><span class="nc" id="n-inbox">—</span></div>
     <div class="ni" onclick="sf('all',this)"><div class="nil"><span class="nd d-all"></span><span class="nl">Todos</span></div><span class="nc" id="n-all">—</span></div>
-    <div class="ni" id="ni-urg" onclick="toggleNavGroup('urg-sub',this)"><div class="nil"><span class="nd d-urg"></span><span class="nl">Urgentes</span></div><div style="display:flex;align-items:center;gap:4px"><span class="nc" id="n-urg">0</span><span id="chv-urg-sub" style="color:var(--sb-m);font-size:10px">›</span></div></div>
-    <div id="sub-urg-sub" style="display:none;padding-left:14px">
-      <div class="ni" onclick="sfUrgCat('Criminal — Representação de delegado (prisão/cautelar)',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Réu preso / cautelar</span></div><span class="nc" id="n-urg-preso">0</span></div>
-      <div class="ni" onclick="sfUrgCat('Criminal — Manifestação sobre medida protetiva',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Medida protetiva</span></div><span class="nc" id="n-urg-mp">0</span></div>
-      <div class="ni" onclick="sfUrgCat('contrarrazoes',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Contrarrazões</span></div><span class="nc" id="n-urg-cr">0</span></div>
-      <div class="ni" onclick="sfUrgCat('Alimentos — Pedido de prisão civil',this)"><div class="nil"><span class="nd" style="background:#f87171;width:5px;height:5px"></span><span class="nl" style="font-size:12px">Prisão civil alimentos</span></div><span class="nc" id="n-urg-ali">0</span></div>
-    </div>
+    <div class="ni" onclick="sf('urg',this)"><div class="nil"><span class="nd d-urg"></span><span class="nl">Urgentes</span></div><span class="nc" id="n-urg">0</span></div>
     <div class="ni" onclick="sf('rev',this)"><div class="nil"><span class="nd" style="background:#a78bfa"></span><span class="nl">Ag. revisão</span></div><span class="nc" id="n-rev">0</span></div>
     <div class="ni" onclick="sf('bx',this)"><div class="nil"><span class="nd d-bx"></span><span class="nl">Ag. baixa</span></div><span class="nc" id="n-bx">0</span></div>
     <!-- Criminal group -->
@@ -404,9 +398,9 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button id="mob-menu-btn" onclick="toggleMobSidebar()" style="display:none;background:none;border:none;cursor:pointer;padding:10px 8px;font-size:18px;color:var(--tx2);flex-shrink:0" title="Menu">☰</button>
       <button class="tbb active" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
       <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
-      <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Aguardando revisão <span class="tb" id="tb-rev">0</span></button>
-      <button class="tbb" id="tbb-proto" onclick="swTab('proto',this)" style="display:none">SAJ & Protocolo <span class="tb" id="tb-proto">0</span></button>
-      <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa no sistema <span class="tb" id="tb-bx">0</span></button>
+      <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Revisão <span class="tb" id="tb-rev">0</span></button>
+      <button class="tbb" id="tbb-proto" onclick="swTab('proto',this)" style="display:none">SAJ <span class="tb" id="tb-proto">0</span></button>
+      <button class="tbb" id="tbb-bx" onclick="swTab('bx',this)">Baixa <span class="tb" id="tb-bx">0</span></button>
       <button class="tbb btn-sm btn-gh" style="margin-left:auto;border-bottom:none;font-size:11px;padding:8px 10px;display:flex;align-items:center;gap:5px" onclick="syncLoad(true)" title="Recarregar dados">
         <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#94a3b8;flex-shrink:0;transition:background .3s"></span>↻
       </button>
@@ -791,9 +785,9 @@ function g(id){return document.getElementById(id)?.value||'';}
 function gc(id){return document.getElementById(id)?.checked||false;}
 function saveP(id){
   const p=procs[id];
-  p.cat=g('cat-'+id);p.resp=g('resp-'+id);p.prazo=g('pr-'+id);
+  p.cat=g('cat-'+id);p.prazo=g('pr-'+id);
   if(isUrgentCat(p.cat)&&!p.urg){p.urg=true;} // auto-urgente
-  p.urg=gc('urg-'+id);p.cpl=gc('cpl-'+id);p.agBx=gc('agbx-'+id);
+  p.urg=gc('urg-'+id);p.cpl=gc('cpl-'+id);
   const novoOk=gc('ok-'+id);
   if(novoOk&&!p.ok){if(!confirm('Confirmar conclusão do processo '+p.num+'?\n\nO ciclo será encerrado.')){document.getElementById('ok-'+id).checked=false;return;}p.esSt='concluido';}
   p.ok=novoOk;
@@ -966,25 +960,7 @@ function renderTri(){
                 <option value="">👤</option>
                 ${getEstags().map(e=>`<option value="${e}" ${p.atrib===e?'selected':''}>${e}</option>`).join('')}
               </select>
-              <select class="qa-sel" onchange="quickCat(${p.id},this)" title="Categoria" style="max-width:120px">
-                <option value="">🏷</option>
-                <optgroup label="⚠ Urgentes">
-                  <option value="Criminal — Representação de delegado (prisão/cautelar)" ${p.cat==='Criminal — Representação de delegado (prisão/cautelar)'?'selected':''}>🔴 Réu preso</option>
-                  <option value="Criminal — Manifestação sobre medida protetiva" ${p.cat==='Criminal — Manifestação sobre medida protetiva'?'selected':''}>🔴 Med. protetiva</option>
-                  <option value="Criminal — Contrarrazões de apelação" ${p.cat==='Criminal — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões crim.</option>
-                  <option value="Cível — Contrarrazões de apelação" ${p.cat==='Cível — Contrarrazões de apelação'?'selected':''}>🔴 Contrarrazões cív.</option>
-                  <option value="Alimentos — Pedido de prisão civil" ${p.cat==='Alimentos — Pedido de prisão civil'?'selected':''}>🔴 Prisão civil ali.</option>
-                </optgroup>
-                <optgroup label="Frequentes">
-                  <option value="Mera ciência" ${p.cat==='Mera ciência'?'selected':''}>Mera ciência</option>
-                  <option value="Criminal — Denúncia" ${p.cat==='Criminal — Denúncia'?'selected':''}>Denúncia</option>
-                  <option value="Criminal — Alegações finais" ${p.cat==='Criminal — Alegações finais'?'selected':''}>Alegações finais</option>
-                  <option value="Criminal — Análise de IPL: minutar denúncia" ${p.cat==='Criminal — Análise de IPL: minutar denúncia'?'selected':''}>IPL: denúncia</option>
-                  <option value="Criminal — Análise de TCO" ${p.cat==='Criminal — Análise de TCO'?'selected':''}>TCO</option>
-                  <option value="Execução Penal — Manifestação" ${p.cat==='Execução Penal — Manifestação'?'selected':''}>EP: Manifestação</option>
-                  <option value="Pesquisa de endereço" ${p.cat==='Pesquisa de endereço'?'selected':''}>Pesquisa endereço</option>
-                </optgroup>
-              </select>
+
               ${p.cat==='Mera ciência'&&!p.ok?`<button class="qa-btn" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;font-size:11px;padding:2px 7px" onclick="darCiencia(${p.id})">✓</button>`:''}
             </div>
           </div>
@@ -1092,8 +1068,10 @@ function renderTri(){
         </div>
 
         ${bxS}
-        <div class="fa"><button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar e sincronizar</button><span class="sm" id="sm-${p.id}">✓ Salvo</span><button class="btn btn-sm" class="btn btn-d btn-sm" onclick="confirmDelete(${p.id})">🗑 Apagar</button>
-          <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px;margin-left:auto" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'||batching?'disabled':''}>${ibl} IA</button>
+        <div class="fa">
+          <button class="btn btn-p btn-sm" onclick="saveP(${p.id})">Salvar</button>
+          <span class="sm" id="sm-${p.id}">✓</span>
+          <button class="btn btn-d btn-sm" onclick="confirmDelete(${p.id})">Apagar</button>
         </div>
       </div>
     </div>`;
