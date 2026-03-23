@@ -398,7 +398,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
       <button id="mob-menu-btn" onclick="toggleMobSidebar()" style="display:none;background:none;border:none;cursor:pointer;padding:10px 8px;font-size:18px;color:var(--tx2);flex-shrink:0" title="Menu">☰</button>
       <button class="tbb active" id="tbb-dash" onclick="swTab('dash',this)">Dashboard</button>
       <button class="tbb" id="tbb-tri" onclick="swTab('tri',this)">Triagem <span class="tb" id="tb-tri">—</span></button>
-      <button class="tbb" id="tbb-fila" onclick="swTab('fila',this)">⚡ Fila Geral <span class="tb" id="tb-fila">0</span></button>
+      <button class="tbb" id="tbb-fila" onclick="swTab('fila',this)">Mesa de Trabalho <span class="tb" id="tb-fila">0</span></button>
       <button class="tbb" id="tbb-est" onclick="swTab('est',this)" style="display:none">Estagiários <span class="tb" id="tb-est">0</span></button>
       <button class="tbb" id="tbb-rev" onclick="swTab('rev',this)" style="display:none">Revisão <span class="tb" id="tb-rev">0</span></button>
       <button class="tbb" id="tbb-proto" onclick="swTab('proto',this)" style="display:none">SAJ <span class="tb" id="tb-proto">0</span></button>
@@ -787,6 +787,8 @@ async function doLogin(){
   const loc=localStorage.getItem('mppa_loc');if(loc){try{procs=mkP(JSON.parse(loc));migrateEstagNames();setSS('Dados locais','ok');}catch(e){}}
   filt='inbox';
   if(GSURL)syncLoad(false);else{updStats();renderAll();}
+  // Pre-load extrajudicial for Mesa de Trabalho
+  setTimeout(()=>loadExtraj().then(()=>{const tb=document.getElementById('tb-fila');if(tb)tb.textContent=filaExtraj.filter(p=>p.status!=='finalizado').length+(procs||[]).filter(p=>!p.ok&&!p.bxOk).length;}),1500);
 }
 function doLogout(){CU=null;isA=false;document.getElementById('ls').style.display='flex';document.getElementById('sdb').style.display='none';document.getElementById('mc').style.display='none';document.getElementById('lsel').value='';document.getElementById('lbtn').disabled=true;const old=document.getElementById('tbb-mf');if(old)old.remove();}
 function swTab(n,el){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tbb').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');el.classList.add('active');if(n==='est')renderEst();if(n==='rev')renderRev();if(n==='proto')renderProto();if(n==='bx')renderBx();if(n==='mf')renderMF();if(n==='dash')renderDash();if(n==='fila')renderFila();}
@@ -2556,6 +2558,13 @@ function renderDash() {
       `).join('')}
     </div>
 
+    <div style="background:#1a2744;border-radius:var(--r);padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="swTab('fila',document.getElementById('tbb-fila'))">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#fff">Mesa de Trabalho</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6)" id="dash-fila-sub">Judicial + extrajudicial ordenado por urgência</div>
+      </div>
+      <span style="color:#fff;font-size:18px">→</span>
+    </div>
     <div style="background:var(--bg);border:1px solid var(--cb);border-radius:var(--r);padding:14px 16px;margin-bottom:12px">
       <div style="font-size:12px;font-weight:500;color:var(--txm);margin-bottom:12px">Fluxo de trabalho</div>
       <div style="display:flex;align-items:center;gap:0">
@@ -2680,29 +2689,51 @@ async function gerarComGemini(id) {
 let filaExtraj = [];
 
 async function loadExtraj() {
+  // Also check localStorage first for offline/fast load
+  const cached = localStorage.getItem('mppa_extraj_v2');
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      filaExtraj = (Array.isArray(parsed) ? parsed : (parsed.procs || [])).map(p => ejNormalize(p));
+    } catch(e) {}
+  }
   const url = GSURL || localStorage.getItem('mppa_gs') || '';
   if (!url) return;
   try {
     const r = await fetch(url + '?action=load&tab=extrajudicial');
     const data = await r.json();
     if (data.rows && data.rows.length) {
-      filaExtraj = data.rows.map(row => ({
+      filaExtraj = data.rows.map(row => ejNormalize({
         _modulo: 'extrajudicial',
-        id:     row[0],
-        num:    row[1],
-        tipo:   row[2],
-        assunto:row[3],
-        dtInst: row[4],
-        status: row[7] || 'triagem',
-        desfecho: row[8] || '',
-        prorrogado: row[9] === 'true',
-        obs:    row[10] || '',
-        diasInst: parseInt(row[13]) || 0,
+        id: row[0], num: row[1], tipo: row[2], assunto: row[3],
+        dtInst: row[4], dtUltimoAto: row[5], atribuido: row[6],
+        status: row[7] || 'triagem', desfecho: row[8] || '',
+        prorrogado: row[9] === 'true', obs: row[10] || '',
+        diasInstSnapshot: parseInt(row[13]) || 0,
       }));
     }
-  } catch(e) {
-    console.warn('Extrajudicial load failed:', e);
+  } catch(e) { console.warn('Extrajudicial load failed:', e); }
+}
+
+function ejNormalize(p) {
+  // Recalcula diasInst dinamicamente a partir de dtInst
+  p._modulo = 'extrajudicial';
+  if (p.dtInst) {
+    const parts = p.dtInst.split('/');
+    if (parts.length === 3) {
+      const d = new Date(parts[2] + '-' + parts[1] + '-' + parts[0]);
+      if (!isNaN(d)) {
+        p.diasInst = Math.floor((new Date() - d) / 86400000);
+      }
+    }
   }
+  if (!p.diasInst) p.diasInst = p.diasInstSnapshot || 0;
+  // Calcula dias restantes e pct do prazo
+  const prazo = prazoLegalEj(p.tipo, p.prorrogado);
+  p._prazo = prazo;
+  p._diasRestantes = prazo ? prazo - p.diasInst : null;
+  p._pctPrazo = prazo ? Math.min(110, Math.round(p.diasInst / prazo * 100)) : 0;
+  return p;
 }
 
 function prazoLegalEj(tipo, prorrogado) {
@@ -2750,130 +2781,186 @@ function getUrgLabel(score) {
   return { text: 'Normal', bg: '#f0fdf4', col: '#166534' };
 }
 
+// ── MESA DE TRABALHO UNIFICADA ────────────────────────────────────────
+// Substitui renderFila — visão completa judicial + extrajudicial
+
 async function renderFila() {
   const root = document.getElementById('fila-root');
   if (!root) return;
-  root.innerHTML = '<div style="padding:20px;color:var(--txm);font-size:13px">⏳ Carregando fila unificada...</div>';
+
+  root.innerHTML = '<div style="padding:20px;color:var(--txm);font-size:13px">⏳ Carregando mesa de trabalho...</div>';
 
   await loadExtraj();
 
-  // Judicial items
-  const judItems = procs.filter(p => !p.ok && !p.bxOk).map(p => ({
-    ...p, _modulo: 'judicial'
-  }));
+  const hoje = new Date();
 
-  // Extrajudicial items
-  const ejItems = filaExtraj.filter(p => p.status !== 'finalizado');
+  // ── Judicial ──────────────────────────────────────────────────────
+  const jud = procs.filter(p => !p.ok && !p.bxOk).map(p => {
+    let diasPrazo = null, pctPrazo = 0, prazoLabel = '';
+    if (p.prazo) {
+      const diff = Math.ceil((new Date(p.prazo) - hoje) / 86400000);
+      diasPrazo = diff;
+      prazoLabel = diff <= 0 ? 'Vencido' : diff === 1 ? 'Amanhã' : diff + 'd';
+    }
+    return { ...p, _modulo:'jud', _diasPrazo: diasPrazo, _prazoLabel: prazoLabel };
+  });
 
-  // Combine + score + sort
-  const all = [...judItems, ...ejItems]
-    .map(item => ({ ...item, _score: urgenciaScore(item) }))
+  // ── Extrajudicial ─────────────────────────────────────────────────
+  const ej = filaExtraj.filter(p => p.status !== 'finalizado').map(p => ejNormalize(p));
+
+  // ── Score unificado ───────────────────────────────────────────────
+  function score(item) {
+    if (item._modulo === 'jud') {
+      if (item.urg) return 1000;
+      if (item._diasPrazo !== null) {
+        if (item._diasPrazo <= 0) return 900;
+        if (item._diasPrazo <= 2) return 800;
+        if (item._diasPrazo <= 5) return 700;
+        if (item._diasPrazo <= 10) return 600;
+      }
+      const stScore = {'revisao':550,'minuta pronta':500,'ag minuta':300,'atribuido':200,'protocolo':450,'registro saj':400,'triagem':100};
+      return (stScore[item.esSt] || 100) + (item.d > 15 ? 50 : 0);
+    } else {
+      if (item.status === 'finalizado') return -1;
+      const pct = item._pctPrazo || 0;
+      if (pct >= 100) return 850 + Math.min(50, pct - 100);
+      if (pct >= 80)  return 650 + Math.round((pct - 80) * 10);
+      if (pct >= 60)  return 400 + Math.round((pct - 60) * 12.5);
+      return Math.round(pct * 4);
+    }
+  }
+
+  const all = [...jud, ...ej]
+    .map(item => ({ ...item, _score: score(item) }))
     .filter(item => item._score >= 0)
     .sort((a, b) => b._score - a._score);
 
-  // Update counter
-  const n = all.length;
   const tbEl = document.getElementById('tb-fila');
-  if (tbEl) tbEl.textContent = n;
+  if (tbEl) tbEl.textContent = all.length;
 
-  if (!all.length) {
-    root.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txm)">Nenhum procedimento pendente</div>';
-    return;
+  // ── Rótulo de urgência ────────────────────────────────────────────
+  function urgLabel(item) {
+    const s = item._score;
+    if (item._modulo === 'jud') {
+      if (item.urg) return { txt:'🔴 Urgente', bg:'#fee2e2', col:'#991b1b' };
+      if (item._diasPrazo !== null && item._diasPrazo <= 0) return { txt:'⏰ Prazo vencido', bg:'#fee2e2', col:'#991b1b' };
+      if (item._diasPrazo !== null && item._diasPrazo <= 5) return { txt:'⚠ Prazo curto', bg:'#fef3c7', col:'#92400e' };
+    } else {
+      const pct = item._pctPrazo || 0;
+      if (pct >= 100) return { txt:'🔴 Prazo vencido', bg:'#fee2e2', col:'#991b1b' };
+      if (pct >= 80)  return { txt:'⚠ Crítico', bg:'#fef3c7', col:'#92400e' };
+      if (pct >= 60)  return { txt:'🔵 Atenção', bg:'#dbeafe', col:'#1e40af' };
+    }
+    return null;
   }
 
-  const TIPO_NOMES_EJ = {
-    NF: 'Notícia de Fato', PA: 'Proc. Administrativo',
-    IC: 'Inquérito Civil', PIC: 'PIC', PP: 'Proc. Preparatório'
-  };
+  // ── Barra de prazo ────────────────────────────────────────────────
+  function prazoBar(item) {
+    if (item._modulo !== 'ej' && item._modulo !== 'extrajudicial') return '';
+    const pct = item._pctPrazo || 0;
+    const rest = item._diasRestantes;
+    const prazo = item._prazo;
+    const cor = pct >= 100 ? '#ef4444' : pct >= 80 ? '#f59e0b' : pct >= 60 ? '#3b82f6' : '#10b981';
+    const restLabel = rest === null ? '' : rest <= 0
+      ? `<span style="color:#ef4444;font-weight:600">+${Math.abs(rest)}d vencido</span>`
+      : `<span style="color:${cor}">${rest}d restantes de ${prazo}d</span>`;
+    return `<div style="margin-top:6px">
+      <div style="height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,pct)}%;background:${cor};border-radius:2px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txm);margin-top:2px">
+        <span>${item.diasInst||0}d de ${prazo||'?'}d (${pct}%)</span>
+        ${restLabel}
+      </div>
+    </div>`;
+  }
 
-  const STATUS_JUD = {
-    triagem: 'Triagem', atribuido: 'Atribuído', 'ag minuta': 'Ag. minuta',
-    'minuta pronta': 'Minuta pronta', revisao: 'Revisão',
-    'registro saj': 'Reg. SAJ', protocolo: 'Protocolo', concluido: 'Concluído'
-  };
+  // ── Render ────────────────────────────────────────────────────────
+  const TIPO_EJ = {NF:'Notícia de Fato',PA:'Proc. Administrativo',IC:'Inquérito Civil',PIC:'PIC',PP:'Proc. Preparatório'};
+  const ST_JUD = {triagem:'Triagem',atribuido:'Atribuído','ag minuta':'Ag. minuta','minuta pronta':'Minuta pronta',revisao:'Revisão','registro saj':'Reg. SAJ',protocolo:'Protocolo'};
+  const ST_EJ = {triagem:'Triagem',instrucao:'Em instrução',diligencias:'Diligências',desfecho:'Ag. desfecho'};
 
-  const STATUS_EJ = {
-    triagem: 'Triagem', instrucao: 'Em instrução',
-    diligencias: 'Diligências', desfecho: 'Ag. desfecho', finalizado: 'Finalizado'
-  };
+  // Agrupar por urgência
+  const grupos = [
+    { id:'urgentes',  label:'🔴 Urgente / Prazo vencido', items: all.filter(i => i._score >= 850), cor:'#fef2f2', border:'#fca5a5' },
+    { id:'criticos',  label:'🟡 Crítico — prazo < 5 dias ou EJ >80%', items: all.filter(i => i._score >= 600 && i._score < 850), cor:'#fffbeb', border:'#fcd34d' },
+    { id:'atencao',   label:'🔵 Atenção — EJ entre 60-80%', items: all.filter(i => i._score >= 400 && i._score < 600), cor:'#eff6ff', border:'#93c5fd' },
+    { id:'normal',    label:'⚪ Normal', items: all.filter(i => i._score < 400), cor:'var(--bg)', border:'var(--cb)' },
+  ].filter(g => g.items.length > 0);
 
-  root.innerHTML = `
+  let html = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div>
-        <div style="font-size:14px;font-weight:500">Fila Geral de Prioridades</div>
-        <div style="font-size:12px;color:var(--txm)">${n} itens pendentes · judicial + extrajudicial · ordenado por urgência</div>
+        <div style="font-size:14px;font-weight:600">Mesa de Trabalho</div>
+        <div style="font-size:12px;color:var(--txm)">${all.length} pendências · judicial + extrajudicial · ordenado por urgência real</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <a href="extrajudicial.html" style="font-size:12px;padding:5px 12px;border:1px solid var(--cb);border-radius:var(--rs);color:var(--tx2);text-decoration:none;background:#fff">Abrir Extrajudicial →</a>
-        <button class="btn btn-sm" onclick="renderFila()">↺ Atualizar</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="renderFila()" title="Atualizar">↺ Atualizar</button>
+        <button class="btn btn-sm" onclick="swTab('tri',document.getElementById('tbb-tri'))">Ver Triagem →</button>
+        <a href="extrajudicial.html" class="btn btn-sm" style="text-decoration:none">Ver Extrajudicial →</a>
       </div>
-    </div>
-    ${all.map((item, idx) => {
-      const score = item._score;
-      const urg = getUrgLabel(score);
-      const isEj = item._modulo === 'extrajudicial';
-      const modTag = isEj
-        ? '<span style="font-size:10px;padding:2px 6px;border-radius:3px;background:#e0edff;color:#1e40af;font-weight:600">EJ</span>'
-        : '<span style="font-size:10px;padding:2px 6px;border-radius:3px;background:#f1f0fb;color:#534AB7;font-weight:600">JUD</span>';
+    </div>`;
 
-      const tipo = isEj
-        ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#f3f4f6;color:#374151;font-weight:600">${TIPO_NOMES_EJ[item.tipo]||item.tipo}</span>`
-        : `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#f3f4f6;color:#374151;font-weight:600">${item.cat||''}</span>`;
+  for (const grupo of grupos) {
+    html += `<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--txm);text-transform:uppercase;margin-bottom:8px;padding:6px 10px;background:${grupo.cor};border:1px solid ${grupo.border};border-radius:var(--rs)">
+        ${grupo.label} <span style="font-weight:400">(${grupo.items.length})</span>
+      </div>`;
 
-      const statusText = isEj
-        ? (STATUS_EJ[item.status] || item.status)
-        : (STATUS_JUD[item.esSt] || item.esSt || '—');
+    for (const item of grupo.items) {
+      const isEj = item._modulo === 'extrajudicial' || item._modulo === 'ej';
+      const urg = urgLabel(item);
 
-      const diasInfo = isEj
-        ? (item.diasInst ? `${item.diasInst}d desde instauração` : '')
-        : (item.d ? `${item.d}d na fila` : '');
+      const modBadge = isEj
+        ? `<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#dbeafe;color:#1e40af;font-weight:700">EJ</span>`
+        : `<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#ede9fe;color:#5b21b6;font-weight:700">JUD</span>`;
 
-      const prazoInfo = !isEj && item.prazo
-        ? (() => {
-            const diff = Math.ceil((new Date(item.prazo) - new Date()) / 86400000);
-            return diff <= 0 ? `<span style="color:#dc2626;font-weight:600">Prazo vencido há ${Math.abs(diff)}d</span>`
-              : `<span style="color:#d97706">Prazo em ${diff}d</span>`;
-          })()
-        : isEj && item.diasInst
-        ? (() => {
-            const prazo = prazoLegalEj(item.tipo, item.prorrogado);
-            const rest = prazo - item.diasInst;
-            return rest <= 0
-              ? `<span style="color:#dc2626;font-weight:600">Vencido há ${Math.abs(rest)}d</span>`
-              : `<span style="color:${rest<=30?'#d97706':'#16a34a'}">Prazo: ${rest}d restantes</span>`;
-          })()
+      const tipoBadge = isEj
+        ? `<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#f3f4f6;color:#374151">${TIPO_EJ[item.tipo]||item.tipo}</span>`
+        : `<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#f3f4f6;color:#374151">${(item.cat||'').substring(0,30)}</span>`;
+
+      const status = isEj ? (ST_EJ[item.status]||item.status) : (ST_JUD[item.esSt]||item.esSt||'');
+      const atrib = item.atrib || item.atribuido || '';
+      const prazoJudInfo = !isEj && item._diasPrazo !== null
+        ? `<span style="color:${item._diasPrazo<=0?'#dc2626':item._diasPrazo<=5?'#d97706':'#16a34a'};font-weight:600">${item._prazoLabel}</span>`
         : '';
 
-      const link = isEj
-        ? `<a href="extrajudicial.html" style="font-size:11px;color:#2563eb;text-decoration:none">Abrir EJ →</a>`
-        : '';
+      const leftBorder = item._score >= 850 ? 'border-left:3px solid #ef4444'
+        : item._score >= 600 ? 'border-left:3px solid #f59e0b'
+        : item._score >= 400 ? 'border-left:3px solid #3b82f6' : '';
 
-      return `
-        <div style="background:#fff;border:1px solid var(--cb);border-radius:var(--r);padding:12px 14px;margin-bottom:6px;display:flex;align-items:flex-start;gap:12px;${score>=80?'border-left:3px solid #ef4444':score>=60?'border-left:3px solid #f59e0b':''}">
-          <div style="font-size:12px;font-weight:600;color:var(--txm);min-width:24px;padding-top:2px">${idx+1}</div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-              ${modTag}
-              <span style="font-size:12px;font-weight:600;color:var(--sb);font-family:monospace">${item.num||'—'}</span>
-              <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:${urg.bg};color:${urg.col};font-weight:600">${urg.text}</span>
+      html += `
+        <div style="background:#fff;border:1px solid var(--cb);${leftBorder};border-radius:var(--r);padding:10px 14px;margin-bottom:6px">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px">
+                ${modBadge}
+                <span style="font-size:12px;font-weight:600;color:var(--sb);font-family:monospace;cursor:pointer" ${!isEj?`onclick="swTab('tri',document.getElementById('tbb-tri'))"`:''}>${item.num||'—'}</span>
+                ${urg?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:${urg.bg};color:${urg.col};font-weight:600">${urg.txt}</span>`:''}
+              </div>
+              <div style="font-size:12px;color:var(--tx);margin-bottom:2px">${isEj?(item.assunto||'').substring(0,60):(item.cat||'')}</div>
+              <div style="font-size:11px;color:var(--txm);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                ${tipoBadge}
+                <span>${status}</span>
+                ${atrib?`<span>→ ${atrib}</span>`:''}
+                ${prazoJudInfo}
+                ${!isEj&&item.d?`<span>${item.d}d na fila</span>`:''}
+              </div>
+              ${isEj ? prazoBar(item) : ''}
             </div>
-            <div style="font-size:12px;color:var(--tx);margin-bottom:3px">${isEj?(item.assunto||'—'):(item.cat||'—')}</div>
-            <div style="font-size:11px;color:var(--txm);display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-              <span>${statusText}</span>
-              ${diasInfo?`<span>${diasInfo}</span>`:''}
-              ${prazoInfo}
-              ${item.atrib||item.atribuido?`<span>→ ${item.atrib||item.atribuido}</span>`:''}
-              ${link}
-            </div>
-          </div>
-          <div style="font-size:11px;color:var(--txm);text-align:right;flex-shrink:0">
-            <div style="font-size:18px;font-weight:600;color:${score>=80?'#dc2626':score>=60?'#d97706':'#6b7280'}">${Math.round(score)}</div>
-            <div>urgência</div>
           </div>
         </div>`;
-    }).join('')}
-  `;
+    }
+    html += '</div>';
+  }
+
+  if (!all.length) {
+    html += '<div style="text-align:center;padding:40px;color:var(--txm)">✓ Nenhuma pendência</div>';
+  }
+
+  root.innerHTML = html;
 }
+
 
 
 function renderAll(){renderTri();renderDash();}
