@@ -4,104 +4,179 @@
 <meta charset="UTF-8">
 <title>Teste Gemini API — MPPA</title>
 <style>
-body{font-family:-apple-system,sans-serif;max-width:560px;margin:60px auto;padding:0 20px;color:#1c2333}
-h2{font-size:18px;margin-bottom:6px}
-.sub{font-size:13px;color:#8892aa;margin-bottom:24px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:#f4f5f7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{background:#fff;border-radius:12px;padding:32px 36px;max-width:520px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+h2{font-size:17px;color:#1a2744;margin-bottom:4px}
+.sub{font-size:12px;color:#8892aa;margin-bottom:24px}
 label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#5a6272;display:block;margin-bottom:5px}
-input{width:100%;padding:9px 12px;border:1.5px solid #d0d4dc;border-radius:6px;font-size:13px;box-sizing:border-box;margin-bottom:14px;font-family:inherit}
+input{width:100%;padding:10px 12px;border:1.5px solid #d0d4dc;border-radius:6px;font-size:13px;margin-bottom:14px;font-family:inherit;color:#1c2333}
 input:focus{outline:none;border-color:#4f78d4}
-button{width:100%;padding:11px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}
+button{width:100%;padding:11px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 button:hover{background:#253561}
 button:disabled{opacity:.5;cursor:not-allowed}
-.result{margin-top:18px;padding:14px 16px;border-radius:8px;font-size:13px;line-height:1.6;display:none}
-.ok{background:#f0fdf4;border:1px solid #86efac;color:#166534}
-.err{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
-.loading{background:#fef9c3;border:1px solid #fde047;color:#854d0e}
-.tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.log{margin-top:16px;background:#f8f9fb;border:1px solid #e2e5ea;border-radius:8px;padding:14px;font-size:12px;font-family:'SF Mono','Fira Code',monospace;line-height:1.7;max-height:320px;overflow-y:auto;white-space:pre-wrap;color:#1c2333;display:none}
+.ok{color:#166534;font-weight:600}
+.err{color:#991b1b;font-weight:600}
+.warn{color:#92400e}
+.info{color:#1e40af}
 </style>
 </head>
 <body>
-<h2>Teste da API Gemini</h2>
-<p class="sub">MPPA · Polo Marajó I — verifica se a chave está ativa e o modelo responde</p>
+<div class="box">
+  <h2>Teste da API Gemini</h2>
+  <p class="sub">MPPA · Polo Marajó I — diagnóstico completo da chave</p>
 
-<label>Chave API Gemini</label>
-<input type="text" id="key" placeholder="AIzaSy..." value="">
+  <label>Chave API Gemini</label>
+  <input type="text" id="key" placeholder="Cole aqui: AIzaSy...">
 
-<button id="btn" onclick="testar()">Testar agora</button>
+  <button id="btn" onclick="testar()">▶ Testar agora</button>
 
-<div class="result" id="result">
-  <div class="tag" id="res-tag"></div>
-  <div id="res-msg"></div>
+  <div class="log" id="log"></div>
 </div>
 
 <script>
-// Pré-carrega chave salva no localStorage (do módulo judicial/extrajudicial)
-document.getElementById('key').value =
-  localStorage.getItem('mppa_gemini') || '';
+var logEl = document.getElementById('log');
+var btn   = document.getElementById('btn');
+
+function log(msg, cls) {
+  logEl.style.display = 'block';
+  var line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function logLine(label, val, cls) {
+  log(label + ': ' + val, cls);
+}
+
+// Tenta carregar a chave do localStorage
+window.onload = function() {
+  var saved = localStorage.getItem('mppa_gemini');
+  if (saved && saved.length > 10) {
+    document.getElementById('key').value = saved;
+    log('Chave carregada do localStorage do sistema.', 'info');
+  } else {
+    log('Nenhuma chave salva encontrada. Cole a chave no campo acima.', 'warn');
+  }
+};
 
 async function testar() {
-  const key = document.getElementById('key').value.trim();
-  const btn = document.getElementById('btn');
-  const res = document.getElementById('result');
-  const tag = document.getElementById('res-tag');
-  const msg = document.getElementById('res-msg');
+  logEl.innerHTML = '';
+  logEl.style.display = 'block';
 
-  if (!key) { alert('Cole a chave API antes de testar.'); return; }
+  var key = document.getElementById('key').value.trim();
 
-  btn.disabled = true; btn.textContent = 'Testando...';
-  res.className = 'result loading'; res.style.display = 'block';
-  tag.textContent = 'Aguarde'; msg.textContent = 'Enviando requisição para o Gemini...';
+  log('=== DIAGNÓSTICO DA API GEMINI ===');
+  log('');
 
-  const t0 = Date.now();
+  // 1. Valida a chave
+  logLine('Chave informada', key ? key.substring(0,12)+'...' : '(vazia)', key ? 'info' : 'err');
+  if (!key) {
+    log('ERRO: Cole a chave no campo antes de testar.', 'err');
+    return;
+  }
+  if (!key.startsWith('AIzaSy')) {
+    log('AVISO: A chave não começa com "AIzaSy". Verifique se copiou corretamente.', 'warn');
+  }
+  logLine('Comprimento', key.length + ' caracteres', key.length > 30 ? 'ok' : 'warn');
+
+  btn.disabled = true;
+  btn.textContent = 'Testando...';
+
+  // 2. Testa conectividade básica
+  log('');
+  log('[1/3] Testando conectividade com Google APIs...', 'info');
+  var t0 = Date.now();
+
   try {
-    const resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Responda apenas com: API MPPA OK.' }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 20 }
-        })
-      }
-    );
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key;
+    log('URL: ' + url.substring(0, 70) + '...');
 
-    const data = await resp.json();
-    const ms = Date.now() - t0;
+    var resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Responda exatamente: MPPA OK.' }] }],
+        generationConfig: { temperature: 0, maxOutputTokens: 15 }
+      })
+    });
 
-    if (data.candidates && data.candidates[0]) {
-      const texto = data.candidates[0].content.parts[0].text.trim();
-      res.className = 'result ok';
-      tag.textContent = 'API funcionando';
-      msg.innerHTML =
-        '<strong>Resposta do Gemini:</strong> ' + texto +
-        '<br><br>Latência: ' + ms + 'ms<br>Modelo: gemini-1.5-flash<br><br>' +
-        '<strong>Próximo passo:</strong> a chave já está salva no sistema. Pode fechar esta aba e usar os botões Despacho no módulo extrajudicial.';
-      // Salva a chave no localStorage para os módulos usarem
+    var ms = Date.now() - t0;
+    logLine('HTTP Status', resp.status + ' ' + resp.statusText, resp.ok ? 'ok' : 'err');
+    logLine('Latência', ms + 'ms', ms < 3000 ? 'ok' : 'warn');
+
+    // 3. Parse da resposta
+    log('');
+    log('[2/3] Analisando resposta...', 'info');
+
+    var text = await resp.text();
+    log('Resposta bruta (' + text.length + ' chars): ' + text.substring(0, 200));
+
+    var data;
+    try { data = JSON.parse(text); }
+    catch(e) { log('ERRO: Resposta não é JSON válido: ' + e.message, 'err'); return; }
+
+    // 4. Resultado
+    log('');
+    log('[3/3] Resultado final', 'info');
+
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      var resposta = data.candidates[0].content.parts[0].text.trim();
+      log('');
+      log('✓ API FUNCIONANDO CORRETAMENTE!', 'ok');
+      logLine('Resposta do modelo', resposta, 'ok');
+      // Salva no localStorage
       localStorage.setItem('mppa_gemini', key);
+      log('✓ Chave salva no localStorage do sistema.', 'ok');
+      log('');
+      log('Pode fechar esta página e usar os botões Despacho no módulo extrajudicial.', 'info');
+
     } else if (data.error) {
-      res.className = 'result err';
-      tag.textContent = 'Erro na API';
-      const code = data.error.code || '';
-      const erMsg = data.error.message || '';
-      let dica = '';
-      if (code === 400) dica = 'Chave inválida ou mal formatada.';
-      else if (code === 403) dica = 'Chave sem permissão para este modelo. Verifique no Google AI Studio.';
-      else if (code === 429) dica = 'Limite de requisições atingido. Aguarde alguns minutos.';
-      else if (erMsg.includes('API_KEY')) dica = 'Chave API inválida.';
-      msg.innerHTML = '<strong>Código ' + code + ':</strong> ' + erMsg + (dica ? '<br><br>' + dica : '');
+      log('✗ ERRO NA API', 'err');
+      logLine('Código', data.error.code, 'err');
+      logLine('Mensagem', data.error.message, 'err');
+      log('');
+      var c = data.error.code;
+      var m = data.error.message || '';
+      if (c === 400 || m.includes('API_KEY')) {
+        log('CAUSA: Chave API inválida ou mal formatada.', 'warn');
+        log('SOLUÇÃO: Gere uma nova chave em aistudio.google.com', 'warn');
+      } else if (c === 403) {
+        log('CAUSA: Chave sem permissão para o Gemini 1.5 Flash.', 'warn');
+        log('SOLUÇÃO: Acesse aistudio.google.com e ative o modelo.', 'warn');
+      } else if (c === 429) {
+        log('CAUSA: Limite de requisições atingido.', 'warn');
+        log('SOLUÇÃO: Aguarde 1 minuto e tente novamente.', 'warn');
+      } else if (c === 404) {
+        log('CAUSA: Modelo não encontrado ou não disponível na região.', 'warn');
+      } else {
+        log('CAUSA DESCONHECIDA. Verifique o Google AI Studio.', 'warn');
+      }
     } else {
-      res.className = 'result err';
-      tag.textContent = 'Resposta inesperada';
-      msg.textContent = JSON.stringify(data, null, 2).substring(0, 300);
+      log('Resposta inesperada — estrutura desconhecida.', 'warn');
+      log(JSON.stringify(data, null, 2).substring(0, 400));
     }
+
   } catch(e) {
-    const ms = Date.now() - t0;
-    res.className = 'result err';
-    tag.textContent = 'Erro de rede';
-    msg.innerHTML = e.message + '<br><br>Possíveis causas: sem internet, domínio bloqueado por firewall corporativo, ou CORS.';
+    var ms2 = Date.now() - t0;
+    log('');
+    log('✗ ERRO DE REDE OU CORS', 'err');
+    logLine('Erro', e.message, 'err');
+    logLine('Tempo até falha', ms2 + 'ms');
+    log('');
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('CORS')) {
+      log('CAUSA PROVÁVEL: Firewall corporativo ou bloqueio de rede.', 'warn');
+      log('SOLUÇÃO: Teste usando a internet do celular (hotspot) e verifique se o resultado muda.', 'warn');
+      log('');
+      log('Se funcionar no celular mas não na rede do MPPA: a API do Google está bloqueada na rede interna.', 'warn');
+      log('Nesse caso a solução é um proxy ou acesso via VPN.', 'warn');
+    }
   } finally {
-    btn.disabled = false; btn.textContent = 'Testar novamente';
+    btn.disabled = false;
+    btn.textContent = '▶ Testar novamente';
   }
 }
 </script>
