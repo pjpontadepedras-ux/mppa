@@ -10,12 +10,13 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:#f4f5f7;min-heig
 h2{font-size:17px;color:#1a2744;margin-bottom:4px}
 .sub{font-size:12px;color:#8892aa;margin-bottom:24px}
 label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#5a6272;display:block;margin-bottom:5px}
-input{width:100%;padding:10px 12px;border:1.5px solid #d0d4dc;border-radius:6px;font-size:13px;margin-bottom:14px;font-family:inherit;color:#1c2333}
-input:focus{outline:none;border-color:#4f78d4}
-button{width:100%;padding:11px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+input,textarea{width:100%;padding:10px 12px;border:1.5px solid #d0d4dc;border-radius:6px;font-size:12px;margin-bottom:12px;font-family:inherit;color:#1c2333}
+input:focus,textarea:focus{outline:none;border-color:#4f78d4}
+textarea{resize:vertical;min-height:60px;font-size:11px}
+button{width:100%;padding:11px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:6px}
 button:hover{background:#253561}
 button:disabled{opacity:.5;cursor:not-allowed}
-.log{margin-top:16px;background:#f8f9fb;border:1px solid #e2e5ea;border-radius:8px;padding:14px;font-size:12px;font-family:monospace;line-height:1.9;max-height:380px;overflow-y:auto;white-space:pre-wrap;display:none}
+.log{margin-top:14px;background:#f8f9fb;border:1px solid #e2e5ea;border-radius:8px;padding:14px;font-size:12px;font-family:monospace;line-height:1.9;max-height:360px;overflow-y:auto;white-space:pre-wrap;display:none}
 .ok{color:#166534;font-weight:600}
 .err{color:#991b1b;font-weight:600}
 .warn{color:#92400e}
@@ -24,13 +25,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </head>
 <body>
 <div class="box">
-  <h2>Teste da API Claude</h2>
-  <p class="sub">MPPA · Polo Marajó I · claude-haiku-3-5</p>
+  <h2>Teste Claude API — via Proxy</h2>
+  <p class="sub">MPPA · Polo Marajó I · usa o Apps Script como intermediário</p>
 
-  <label>Chave API Anthropic (sk-ant-...)</label>
+  <label>URL do Apps Script (Google Sheets)</label>
+  <textarea id="gs" rows="2" placeholder="https://script.google.com/macros/s/...exec"></textarea>
+
+  <label>Chave Claude (sk-ant-...)</label>
   <input type="text" id="key" placeholder="sk-ant-api03-...">
 
-  <button id="btn" onclick="testar()">▶ Testar agora</button>
+  <button id="btn" onclick="testar()">▶ Testar via proxy</button>
   <div class="log" id="log"></div>
 </div>
 
@@ -48,104 +52,94 @@ function log(msg, cls) {
 }
 
 window.onload = function() {
-  var saved = localStorage.getItem('mppa_ak');
-  if (saved && saved.length > 10) {
-    document.getElementById('key').value = saved;
-    log('Chave carregada do sistema.', 'info');
-  } else {
-    log('Nenhuma chave salva. Cole a chave sk-ant-... no campo.', 'warn');
-  }
+  var gs  = localStorage.getItem('mppa_gs')  || '';
+  var key = localStorage.getItem('mppa_ak')  || '';
+  if (gs)  document.getElementById('gs').value  = gs;
+  if (key) document.getElementById('key').value = key;
+  if (gs && key) log('Credenciais carregadas do sistema.', 'info');
+  else log('Preencha a URL do Apps Script e a chave Claude.', 'warn');
 };
 
 async function testar() {
   logEl.innerHTML = '';
   logEl.style.display = 'block';
 
+  var gs  = document.getElementById('gs').value.trim();
   var key = document.getElementById('key').value.trim();
-  if (!key) { log('Cole a chave antes de testar.', 'err'); return; }
-  if (!key.startsWith('sk-ant-')) {
-    log('AVISO: chave não começa com sk-ant- — verifique se copiou corretamente.', 'warn');
-  }
 
-  btn.disabled = true;
-  btn.textContent = 'Testando...';
+  if (!gs)  { log('Cole a URL do Apps Script.', 'err'); return; }
+  if (!key) { log('Cole a chave Claude.', 'err'); return; }
 
-  log('Modelo: claude-haiku-4-5-20251001', 'info');
-  log('Chave: ' + key.substring(0, 16) + '... (' + key.length + ' chars)');
-  log('Enviando requisição...');
+  btn.disabled = true; btn.textContent = 'Testando...';
+
+  log('Rota: Browser → Apps Script → Claude API', 'info');
+  log('GS URL: ' + gs.substring(0, 60) + '...');
+  log('Chave: ' + key.substring(0, 16) + '...');
+  log('');
+  log('[1/2] Chamando Apps Script proxy...', 'info');
 
   var t0 = Date.now();
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    var resp = await fetch(gs, {
       method: 'POST',
-      headers: {
-        'Content-Type':         'application/json',
-        'x-api-key':            key,
-        'anthropic-version':    '2023-06-01',
-        'anthropic-dangerous-direct-browser-calls': 'true'
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        model:      'claude-haiku-4-5-20251001',
-        max_tokens: 30,
-        messages:   [{role: 'user', content: 'Responda apenas: API MPPA OK.'}]
+        action:   'claude',
+        apiKey:   key,
+        messages: [{role: 'user', content: 'Responda apenas: Proxy MPPA OK.'}],
+        max_tokens: 20
       })
     });
 
     var ms = Date.now() - t0;
-    log('HTTP ' + resp.status + ' · ' + ms + 'ms', resp.ok ? 'ok' : 'warn');
+    log('Apps Script HTTP ' + resp.status + ' · ' + ms + 'ms', resp.ok ? 'ok' : 'warn');
 
     var data = await resp.json();
+    log('');
+    log('[2/2] Resposta do Claude via proxy:', 'info');
 
-    if (resp.ok && data.content && data.content[0]) {
-      var texto = data.content[0].text.trim();
+    if (data.ok && data.text) {
       log('');
-      log('✓ API FUNCIONANDO!', 'ok');
-      log('Resposta: ' + texto, 'ok');
-      log('Modelo confirmado: ' + (data.model || 'claude'), 'ok');
-      log('Latência: ' + ms + 'ms', 'ok');
-      log('Tokens usados: ' + (data.usage ? data.usage.input_tokens + ' in / ' + data.usage.output_tokens + ' out' : 'n/a'));
+      log('✓ PROXY + CLAUDE FUNCIONANDO!', 'ok');
+      log('Resposta: ' + data.text.trim(), 'ok');
+      log('Modelo: ' + (data.model || 'claude'), 'ok');
+      log('Latência total: ' + ms + 'ms', 'ok');
+      if (data.usage) log('Tokens: ' + data.usage.input_tokens + ' in / ' + data.usage.output_tokens + ' out');
       log('');
-      log('Chave salva no sistema.', 'ok');
-      log('Pode fechar esta página e usar os botões Despacho no módulo extrajudicial.', 'ok');
+      log('Chaves salvas. Botões Despacho prontos para uso.', 'ok');
       localStorage.setItem('mppa_ak', key);
+      localStorage.setItem('mppa_gs', gs);
 
     } else if (data.error) {
+      log('✗ Erro do proxy: ' + data.error, 'err');
+      if (data.detail) log('Detalhe: ' + data.detail, 'warn');
       log('');
-      log('✗ Erro ' + (data.error.type||'') + ': ' + (data.error.message||''), 'err');
-      var t = data.error.type || '';
-      if (t === 'authentication_error') {
-        log('CAUSA: Chave inválida ou revogada.', 'warn');
-        log('SOLUÇÃO: Gere uma nova chave em console.anthropic.com', 'warn');
-      } else if (t === 'permission_error') {
-        log('CAUSA: Chave sem créditos ou plano expirado.', 'warn');
-        log('SOLUÇÃO: Verifique o billing em console.anthropic.com', 'warn');
-      } else if (t === 'rate_limit_error') {
-        log('CAUSA: Rate limit atingido — aguarde 1 minuto.', 'warn');
-      } else if (resp.status === 404) {
-        log('CAUSA: Modelo não encontrado. Pode ser nome desatualizado.', 'warn');
-      } else {
-        log('Verifique console.anthropic.com para mais detalhes.', 'warn');
+      if (data.error.includes('não configurada') || data.error.includes('Chave')) {
+        log('CAUSA: Apps Script não recebeu ou não tem a chave Claude.', 'warn');
+        log('SOLUÇÃO: Verifique se o Apps Script foi atualizado com o código do proxy.', 'warn');
+      } else if (data.error.includes('401') || data.error.includes('authentication')) {
+        log('CAUSA: Chave Claude inválida ou revogada.', 'warn');
+        log('SOLUÇÃO: Gere nova chave em console.anthropic.com', 'warn');
+      } else if (data.error.includes('claude')) {
+        log('CAUSA: Apps Script antigo sem suporte ao proxy Claude.', 'warn');
+        log('SOLUÇÃO: Adicione o código apps_script_claude_proxy.gs ao seu Apps Script.', 'warn');
       }
+
     } else {
-      log('Resposta inesperada: ' + JSON.stringify(data).substring(0,200), 'warn');
+      log('Resposta inesperada: ' + JSON.stringify(data).substring(0, 300), 'warn');
+      log('');
+      log('Possível causa: Apps Script ainda não tem o código do proxy.', 'warn');
+      log('Adicione o código apps_script_claude_proxy.gs e republique.', 'warn');
     }
 
   } catch(e) {
-    log('');
-    log('✗ Erro de rede: ' + e.message, 'err');
-    if (e.message.toLowerCase().includes('cors') || e.message.toLowerCase().includes('fetch')) {
-      log('');
-      log('CORS bloqueado — comportamento esperado em alguns browsers.', 'warn');
-      log('A API Claude não aceita chamadas diretas do browser por padrão.', 'warn');
-      log('');
-      log('SOLUÇÃO: O header "anthropic-dangerous-direct-browser-calls: true"', 'warn');
-      log('precisa estar ativo. Se continuar falhando, o firewall da rede', 'warn');
-      log('pode estar bloqueando api.anthropic.com.', 'warn');
-      log('Teste com hotspot do celular para confirmar.', 'warn');
+    log('✗ Erro: ' + e.message, 'err');
+    if (e.message.includes('fetch') || e.message.includes('CORS')) {
+      log('Erro de rede ao chamar o Apps Script.', 'warn');
+      log('Verifique se a URL do Apps Script está correta e publicada.', 'warn');
     }
   } finally {
-    btn.disabled = false;
-    btn.textContent = '▶ Testar novamente';
+    btn.disabled = false; btn.textContent = '▶ Testar novamente';
   }
 }
 </script>
