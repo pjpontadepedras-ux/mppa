@@ -293,7 +293,7 @@ async function importarExcel(input) {
     }
 
     const buf = await file.arrayBuffer();
-    const wb  = XLSX.read(buf, {type:'array'});
+    const wb  = XLSX.read(buf, {type:'array', cellDates: true});
     const nums = new Set(procs.map(p => p.num));
     let novos = 0, atualiz = 0;
 
@@ -309,7 +309,7 @@ async function importarExcel(input) {
         const ultAto   = String(row[2]||'').trim();
         const alocado  = String(row[3]||'').trim();
         const dtInst   = parseDtBr(row[5]);
-        const diasSnap = parseInt(row[8]) || 0;
+        const diasSnap = row[8] ? Math.round(parseFloat(String(row[8]))) || 0 : 0;
 
         // Detect tipo
         const pref = num.split('.')[0];
@@ -363,18 +363,36 @@ async function importarExcel(input) {
 }
 
 function parseDtBr(v) {
-  if (!v) return '';
+  if (v === null || v === undefined || v === '') return '';
+
+  // JS Date object (SheetJS retorna Date quando a célula é do tipo data)
+  if (v instanceof Date) {
+    if (isNaN(v)) return '';
+    return String(v.getDate()).padStart(2,'0') + '/' +
+           String(v.getMonth()+1).padStart(2,'0') + '/' +
+           v.getFullYear();
+  }
+
   const s = String(v).trim();
+  if (!s || s === 'undefined' || s === 'null') return '';
+
+  // Já no formato DD/MM/AAAA ou DD/MM/AA
   const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if (m) {
-    const y = m[3].length===2?'20'+m[3]:m[3];
-    return m[1].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+y;
+    const y = m[3].length === 2 ? '20' + m[3] : m[3];
+    return m[1].padStart(2,'0') + '/' + m[2].padStart(2,'0') + '/' + y;
   }
-  // Excel serial date
-  if (/^\d+(\.\d+)?$/.test(s)) {
-    const d = new Date((parseFloat(s)-25569)*86400000);
-    if (!isNaN(d)) return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+
+  // Excel serial date (número inteiro como 46115)
+  if (/^\d+(\.\d+)?$/.test(s) && parseFloat(s) > 1000) {
+    const d = new Date((parseFloat(s) - 25569) * 86400000);
+    if (!isNaN(d)) {
+      return String(d.getDate()).padStart(2,'0') + '/' +
+             String(d.getMonth()+1).padStart(2,'0') + '/' +
+             d.getFullYear();
+    }
   }
+
   return s;
 }
 
