@@ -539,7 +539,7 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 <script>
 const RAW=[];
 function HOJE(){return new Date();}
-function pBR(s){const[d,m,y]=s.split(' ')[0].split('/');return new Date(`${y}-${m}-${d}T${s.split(' ')[1]||'00:00:00'}`);}
+function pBR(s){if(!s||!s.includes('/'))return new Date();const[d,m,y]=s.split(' ')[0].split('/');if(!d||!m||!y)return new Date();return new Date(`${y}-${m}-${d}T${s.split(' ')[1]||'00:00:00'}`);}
 function dias(dt){return Math.floor((HOJE()-dt)/86400000);}
 function fdt(dt){return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();}
 function hoje(){return new Date().toISOString().split('T')[0];}
@@ -975,15 +975,14 @@ function renderTri(){
       </div>
       <div class="cb-body">
         <div class="ei-r" style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--tx2);padding:10px 0 6px;border-bottom:1px solid #f0f2f5;margin-bottom:10px">
-          <span><strong>Entrada:</strong> ${p.dtStr}</span>
-          <span><strong>Espera:</strong> ${p.d}d</span>
+          <span><strong>Entrada:</strong> ${p.dtStr||'—'}</span>
+          <span><strong>Espera:</strong> ${isNaN(p.d)?'—':p.d+'d'}</span>
           <span><strong>Vara:</strong> ${p.vr}</span>
           <span><strong>Ano:</strong> ${p.yr}</span>
         </div>
 
-        <div class="fr">
-          <div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select></div>
-          <div><label class="fl">Responsável</label><select class="fc" id="resp-${p.id}">${ro(p.id)}</select></div>
+        <div>
+          <label class="fl">Categoria / Tipo</label><select class="fc" id="cat-${p.id}">${co(p.id)}</select>
         </div>
         <div class="fr">
           <div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-${p.id}" value="${p.prazo}"></div>
@@ -991,7 +990,6 @@ function renderTri(){
             <label class="fi"><input type="checkbox" id="urg-${p.id}" ${p.urg?'checked':''}> Urgente</label>
             <label class="fi"><input type="checkbox" id="cpl-${p.id}" ${p.cpl?'checked':''}> Complexo</label>
             <label class="fi"><input type="checkbox" id="ok-${p.id}" ${p.ok?'checked':''}> Concluído</label>
-            <label class="fi"><input type="checkbox" id="agbx-${p.id}" ${p.agBx?'checked':''}> Ag. baixa</label>
           </div></div>
         </div>
 
@@ -1031,7 +1029,7 @@ function renderTri(){
               <div class="tpl-dd" id="tpl-dd-${p.id}">
                 ${(()=>{
   const groups=[
-    {label:'⚖ Criminal',keys:['flagrante','denuncia','alegacoes','resposta','contrarrazoes','anpp','mpu'],icons:{'flagrante':'🚔','denuncia':'📋','alegacoes':'⚖','resposta':'📄','contrarrazoes':'↩','anpp':'🤝','mpu':'🛡'}},
+    {label:'⚖ Criminal',keys:['rep_delegado','flagrante','denuncia','alegacoes','resposta','contrarrazoes','anpp','mpu'],icons:{'rep_delegado':'📨','flagrante':'🚔','denuncia':'📋','alegacoes':'⚖','resposta':'📄','contrarrazoes':'↩','anpp':'🤝','mpu':'🛡'}},
     {label:'📑 Cível',keys:['civel_custos','civel_tutela','civel_contrarrazoes','civel_alimentos','acp'],icons:{'civel_custos':'👁','civel_tutela':'⚡','civel_contrarrazoes':'↩','civel_alimentos':'🍽','acp':'🏛'}},
     {label:'📝 Geral',keys:['concisa'],icons:{'concisa':'✍'}},
   ];
@@ -1049,8 +1047,11 @@ function renderTri(){
                 📋 Copiar prompt
               </button>
               <span id="copy-st-${p.id}" style="font-size:11px;color:#16a34a;opacity:0;transition:opacity .3s;flex:1"></span>
-              <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 14px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:5px" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'?'disabled':''}>
-                ${p.iaStatus==='loading'?'<span class="spin"></span>':'🤖'} Gerar com IA
+              <button style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:5px 11px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px" id="ia-${p.id}" onclick="iaOne(${p.id})" ${p.iaStatus==='loading'?'disabled':''}>
+                ${p.iaStatus==='loading'?'<span class="spin"></span>':'🤖'} Claude
+              </button>
+              <button style="background:#f0fdf4;color:#166534;border:1px solid #86efac;padding:5px 11px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:4px" id="gem-btn-${p.id}" onclick="gerarComGemini(${p.id})" title="Gerar peça com Gemini usando o relatório do processo">
+                ✨ Gemini
               </button>
               <button id="docx-btn-${p.id}" onclick="gerarDocx(${p.id})" style="background:#f0fdf4;color:#166534;border:1px solid #86efac;padding:5px 14px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);display:inline-flex;align-items:center;gap:5px" title="Baixar documento Word formatado">
                 📄 Gerar DOCX
@@ -1157,7 +1158,7 @@ function renderTriGrouped(fl,wo,co,ro,ao){
         +'</div>'
         +'<div class="cb-body">'
         +'<div class="ei"><div class="ei-r"><div class="ei-i"><strong>Entrada:</strong> '+p.dtStr+'</div><div class="ei-i"><strong>Espera:</strong> '+p.d+'d</div><div class="ei-i"><strong>Vara:</strong> '+p.vr+'</div><div class="ei-i"><strong>Ano:</strong> '+p.yr+'</div></div></div>'
-        +'<div class="fr"><div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-'+p.id+'">'+co(p.id)+'</select></div><div><label class="fl">Responsável</label><select class="fc" id="resp-'+p.id+'">'+ro(p.id)+'</select></div></div>'
+        +'<div><label class="fl">Categoria / Tipo</label><select class="fc" id="cat-'+p.id+'">'+co(p.id)+'</select></div>'
         +'<div class="fr"><div><label class="fl">Prazo</label><input class="fc" type="date" id="pr-'+p.id+'" value="'+p.prazo+'"></div><div><label class="fl">Flags</label><div class="flags" style="margin-top:6px"><label class="fi"><input type="checkbox" id="urg-'+p.id+'" '+(p.urg?'checked':'')+'> Urgente</label><label class="fi"><input type="checkbox" id="cpl-'+p.id+'" '+(p.cpl?'checked':'')+'> Complexo</label><label class="fi"><input type="checkbox" id="ok-'+p.id+'" '+(p.ok?'checked':'')+'> Concluído</label><label class="fi"><input type="checkbox" id="agbx-'+p.id+'" '+(p.agBx?'checked':'')+'>  Ag. baixa</label></div></div></div>'
         +'<div class="fr1"><label class="fl">Relatório do Processo</label><textarea class="fc" id="obs-'+p.id+'" placeholder="Histórico, partes envolvidas...">'+p.obs+'</textarea></div>'
         +'<div class="fr1"><label class="fl">Prompt / Comando de IA</label><textarea class="fc" id="cmd-'+p.id+'" style="min-height:80px">'+p.cmd+'</textarea></div>'
@@ -1832,6 +1833,27 @@ Vara: ${p.vr} | Ano: ${p.yr}
 
 Redija a manifestação em texto corrido, parágrafos simples, sem qualquer lista, marcador ou numeração. Analise se há violência baseada em gênero no âmbito doméstico ou familiar e examine as medidas requeridas. Opine pelo deferimento ou indeferimento com fundamentação objetiva. Encerre com "É a manifestação." seguido da assinatura centralizada: FRANCYS GALHARDO DO VALE — Promotora de Justiça – Titular de Ponta de Pedras.`
   },
+  'rep_delegado': {
+    label: 'Representação de delegado (prisão/cautelar)',
+    fn: (p) => `Você deve atuar como Promotora de Justiça do Ministério Público do Estado do Pará e redigir manifestação ministerial sobre representação de delegado de polícia pelo pedido de prisão preventiva ou medida cautelar alternativa.
+
+AO JUÍZO DE DIREITO DA VARA ÚNICA DE PONTA DE PEDRAS
+Autos nº: ${p.num}
+
+DADOS DO PROCESSO:
+${p.obs ? 'RELATÓRIO DO CASO: ' + p.obs : ''}
+Categoria: ${p.cat}
+Vara: ${p.vr} | Ano: ${p.yr}
+
+Redija a manifestação em texto corrido, sem marcadores ou listas. A peça deve:
+1. Identificar o representado e os fatos que motivam o pedido;
+2. Analisar os requisitos legais da prisão preventiva (art. 312 CPP): prova da existência do crime, indícios suficientes de autoria, e ao menos um dos fundamentos — garantia da ordem pública, garantia da ordem econômica, conveniência da instrução criminal ou assegurar a aplicação da lei penal;
+3. Verificar se há fundamento para medida cautelar alternativa (art. 319 CPP) em substituição à prisão;
+4. Opinar expressamente pelo deferimento ou indeferimento do pedido, com fundamentação objetiva;
+5. Se houver réu preso em flagrante, manifestar-se também sobre a conversão do flagrante em prisão preventiva (art. 310 CPP).
+
+Encerre com "É o parecer ministerial." e assinatura: FRANCYS GALHARDO DO VALE — Promotora de Justiça – Titular de Ponta de Pedras.`
+  },
   'flagrante': {
     label: 'Manifestação em flagrante',
     fn: (p) => `Atue como Promotora de Justiça do MP-PA e elabore manifestação ministerial analisando Auto de Prisão em Flagrante: (i) legalidade do flagrante; (ii) necessidade de conversão em prisão preventiva ou medidas cautelares diversas; (iii) eventuais diligências investigativas.
@@ -2011,6 +2033,7 @@ function applyTemplate(id, key) {
   const relatorio = obsEl ? obsEl.value : p.obs;
   const pWithObs = {...p, obs: relatorio};
   const prompt = tpl.fn(pWithObs);
+  p._tplKey = key;
   const cmdEl = document.getElementById('cmd-'+id);
   if(cmdEl) {
     cmdEl.value = prompt;
@@ -2593,6 +2616,53 @@ function renderDash() {
       }
     </div>
   `;
+}
+
+
+async function gerarComGemini(id) {
+  const p = procs[id];
+  if(!p) return;
+  const key = GEMINI_KEY || localStorage.getItem('mppa_gemini') || '';
+  if(!key) { toast('Configure a chave API Gemini nas Configuracoes'); return; }
+
+  const obsEl = document.getElementById('obs-'+id);
+  const cmdEl = document.getElementById('cmd-'+id);
+  const relatorio = obsEl ? obsEl.value.trim() : '';
+  if(!relatorio) { toast('Preencha o relatorio do processo antes de gerar'); return; }
+
+  const tplKey = p._tplKey || '';
+  let promptBase = '';
+  if(tplKey && PROMPT_TEMPLATES[tplKey]) {
+    const liveP = {...p, obs: relatorio};
+    promptBase = PROMPT_TEMPLATES[tplKey].fn(liveP);
+  } else if(cmdEl && cmdEl.value.trim()) {
+    promptBase = cmdEl.value.trim();
+  }
+  if(!promptBase) { toast('Selecione uma peca antes de gerar'); return; }
+
+  const btnEl = document.getElementById('gem-btn-'+id);
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='Gerando...';}
+  try {
+    const resp = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({
+         contents:[{parts:[{text:promptBase}]}],
+         generationConfig:{temperature:0.3,maxOutputTokens:2000}
+       })}
+    );
+    if(!resp.ok){const e=await resp.json();throw new Error(e.error&&e.error.message||'Erro API');}
+    const data=await resp.json();
+    const texto=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
+    if(texto&&cmdEl){
+      cmdEl.value=texto.trim();
+      cmdEl.style.borderColor='#16a34a';
+      cmdEl.style.minHeight='160px';
+      setTimeout(function(){if(cmdEl)cmdEl.style.borderColor='';},2500);
+    }
+    toast('Peca gerada pelo Gemini');
+  } catch(e){toast('Erro Gemini: '+e.message);console.error(e);}
+  finally{if(btnEl){btnEl.disabled=false;btnEl.innerHTML='Gemini';}}
 }
 
 function renderAll(){renderTri();renderDash();}
