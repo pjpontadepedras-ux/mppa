@@ -628,6 +628,20 @@ function cardHtml(p) {
   const prazoLabel = r.prorrogado
     ? `${PRAZOS_BASE[r.tipo]}d + ${PRAZOS_PRORR[r.tipo]}d prorr. = ${r.total}d`
     : `${r.total}d`;
+  // Recommended action
+  function getAcao(p, r) {
+    if (p.tipo === 'NF') {
+      if (!p.prorrogado && r.diasDec <= 110) return {txt:'Prorrogar', col:'#7c3aed', bg:'#ede9fe'};
+      if (p.prorrogado && r.diasDec <= 120) return {txt:'Aguardar', col:'#0369a1', bg:'#e0f2fe'};
+      return {txt:'Arquivar / PP', col:'#b45309', bg:'#fef3c7'};
+    }
+    if (['PA','IC','PP'].includes(p.tipo)) return {txt:'Prorrogar', col:'#7c3aed', bg:'#ede9fe'};
+    if (p.tipo === 'PIC') return {txt:'Prorrogar', col:'#b91c1c', bg:'#fee2e2'};
+    return {txt:'Verificar', col:'#374151', bg:'#f3f4f6'};
+  }
+  const _acao = (r.cat==='vencido'||r.cat==='critico') ? getAcao(r,r) : null;
+  const acaoBadge = _acao ? `<span class="badge" style="background:${_acao.bg};color:${_acao.col}">→ ${_acao.txt}</span>` : '';
+
   const urgBadge = r.cat==='vencido' ? `<span class="badge b-venc">Vencido ${r.pct}%</span>`
     : r.cat==='critico' ? `<span class="badge b-crit">Crítico ${r.pct}%</span>`
     : r.cat==='atencao' ? `<span class="badge b-aten">Atenção ${r.pct}%</span>` : '';
@@ -637,8 +651,9 @@ function cardHtml(p) {
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
           <span class="badge ${TIPO_BADGE[r.tipo]||''}">${r.tipo}</span>
-          <span class="pnum">${r.num}</span>
+          <span class="pnum" onclick="copyNum(this,\'${r.num}\')" title="Clique para copiar" style="cursor:pointer">${r.num}</span>
           ${urgBadge}
+          ${acaoBadge}
           ${r.prorrogado?'<span class="badge b-pp">Prorrogado</span>':''}
         </div>
         <div class="psub">${(r.assunto||'').replace(/^\d+ - /,'').substring(0,60)}</div>
@@ -705,6 +720,22 @@ function cardHtml(p) {
       </div>
     </div>
   </div>`;
+}
+
+
+function copyNum(el, num) {
+  navigator.clipboard && navigator.clipboard.writeText(num).then(function() {
+    var orig = el.style.color;
+    el.style.color = '#16a34a';
+    el.title = 'Copiado!';
+    setTimeout(function() { el.style.color = orig; el.title = 'Clique para copiar'; }, 1200);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = num; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Número copiado: ' + num);
+  });
+  toast('Copiado: ' + num);
 }
 
 function togCard(id) {
@@ -784,6 +815,63 @@ function showPdfInfoModal(id) {
 }
 
 function buildPrompt(p, r, tipoSel) {
+  // Uses Resolução 012/2024-CPJ MPPA framework
+  var tipo = tipoSel || detectarTipoDespacho(p);
+  var num = p.num;
+  var ass = p.assunto || '';
+  var inst = p.dtInst || '';
+  var prorrogadoTxt = p.prorrogado ? 'SIM (prorrogado)' : 'NÃO';
+  var proc = {NF:'Notícia de Fato',PA:'Procedimento Administrativo',IC:'Inquérito Civil',PIC:'PIC - Procedimento Investigatório Criminal',PP:'Procedimento Preparatório'}[p.tipo] || p.tipo;
+  var prazoTotal = r.total + ' dias';
+  var diasDec = r.diasDec + ' dias';
+  var restantes = r.restantes <= 0 ? Math.abs(r.restantes) + ' dias VENCIDO' : r.restantes + ' dias restantes';
+  var pct = r.pct + '%';
+
+  var cabecalho = 'Você é assessor jurídico da Promotoria de Justiça de Ponta de Pedras, MPPA - Polo Marajó I. REDIJA EXCLUSIVAMENTE EM TEXTO CORRIDO, SEM MARCADORES, SEM TÓPICOS, SEM LISTAS, SEM BULLET POINTS, SEM NUMERAÇÃO, SEM SUBTÍTULOS. Apenas parágrafos corridos em linguagem jurídica formal.\n\n';
+
+  var contexto = 'DADOS DO PROCEDIMENTO:\n' +
+    'Número: ' + num + '\n' +
+    'Tipo: ' + proc + '\n' +
+    'Assunto: ' + ass + '\n' +
+    'Data de instauração: ' + inst + '\n' +
+    'Prazo legal total: ' + prazoTotal + '\n' +
+    'Dias decorridos: ' + diasDec + '\n' +
+    'Situação de prazo: ' + restantes + ' (' + pct + ' do prazo consumido)\n' +
+    'Já prorrogado anteriormente: ' + prorrogadoTxt + '\n\n';
+
+  var fundLegal = {
+    NF: 'Resolução 012/2024-CPJ MPPA (arts. 14, 16, 17 e 20)',
+    PA: 'Resolução CNMP 23/2007 (art. 26) e Resolução 012/2024-CPJ MPPA',
+    IC: 'Resolução CNMP 23/2007 (art. 9) e Resolução 012/2024-CPJ MPPA',
+    PIC: 'Resolução CNMP 181/2017 (art. 7) e Resolução 012/2024-CPJ MPPA',
+    PP: 'Resolução CNMP 23/2007 (art. 8) e Resolução 012/2024-CPJ MPPA',
+  }[p.tipo] || 'Resolução 012/2024-CPJ MPPA';
+
+  var assinatura = '\n\nPonta de Pedras, ' + new Date().toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) + '.\n\nFRANCYS DO VALE\nPromotora de Justiça Titular de Ponta de Pedras';
+
+  var pedido = '';
+
+  if (tipo === 'prorrogacao') {
+    var novoPrazo = {NF:'90 (noventa)',PA:'365 (trezentos e sessenta e cinco)',IC:'365 (trezentos e sessenta e cinco)',PIC:'90 (noventa)',PP:'90 (noventa)'}[p.tipo] || '365';
+    pedido = 'INSTRUÇÃO: Redija um DESPACHO DE PRORROGAÇÃO DE PRAZO. O despacho deve: (1) identificar o procedimento e seu objeto; (2) reconhecer o transcurso do prazo; (3) fundamentar a necessidade de prorrogação pela complexidade dos fatos e necessidade de diligências complementares, com base em ' + fundLegal + '; (4) determinar expressamente a prorrogação por mais ' + novoPrazo + ' dias. Máximo 4 parágrafos corridos.';
+  } else if (tipo === 'arquivamento_NF') {
+    pedido = 'INSTRUÇÃO: Redija uma PROMOÇÃO DE ARQUIVAMENTO de Notícia de Fato. O despacho deve: (1) relatar o objeto e tramitação do procedimento; (2) verificar o esgotamento das diligências preliminares cabíveis; (3) concluir pelo arquivamento com fundamento no art. 17 da Resolução 012/2024-CPJ MPPA por insuficiência de elementos para instauração de procedimento mais complexo; (4) consignar que o arquivamento não impede reabertura diante de fatos novos; (5) determinar a cientificação do noticiante. Máximo 5 parágrafos corridos.';
+  } else if (tipo === 'instauracao_PP') {
+    pedido = 'INSTRUÇÃO: Redija uma PORTARIA DE INSTAURAÇÃO DE PROCEDIMENTO PREPARATÓRIO. O ato deve: (1) identificar a Notícia de Fato de origem e seu objeto; (2) fundamentar a insuficiência dos elementos iniciais para instauração direta de Inquérito Civil; (3) instaurar o Procedimento Preparatório com base no art. 20 da Resolução 012/2024-CPJ MPPA; (4) delimitar o objeto da investigação preliminar; (5) determinar as primeiras diligências. Máximo 4 parágrafos corridos.';
+  } else if (tipo === 'instauracao_IC') {
+    pedido = 'INSTRUÇÃO: Redija uma PORTARIA DE INSTAURAÇÃO DE INQUÉRITO CIVIL. O ato deve: (1) identificar a origem (NF ou PA) e descrever os fatos; (2) verificar a presença dos pressupostos legais de admissibilidade; (3) instaurar o Inquérito Civil com base na Resolução CNMP 23/2007 e Resolução 012/2024-CPJ MPPA; (4) delimitar precisamente o objeto; (5) determinar as primeiras diligências investigativas. Máximo 5 parágrafos corridos.';
+  } else if (tipo === 'diligencias') {
+    pedido = 'INSTRUÇÃO: Redija um DESPACHO DETERMINANDO DILIGÊNCIAS. O despacho deve: (1) identificar o procedimento e estágio da apuração; (2) indicar a necessidade das diligências para elucidação dos fatos; (3) determinar especificamente quais informações ou documentos devem ser requisitados e a qual(is) órgão(s) ou entidade(s); (4) fixar prazo de 30 (trinta) dias para atendimento; (5) fundamentar na Resolução 012/2024-CPJ MPPA. Máximo 3 parágrafos corridos.';
+  } else {
+    pedido = 'INSTRUÇÃO: Redija o DESPACHO mais adequado ao tipo e situação do procedimento, fundamentado na Resolução 012/2024-CPJ MPPA e demais normas aplicáveis. Máximo 4 parágrafos corridos.';
+  }
+
+  return cabecalho + contexto + pedido + '\n\nFINALIZE COM:\n' + assinatura;
+}
+
+// OLD buildPrompt replaced — keeping this comment as marker
+function buildPrompt_UNUSED(p, r, tipoSel) {
+  return "";
   // tipoSel: prorrogacao | arquivamento_NF | instauracao_PP | instauracao_IC | diligencias
   var tipo = tipoSel || detectarTipoDespacho(p);
   var num = p.num; var ass = p.assunto||''; var inst = p.dtInst||''; var proc = {NF:'Noticia de Fato',PA:'Proc. Administrativo',IC:'Inquerito Civil',PIC:'PIC',PP:'Proc. Preparatorio'}[p.tipo]||p.tipo;
@@ -907,7 +995,7 @@ async function _gerarDespachoComTipo(id, tipoSel) {
         apiKey:     claudeKey,
         model:      'claude-haiku-4-5-20251001',
         max_tokens: 2000,
-        system:     'Voce e assessor juridico da Promotoria de Justica de Ponta de Pedras, MPPA - Polo Marajo I. Redija pecas juridicas em portugues brasileiro, texto corrido, sem marcadores, sem listas, sem bullet points. Linguagem tecnica e objetiva. Cite corretamente os artigos e resolucoes do CNMP aplicaveis.',
+        system:     'Você é assessor jurídico da Promotoria de Justiça de Ponta de Pedras, MPPA - Polo Marajó I. REGRA ABSOLUTA: redija APENAS em texto corrido, em parágrafos, SEM marcadores, SEM tópicos, SEM listas, SEM bullet points, SEM subtítulos, SEM numeração. Linguagem jurídica formal. Fundamente nas resoluções do CNMP e da Resolução 012/2024-CPJ MPPA. Assinatura padrão: FRANCYS DO VALE / Promotora de Justiça Titular de Ponta de Pedras.',
         messages:   messages
       })
     });
