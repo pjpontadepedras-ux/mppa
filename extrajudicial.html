@@ -526,6 +526,17 @@ function renderDash() {
   const maxT = Math.max(...Object.values(byTipo),1);
   const tCores={NF:'#7c3aed',PA:'#16a34a',IC:'#2563eb',PIC:'#dc2626',PP:'#d97706'};
 
+  const _noData = active.length === 0;
+  if (_noData) {
+    el('tab-dash').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--txm)">' +
+      '<div style="font-size:40px;margin-bottom:16px">📊</div>' +
+      '<div style="font-size:15px;font-weight:600;color:var(--tx);margin-bottom:8px">Nenhum procedimento cadastrado</div>' +
+      '<div style="font-size:13px;margin-bottom:20px">Importe o relatório de inventário do SAJ para visualizar os prazos</div>' +
+      '<button class="btn btn-p" style="margin:0 auto" onclick="el(\'modal-import\').classList.add(\'open\')">📥 Importar inventário do SAJ</button>' +
+      '<div style="font-size:12px;margin-top:16px">SAJ Relatórios → Inventário → Extrajudicial → Excel → Gerar</div>' +
+      '</div>';
+    updStats(); return;
+  }
   el('tab-dash').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <div>
@@ -598,7 +609,12 @@ function renderLista(lista) {
   const sorted = lista.map(p=>({...p,...calcPrazo(p)})).sort((a,b)=>b.pct-a.pct);
   el('tab-todos').innerHTML = sorted.length
     ? sorted.map(p=>cardHtml(p)).join('')
-    : '<div style="text-align:center;padding:40px;color:var(--txm)">Nenhum procedimento</div>';
+    : '<div style="text-align:center;padding:40px;color:var(--txm)">' +
+    '<div style="font-size:32px;margin-bottom:12px">📊</div>' +
+    '<div style="font-size:14px;font-weight:500;color:var(--tx);margin-bottom:8px">Nenhum procedimento cadastrado</div>' +
+    '<div style="font-size:13px;color:var(--txm);margin-bottom:16px">Importe o inventário do SAJ para começar</div>' +
+    '<button class="btn btn-p" onclick="el(\'modal-import\').classList.add(\'open\')">📥 Importar inventário do SAJ</button>' +
+    '</div>';
 }
 
 // ── CARD ──────────────────────────────────────────────────────────────
@@ -684,7 +700,7 @@ function cardHtml(p) {
       <div class="fa">
         <button class="btn btn-p btn-sm" onclick="saveCard('${p.id}')">Salvar</button>
         <span class="sm" id="sm-${p.id}">✓</span>
-        <button class="btn btn-sm" style="background:#f0fdf4;color:#166534;border-color:#86efac" id="gd-btn-\${p.id}" onclick="gerarDespacho('\${p.id}')">Despacho</button>
+        <button class="btn btn-sm" style="background:#f0fdf4;color:#166534;border-color:#86efac" id="gd-btn-${p.id}" onclick="gerarDespacho('${p.id}')">Despacho</button>
         ${isA?`<button class="btn btn-sm" style="color:#dc2626;border-color:#fca5a5" onclick="excluir('${p.id}')">Apagar</button>`:''}
       </div>
     </div>
