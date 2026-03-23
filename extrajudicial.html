@@ -154,11 +154,31 @@ textarea.fc{min-height:80px;resize:vertical}
 <div class="modal-bg" id="modal-import">
   <div class="modal">
     <div class="modal-title">📥 Importar inventário do SIMP</div>
-    <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Cole o conteúdo do relatório de inventário analítico exportado do SIMP. O sistema identificará automaticamente os procedimentos e seus prazos.</p>
-    <textarea class="fc" id="import-text" style="min-height:160px;font-size:12px;font-family:var(--f)" placeholder="Cole aqui o texto do relatório..."></textarea>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn btn-p btn-sm" onclick="doImport()">Importar</button>
-      <button class="btn btn-sm" onclick="closeImport()">Cancelar</button>
+    <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Importe o relatório de inventário do SAJ em formato Excel (.xlsx) ou cole o texto do SIMP.</p>
+    
+    <div style="margin-bottom:14px">
+      <label class="fl">📊 Importar Excel do SAJ Relatórios (recomendado)</label>
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:2px dashed var(--ib);border-radius:var(--r);cursor:pointer;background:#fafbfc;width:100%;box-sizing:border-box" id="xlsx-drop">
+        <span style="font-size:20px">📁</span>
+        <div>
+          <div style="font-size:13px;font-weight:500">Clique para selecionar o arquivo Excel</div>
+          <div style="font-size:12px;color:var(--txm)">Inventário exportado do SAJ Relatórios (.xlsx)</div>
+        </div>
+        <input type="file" accept=".xlsx,.xls" style="display:none" id="xlsx-input" onchange="importarExcel(this)">
+      </label>
+      <div id="xlsx-status" style="font-size:12px;color:var(--txm);margin-top:6px"></div>
+    </div>
+    
+    <details style="margin-bottom:10px">
+      <summary style="font-size:12px;color:var(--txm);cursor:pointer;margin-bottom:8px">📋 Ou cole texto do SIMP (formato antigo)</summary>
+      <textarea class="fc" id="import-text" style="min-height:120px;font-size:12px;font-family:var(--f)" placeholder="Cole aqui o texto do relatório de inventário do SIMP..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-p btn-sm" onclick="doImport()">Importar texto</button>
+      </div>
+    </details>
+    
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-sm" onclick="closeImport()">Fechar</button>
     </div>
     <div id="import-result" style="font-size:12px;color:var(--tx2);margin-top:10px"></div>
   </div>
@@ -244,7 +264,13 @@ textarea.fc{min-height:80px;resize:vertical}
       <div style="font-size:13px;font-weight:500" id="tb-title">Dashboard Extrajudicial</div>
       <div class="tbr">
         <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0" title="Sincronizado"></div>
-        <button class="btn btn-sm" onclick="openImport()">📥 Importar SIMP</button>
+        <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="openImport()">📥 Importar texto</button>
+        <label class="btn btn-sm" style="cursor:pointer" title="Importar arquivo .xlsx do inventário SIMP">
+          📊 Importar .xlsx
+          <input type="file" accept=".xlsx" style="display:none" onchange="importXlsx(this)">
+        </label>
+      </div>
         <button class="btn btn-sm btn-p" onclick="openNovo()" id="btn-novo">+ Novo</button>
         <button class="btn btn-sm" onclick="syncLoad()" title="Sincronizar">↺</button>
       </div>
@@ -467,6 +493,113 @@ function setSyncDot(s){
 }
 
 // ── IMPORT SIMP ──────────────────────────────────────────────────────
+
+async function importarExcel(input) {
+  const file = input.files[0];
+  if(!file) return;
+  
+  const statusEl = document.getElementById('xlsx-status');
+  const dropEl = document.getElementById('xlsx-drop');
+  
+  if(statusEl) { statusEl.textContent = '⏳ Lendo arquivo...'; statusEl.style.color = '#f59e0b'; }
+
+  try {
+    // Load SheetJS from CDN
+    if(typeof XLSX === 'undefined') {
+      statusEl.textContent = '⏳ Carregando biblioteca Excel...';
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    
+    let novos = 0, duplicatas = 0;
+    const numerosExistentes = new Set(procs.map(p => p.num));
+
+    for(const shName of wb.SheetNames) {
+      const ws = wb.Sheets[shName];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      
+      for(let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const num = String(row[0]||'').trim();
+        if(!num || num === 'undefined') continue;
+        
+        if(numerosExistentes.has(num)) { duplicatas++; continue; }
+        
+        const assunto     = String(row[1]||'').trim();
+        const ultimoAto   = String(row[2]||'').trim();
+        const alocado     = String(row[3]||'').trim();
+        const dtUltAto    = String(row[4]||'').trim();
+        const dtInst      = parsarDataExcel(row[5]);
+        const diasUltAto  = parseInt(row[7]) || 0;
+        const diasInst    = parseInt(row[8]) || 0;
+
+        // Detectar tipo pelo prefixo
+        const prefixo = num.split('.')[0];
+        const tipoMap = {'06':'IC','09':'PA','01':'NF','07':'PP','08':'PIC'};
+        let tipo = tipoMap[prefixo] || 'PA';
+        // Refinar pelo assunto
+        if(assunto.toLowerCase().includes('persecução penal')) tipo = 'PIC';
+        if(assunto.toLowerCase().includes('inquérito civil')) tipo = 'IC';
+
+        procs.push({
+          id: Date.now() + i,
+          num, tipo, assunto,
+          dtInst, dtUltimoAto: dtUltAto,
+          atribuido: alocado !== 'None' ? alocado : '',
+          status: 'triagem',
+          desfecho: '', prorrogado: false,
+          obs: '', cmd: '', lnk: '',
+          diasInst, diasUltAto,
+        });
+        numerosExistentes.add(num);
+        novos++;
+      }
+    }
+
+    saveLocal();
+    updStats();
+    renderUI();
+    
+    const msg = `✓ ${novos} procedimentos importados${duplicatas > 0 ? ` (${duplicatas} já existiam)` : ''}`;
+    if(statusEl) { statusEl.textContent = msg; statusEl.style.color = '#16a34a'; }
+    toast(msg);
+    
+  } catch(e) {
+    const msg = 'Erro ao ler Excel: ' + e.message;
+    if(statusEl) { statusEl.textContent = msg; statusEl.style.color = '#dc2626'; }
+    toast(msg);
+    console.error(e);
+  }
+  input.value = '';
+}
+
+function parsarDataExcel(val) {
+  if(!val) return '';
+  const s = String(val).trim();
+  // Formato DD/MM/AA ou DD/MM/AAAA
+  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(m) {
+    const y = m[3].length === 2 ? '20' + m[3] : m[3];
+    return m[1].padStart(2,'0') + '/' + m[2].padStart(2,'0') + '/' + y;
+  }
+  // Número serial Excel (dias desde 1900-01-01)
+  if(/^\d+$/.test(s)) {
+    const d = new Date((parseInt(s) - 25569) * 86400000);
+    return String(d.getDate()).padStart(2,'0') + '/' + 
+           String(d.getMonth()+1).padStart(2,'0') + '/' + 
+           d.getFullYear();
+  }
+  return s;
+}
+
 function openImport(){ el('modal-import').classList.add('open'); }
 function closeImport(){ el('modal-import').classList.remove('open'); el('import-text').value=''; el('import-result').textContent=''; }
 
@@ -944,6 +1077,17 @@ function openNovo(){
   toast('Procedimento cadastrado');
 }
 
+// ── SEED DATA ──────────────────────────────────────────────────────────
+// Pre-popula com inventário real do SIMP (23/03/2026)
+(function() {
+  const existing = localStorage.getItem('mppa_extraj_v2');
+  if (!existing || JSON.parse(existing).length === 0) {
+    const seed = [{"id": 53912915, "num": "06.2025.00001910-6", "tipo": "IC", "assunto": "Acordo de Não Persecução Penal", "dtInst": "24/11/2025", "dtUltimoAto": "25/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 102, "diasUltAto": 26}, {"id": 22250015, "num": "06.2025.00001458-8", "tipo": "IC", "assunto": "Concorrência", "dtInst": "24/09/2025", "dtUltimoAto": "24/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 163, "diasUltAto": 180}, {"id": 67043290, "num": "06.2025.00001453-3", "tipo": "IC", "assunto": "LICENÇA SAÚDE", "dtInst": "23/09/2025", "dtUltimoAto": "25/10/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 164, "diasUltAto": 149}, {"id": 83687501, "num": "06.2025.00001454-4", "tipo": "IC", "assunto": "TRANSPORTE", "dtInst": "23/09/2025", "dtUltimoAto": "23/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 164, "diasUltAto": 181}, {"id": 59917684, "num": "06.2026.00000310-7", "tipo": "IC", "assunto": "Acidente de Trânsito", "dtInst": "13/02/2026", "dtUltimoAto": "13/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 38, "diasUltAto": 38}, {"id": 55756281, "num": "06.2024.00001512-8", "tipo": "IC", "assunto": "Vigilância Sanitária e Epidemológica", "dtInst": "27/02/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 721, "diasUltAto": 75}, {"id": 39302229, "num": "06.2025.00001457-7", "tipo": "IC", "assunto": "Dano ao Erário", "dtInst": "24/09/2025", "dtUltimoAto": "24/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 163, "diasUltAto": 180}, {"id": 41330552, "num": "09.2026.00001166-2", "tipo": "PA", "assunto": "Trabalhador Temporário", "dtInst": "25/02/2026", "dtUltimoAto": "25/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 26, "diasUltAto": 26}, {"id": 51962539, "num": "09.2025.00004036-4", "tipo": "PA", "assunto": "Educação Inclusiva", "dtInst": "03/07/2025", "dtUltimoAto": "25/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 246, "diasUltAto": 179}, {"id": 45570421, "num": "09.2025.00004037-5", "tipo": "PA", "assunto": "Educação Inclusiva", "dtInst": "03/07/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 246, "diasUltAto": 75}, {"id": 70026861, "num": "09.2025.00003136-5", "tipo": "PA", "assunto": "Águas Públicas", "dtInst": "02/06/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 277, "diasUltAto": 75}, {"id": 66208427, "num": "09.2026.00001158-4", "tipo": "PA", "assunto": "Direito de Vizinhança", "dtInst": "25/02/2026", "dtUltimoAto": "25/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 26, "diasUltAto": 26}, {"id": 15748204, "num": "09.2025.00003570-6", "tipo": "PA", "assunto": "Educação Inclusiva", "dtInst": "17/06/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 262, "diasUltAto": 75}, {"id": 4991990, "num": "09.2025.00003584-0", "tipo": "PA", "assunto": "Acompanhamento de Atividades / Resultados", "dtInst": "17/06/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 262, "diasUltAto": 75}, {"id": 49072410, "num": "09.2025.00003592-8", "tipo": "PA", "assunto": "Acompanhamento de Atividades / Resultados", "dtInst": "17/06/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 262, "diasUltAto": 75}, {"id": 35223958, "num": "09.2025.00003593-9", "tipo": "PA", "assunto": "Acompanhamento de Atividades / Resultados", "dtInst": "17/06/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 262, "diasUltAto": 75}, {"id": 24536193, "num": "09.2025.00004209-5", "tipo": "PA", "assunto": "Prestação de Contas", "dtInst": "15/07/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 239, "diasUltAto": 75}, {"id": 19053619, "num": "09.2025.00004898-9", "tipo": "PA", "assunto": "Serviços de Saúde", "dtInst": "08/08/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 211, "diasUltAto": 75}, {"id": 24324930, "num": "09.2025.00004873-4", "tipo": "PA", "assunto": "Lixo Urbano", "dtInst": "08/08/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 212, "diasUltAto": 75}, {"id": 53415661, "num": "09.2025.00004895-6", "tipo": "PA", "assunto": "Política e Normas Administrativas", "dtInst": "08/08/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 211, "diasUltAto": 75}, {"id": 34864139, "num": "09.2025.00005204-9", "tipo": "PA", "assunto": "Improbidade Administrativa", "dtInst": "20/08/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 198, "diasUltAto": 75}, {"id": 25988285, "num": "09.2025.00005858-7", "tipo": "PA", "assunto": "Estatuto da criança e do adolescente", "dtInst": "16/09/2025", "dtUltimoAto": "16/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 171, "diasUltAto": 188}, {"id": 23829236, "num": "09.2025.00006017-1", "tipo": "PA", "assunto": "Intimação / Notificação", "dtInst": "22/09/2025", "dtUltimoAto": "22/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 165, "diasUltAto": 182}, {"id": 35273421, "num": "09.2025.00006257-0", "tipo": "PA", "assunto": "Assistência Social", "dtInst": "29/09/2025", "dtUltimoAto": "29/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 158, "diasUltAto": 175}, {"id": 50293185, "num": "09.2025.00006259-1", "tipo": "PA", "assunto": "Realização de visitas e inspeções pelos Membros", "dtInst": "29/09/2025", "dtUltimoAto": "29/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 158, "diasUltAto": 175}, {"id": 90912417, "num": "09.2025.00006735-3", "tipo": "PA", "assunto": "SISTEMA SOCIOEDUCATIVO", "dtInst": "15/10/2025", "dtUltimoAto": "15/10/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 142, "diasUltAto": 159}, {"id": 39593527, "num": "09.2025.00006731-0", "tipo": "PA", "assunto": "Educação Profissionalizante", "dtInst": "15/10/2025", "dtUltimoAto": "15/10/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 142, "diasUltAto": 159}, {"id": 33562595, "num": "09.2025.00003591-7", "tipo": "PA", "assunto": "Acompanhamento de Atividades / Resultados", "dtInst": "17/06/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 262, "diasUltAto": 75}, {"id": 39659118, "num": "09.2025.00005853-2", "tipo": "PA", "assunto": "Vigilância Sanitária e Epidemológica", "dtInst": "16/09/2025", "dtUltimoAto": "16/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 171, "diasUltAto": 188}, {"id": 28373061, "num": "09.2025.00006732-0", "tipo": "PA", "assunto": "Educação Profissionalizante", "dtInst": "15/10/2025", "dtUltimoAto": "15/10/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 142, "diasUltAto": 159}, {"id": 70753515, "num": "09.2025.00006729-7", "tipo": "PA", "assunto": "Financiamento Público da Educação e/ou Pesquisa", "dtInst": "15/10/2025", "dtUltimoAto": "15/10/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 142, "diasUltAto": 159}, {"id": 8465184, "num": "09.2025.00003588-3", "tipo": "PA", "assunto": "Acompanhamento de Atividades / Resultados", "dtInst": "17/06/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 262, "diasUltAto": 75}, {"id": 7572389, "num": "09.2026.00000785-8", "tipo": "PA", "assunto": "Fornecimento de medicamentos", "dtInst": "10/02/2026", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 46, "diasUltAto": 38}, {"id": 42414704, "num": "09.2026.00001167-3", "tipo": "PA", "assunto": "Piso Salarial", "dtInst": "25/02/2026", "dtUltimoAto": "25/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 26, "diasUltAto": 26}, {"id": 42483257, "num": "09.2026.00000967-8", "tipo": "PA", "assunto": "Lesões Corporais", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 39, "diasUltAto": 0}, {"id": 87168591, "num": "09.2025.00007023-6", "tipo": "PA", "assunto": "Direito de Vizinhança", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 132, "diasUltAto": 0}, {"id": 47063067, "num": "09.2025.00007804-0", "tipo": "PA", "assunto": "Recrutamento, Seleção e Desenvolvimento", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 89, "diasUltAto": 0}, {"id": 41048370, "num": "09.2025.00007805-0", "tipo": "PA", "assunto": "Atendimento Médico / Enfermagem / Nutrição", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 89, "diasUltAto": 0}, {"id": 2766712, "num": "09.2025.00007806-1", "tipo": "PA", "assunto": "Atendimento Médico / Enfermagem / Nutrição", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 89, "diasUltAto": 0}, {"id": 84182647, "num": "09.2026.00000046-5", "tipo": "PA", "assunto": "Gratuidade", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 75, "diasUltAto": 0}, {"id": 49626733, "num": "09.2025.00006724-2", "tipo": "PA", "assunto": "Decorrente de Violência Doméstica", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 142, "diasUltAto": 0}, {"id": 1876562, "num": "09.2025.00007529-7", "tipo": "PA", "assunto": "Recrutamento, Seleção e Desenvolvimento", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 108, "diasUltAto": 0}, {"id": 29811014, "num": "09.2025.00007167-9", "tipo": "PA", "assunto": "Piso Salarial", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 123, "diasUltAto": 0}, {"id": 84537592, "num": "09.2025.00005076-2", "tipo": "PA", "assunto": "Posturas Municipais", "dtInst": "24/09/2025", "dtUltimoAto": "24/09/2025", "atribuido": "", "status": "finalizado", "desfecho": "arquivamento", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 205, "diasUltAto": 180}, {"id": 61641629, "num": "09.2024.00005383-3", "tipo": "PA", "assunto": "Omissão de cautela na guarda ou condução de animal", "dtInst": "08/11/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 466, "diasUltAto": 75}, {"id": 19457266, "num": "09.2025.00002197-8", "tipo": "PA", "assunto": "Inspeção em Estabelecimento Penal", "dtInst": "30/04/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 310, "diasUltAto": 75}, {"id": 82400245, "num": "09.2025.00003950-2", "tipo": "PA", "assunto": "Obras e Reformas", "dtInst": "01/07/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 248, "diasUltAto": 75}, {"id": 32897742, "num": "09.2024.00005370-0", "tipo": "PA", "assunto": "Assistência à Saúde", "dtInst": "18/06/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 609, "diasUltAto": 75}, {"id": 32668873, "num": "09.2024.00005366-6", "tipo": "PA", "assunto": "Internação voluntária", "dtInst": "12/03/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 707, "diasUltAto": 75}, {"id": 21722512, "num": "09.2024.00005367-7", "tipo": "PA", "assunto": "Auxílio Creche / Pré-escolar / Educação", "dtInst": "14/03/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 705, "diasUltAto": 75}, {"id": 77880180, "num": "09.2025.00005859-8", "tipo": "PA", "assunto": "Estatuto da criança e do adolescente", "dtInst": "16/09/2025", "dtUltimoAto": "16/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 171, "diasUltAto": 188}, {"id": 32537422, "num": "09.2025.00006262-5", "tipo": "PA", "assunto": "Realização de visitas e inspeções pelos Membros", "dtInst": "29/09/2025", "dtUltimoAto": "29/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 158, "diasUltAto": 175}, {"id": 2971569, "num": "09.2025.00006261-4", "tipo": "PA", "assunto": "Realização de visitas e inspeções pelos Membros", "dtInst": "29/09/2025", "dtUltimoAto": "29/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 158, "diasUltAto": 175}, {"id": 15381250, "num": "09.2024.00005369-9", "tipo": "PA", "assunto": "INFREQUÊNCIA ESCOLAR", "dtInst": "28/08/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 538, "diasUltAto": 75}, {"id": 19800756, "num": "09.2025.00005892-1", "tipo": "PA", "assunto": "Estatuto da criança e do adolescente", "dtInst": "17/09/2025", "dtUltimoAto": "17/09/2025", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 170, "diasUltAto": 187}, {"id": 46950059, "num": "09.2024.00005373-3", "tipo": "PA", "assunto": "Conselho do Idoso", "dtInst": "09/07/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 588, "diasUltAto": 75}, {"id": 62990011, "num": "09.2024.00005376-6", "tipo": "PA", "assunto": "Pagamento Atrasado / Correção Monetária", "dtInst": "23/09/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 512, "diasUltAto": 75}, {"id": 36397840, "num": "09.2024.00005375-5", "tipo": "PA", "assunto": "Liberdade assistida", "dtInst": "10/12/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 434, "diasUltAto": 75}, {"id": 25557773, "num": "09.2026.00001006-3", "tipo": "PA", "assunto": "Estatuto do Idoso", "dtInst": "13/02/2026", "dtUltimoAto": "13/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 38, "diasUltAto": 38}, {"id": 54795010, "num": "09.2024.00005380-0", "tipo": "PA", "assunto": "Terreno de Marinha", "dtInst": "29/10/2024", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 476, "diasUltAto": 75}, {"id": 12020757, "num": "01.2026.00001924-3", "tipo": "NF", "assunto": "Gratuidade", "dtInst": "19/01/2026", "dtUltimoAto": "18/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 63, "diasUltAto": 33}, {"id": 25866263, "num": "01.2026.00006821-2", "tipo": "NF", "assunto": "Perturbação do trabalho ou do sossego alheios", "dtInst": "24/02/2026", "dtUltimoAto": "01/03/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 27, "diasUltAto": 22}, {"id": 8365299, "num": "01.2026.00001016-3", "tipo": "NF", "assunto": "Estatuto da criança e do adolescente", "dtInst": "13/01/2026", "dtUltimoAto": "11/02/2026", "atribuido": "", "status": "finalizado", "desfecho": "arquivamento", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 69, "diasUltAto": 40}, {"id": 28521639, "num": "01.2026.00009235-6", "tipo": "NF", "assunto": "Estatuto da criança e do adolescente", "dtInst": "11/03/2026", "dtUltimoAto": "11/03/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 12, "diasUltAto": 12}, {"id": 7665815, "num": "01.2025.00040570-0", "tipo": "NF", "assunto": "Descumprimento de Medida Protetiva de Urgência", "dtInst": "02/12/2025", "dtUltimoAto": "14/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 94, "diasUltAto": 68}, {"id": 27734042, "num": "01.2026.00008162-6", "tipo": "NF", "assunto": "Sobre o Controle externo da atividade policial", "dtInst": "04/03/2026", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 19, "diasUltAto": 0}, {"id": 71589562, "num": "01.2025.00040763-1", "tipo": "NF", "assunto": "Polícia Militar", "dtInst": "03/12/2025", "dtUltimoAto": "23/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 93, "diasUltAto": 59}, {"id": 85856869, "num": "01.2025.00041374-4", "tipo": "NF", "assunto": "INFRAESTRUTURA", "dtInst": "09/12/2025", "dtUltimoAto": "26/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 87, "diasUltAto": 56}, {"id": 47284326, "num": "01.2026.00010609-0", "tipo": "NF", "assunto": "Passe livre em transporte", "dtInst": "20/03/2026", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 3, "diasUltAto": 0}, {"id": 46137397, "num": "01.2025.00040913-0", "tipo": "NF", "assunto": "Ameaça (art. 147)", "dtInst": "04/12/2025", "dtUltimoAto": "23/01/2026", "atribuido": "", "status": "finalizado", "desfecho": "arquivamento", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 92, "diasUltAto": 59}, {"id": 10769857, "num": "01.2026.00010620-1", "tipo": "NF", "assunto": "Passe livre em transporte", "dtInst": "20/03/2026", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 3, "diasUltAto": 0}, {"id": 68983049, "num": "01.2026.00010331-5", "tipo": "NF", "assunto": "Outras medidas de proteção", "dtInst": "18/03/2026", "dtUltimoAto": "19/03/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 5, "diasUltAto": 4}, {"id": 53748703, "num": "01.2025.00036413-6", "tipo": "NF", "assunto": "Estupro de vulnerável", "dtInst": "29/10/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 128, "diasUltAto": 75}, {"id": 53120457, "num": "01.2026.00005450-7", "tipo": "NF", "assunto": "Ambiental", "dtInst": "10/02/2026", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 41, "diasUltAto": 0}, {"id": 90003460, "num": "01.2025.00041139-0", "tipo": "NF", "assunto": "Adicional por Tempo de Serviço", "dtInst": "05/12/2025", "dtUltimoAto": "23/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 91, "diasUltAto": 59}, {"id": 60905131, "num": "01.2025.00040566-6", "tipo": "NF", "assunto": "INFRAESTRUTURA", "dtInst": "02/12/2025", "dtUltimoAto": "13/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 94, "diasUltAto": 69}, {"id": 21585328, "num": "01.2026.00005105-4", "tipo": "NF", "assunto": "Improbidade Administrativa", "dtInst": "06/02/2026", "dtUltimoAto": "04/03/2026", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 45, "diasUltAto": 19}, {"id": 88500138, "num": "01.2025.00036147-2", "tipo": "NF", "assunto": "Ameaça", "dtInst": "24/10/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 133, "diasUltAto": 75}, {"id": 31987787, "num": "01.2025.00038098-0", "tipo": "NF", "assunto": "Eleição ou Posse de Procurador-Geral", "dtInst": "11/11/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 115, "diasUltAto": 75}, {"id": 17127944, "num": "01.2025.00036792-2", "tipo": "NF", "assunto": "Perturbação do trabalho ou do sossego alheios", "dtInst": "31/10/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 126, "diasUltAto": 75}, {"id": 14335104, "num": "01.2025.00038501-0", "tipo": "NF", "assunto": "Difamação", "dtInst": "13/11/2025", "dtUltimoAto": "07/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 113, "diasUltAto": 75}, {"id": 3694275, "num": "01.2026.00004512-0", "tipo": "NF", "assunto": "Medidas de Proteção", "dtInst": "03/02/2026", "dtUltimoAto": "09/03/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 48, "diasUltAto": 14}, {"id": 62410014, "num": "01.2025.00040980-7", "tipo": "NF", "assunto": "Advogados", "dtInst": "04/12/2025", "dtUltimoAto": "23/01/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 92, "diasUltAto": 59}, {"id": 20753496, "num": "01.2026.00000108-6", "tipo": "NF", "assunto": "Lesões Corporais", "dtInst": "07/01/2026", "dtUltimoAto": "10/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 75, "diasUltAto": 41}, {"id": 73847115, "num": "01.2026.00009926-0", "tipo": "NF", "assunto": "Perseguição (art. 147-A)", "dtInst": "16/03/2026", "dtUltimoAto": "16/03/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 7, "diasUltAto": 7}, {"id": 89408613, "num": "01.2026.00005283-1", "tipo": "NF", "assunto": "Lesões Corporais", "dtInst": "09/02/2026", "dtUltimoAto": "10/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 42, "diasUltAto": 41}, {"id": 35778905, "num": "01.2026.00004507-4", "tipo": "NF", "assunto": "Fornecimento de medicamentos", "dtInst": "03/02/2026", "dtUltimoAto": "06/03/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": true, "obs": "", "cmd": "", "lnk": "", "diasInst": 48, "diasUltAto": 17}, {"id": 24450178, "num": "01.2026.00007129-4", "tipo": "NF", "assunto": "Atos e procedimentos investigatórios não formalizados", "dtInst": "25/02/2026", "dtUltimoAto": "25/02/2026", "atribuido": "", "status": "instrucao", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 26, "diasUltAto": 26}, {"id": 60434267, "num": "01.2026.00009049-1", "tipo": "NF", "assunto": "Crimes de Abuso de Autoridade (Lei 13.869/2019)", "dtInst": "10/03/2026", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 13, "diasUltAto": 0}, {"id": 9733268, "num": "01.2026.00009367-7", "tipo": "NF", "assunto": "Pessoa com Deficiência", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 11, "diasUltAto": 0}, {"id": 80494520, "num": "01.2026.00009773-0", "tipo": "NF", "assunto": "Fornecimento de Água", "dtInst": "", "dtUltimoAto": "", "atribuido": "", "status": "triagem", "desfecho": "", "prorrogado": false, "obs": "", "cmd": "", "lnk": "", "diasInst": 8, "diasUltAto": 0}];
+    localStorage.setItem('mppa_extraj_v2', JSON.stringify(seed));
+    console.log('Inventário carregado:', seed.length, 'procedimentos');
+  }
+})();
+
 // ── INIT ─────────────────────────────────────────────────────────────
 // Auto-login if session saved
 const savedUser = localStorage.getItem('mppa_ej_user');
@@ -956,6 +1100,78 @@ if(savedUser){
     el('sb-user').textContent = CU;
     loadAll();
   }catch(e){}
+}
+
+async function importXlsx(input) {
+  const file = input.files[0];
+  if (!file) return;
+  toast('Lendo arquivo...');
+  
+  // Load SheetJS dynamically
+  if (!window.XLSX) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+  
+  function detectTipo(num) {
+    if (!num) return 'PA';
+    const pref = num.split('.')[0];
+    return {"01":'NF',"06":'IC',"09":'PA'}[pref] || 'PA';
+  }
+  
+  function fmtDate(val) {
+    if (!val) return '';
+    if (val instanceof Date) {
+      return String(val.getDate()).padStart(2,'0')+'/'+String(val.getMonth()+1).padStart(2,'0')+'/'+val.getFullYear();
+    }
+    return String(val);
+  }
+  
+  let count = 0;
+  const newProcs = [];
+  
+  for (const sheetName of wb.SheetNames) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1 });
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const num = String(row[0] || '').trim();
+      if (!num || !num.includes('.')) continue;
+      if (procs.find(p => p.num === num)) continue;
+      
+      const tipo = detectTipo(num);
+      let assunto = String(row[1] || '').trim();
+      if (assunto.includes(' - ')) assunto = assunto.split(' - ').slice(1).join(' - ');
+      const ult = String(row[2] || '');
+      const dtUlt = fmtDate(row[4]);
+      const dtInst = fmtDate(row[5]);
+      const diasInst = parseInt(row[8]) || 0;
+      const prorrogado = ult.includes('Prorrogação');
+      const status = ult.includes('Arquivamento') ? 'finalizado' :
+                     ult.includes('Instauração') || ult.includes('Despacho') ? 'instrucao' :
+                     ult.includes('Diligências') || ult.includes('Notificação') ? 'diligencias' : 'triagem';
+      const desfecho = ult.includes('Arquivamento') ? 'arquivamento' : ult.includes('TAC') ? 'tac' : '';
+      
+      newProcs.push(mkProc({
+        id: Math.abs(num.split('').reduce((a,c)=>a*31+c.charCodeAt(0),0)) % 999999999,
+        num, tipo, assunto, dtInst, dtUltimoAto: dtUlt,
+        status, desfecho, prorrogado, diasInst,
+      }));
+      count++;
+    }
+  }
+  
+  procs = [...procs, ...newProcs];
+  syncSave();
+  renderUI();
+  toast(`✓ ${count} procedimentos importados do Excel`);
+  input.value = '';
 }
 </script>
 </body>
