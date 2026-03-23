@@ -2430,7 +2430,7 @@ O relatório deve conter em texto corrido (sem listas ou marcadores):
 Seja objetivo. Máximo 15 linhas. Não emita opinião jurídica.`;
 
     const resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key,
       {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
@@ -2660,7 +2660,7 @@ async function gerarComGemini(id) {
   if(btnEl){btnEl.disabled=true;btnEl.textContent='Gerando...';}
   try {
     const resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key,
       {method:'POST',headers:{'Content-Type':'application/json'},
        body:JSON.stringify({
          contents:[{parts:[{text:promptBase}]}],
