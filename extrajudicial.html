@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Extrajudicial — MPPA Ponta de Pedras</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sb:#1a2744;--sb2:#7c1c3e;--sb-t:#e8ecf4;--sb-m:#8892aa;
+  --bg:#f4f5f7;--card:#fff;--cb:#e2e5ea;
+  --tx:#1c2333;--tx2:#5a6272;--txm:#8892aa;
+  --ib:#d0d4dc;--r:8px;--rs:5px;
+  --f:-apple-system,'Segoe UI',system-ui,sans-serif
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--tx);font-size:14px}
+/* ── LOGIN ── */
+.login{position:fixed;inset:0;background:var(--sb);display:flex;align-items:center;justify-content:center;z-index:999}
+.lbox{background:#fff;border-radius:16px;padding:36px 44px;max-width:400px;width:92%;text-align:center}
+.lorg{font-size:10px;font-weight:700;letter-spacing:.15em;color:#8892aa;text-transform:uppercase;margin-bottom:6px}
+.ltitle{font-size:20px;font-weight:700;color:var(--sb);margin-bottom:4px}
+.lsub{font-size:12px;color:#8892aa;margin-bottom:24px}
+.lsel,.linp{width:100%;padding:10px 14px;border:1.5px solid var(--ib);border-radius:var(--r);font-size:14px;color:var(--tx);background:#fff;outline:none;margin-bottom:12px;font-family:var(--f)}
+.lbtn{width:100%;padding:11px;background:var(--sb);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer}
+.lbtn:hover{background:#253561}
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sb{width:210px;background:var(--sb);color:var(--sb-t);flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;overflow-y:auto}
+.main{margin-left:210px;flex:1;display:flex;flex-direction:column}
+/* ── SIDEBAR ── */
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-org{font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--sb-m);text-transform:uppercase}
+.sb-title{font-size:13px;font-weight:700;color:var(--sb-t);margin-top:2px}
+.sb-tag{font-size:10px;background:rgba(255,255,255,.08);color:var(--sb-m);padding:2px 6px;border-radius:3px;display:inline-block;margin-top:4px}
+.sb-sec{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--sb-m);text-transform:uppercase;padding:14px 16px 6px}
+.ni{display:flex;align-items:center;justify-content:space-between;padding:7px 16px;cursor:pointer;transition:background .12s;border-radius:0}
+.ni:hover,.ni.active{background:rgba(255,255,255,.1)}
+.nil{display:flex;align-items:center;gap:8px}
+.nd{width:7px;height:7px;border-radius:50%;background:var(--sb-m);flex-shrink:0}
+.nl{font-size:12px;color:var(--sb-t)}
+.nc{font-size:11px;font-weight:600;color:var(--sb-m)}
+.ni.active .nl{color:#fff}
+.ni.active .nc{color:rgba(255,255,255,.7)}
+/* ── TOPBAR ── */
+.topbar{background:#fff;border-bottom:1px solid var(--cb);padding:0 18px;height:50px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:100}
+.tbr{display:flex;align-items:center;gap:8px}
+.btn{padding:6px 14px;border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:var(--f);border:1px solid var(--cb);background:#fff;color:var(--tx2)}
+.btn:hover{background:var(--bg)}
+.btn-p{background:var(--sb);color:#fff;border-color:var(--sb)}
+.btn-p:hover{background:#253561}
+.btn-sm{padding:5px 12px}
+/* ── TABS ── */
+.tabbar{background:#fff;border-bottom:1px solid var(--cb);padding:0 18px;display:flex;align-items:center;gap:2px}
+.tbb{padding:10px 14px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--tx2);border-bottom:2px solid transparent;font-family:var(--f);position:relative}
+.tbb:hover{color:var(--tx)}
+.tbb.active{color:var(--sb);border-bottom-color:var(--sb);font-weight:500}
+.tb{font-size:10px;background:var(--sb);color:#fff;border-radius:10px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+.tb-warn{background:#dc2626}
+/* ── CONTENT ── */
+.content{padding:16px 18px;flex:1;background:var(--bg)}
+/* ── CARDS ── */
+.card{background:#fff;border-radius:var(--r);border:1px solid var(--cb);padding:14px 16px;margin-bottom:10px;position:relative}
+.card:hover{border-color:#c4c8d0}
+.card.urg{border-left:3px solid #ef4444}
+.card.warn{border-left:3px solid #f59e0b}
+.card.ok{border-left:3px solid #10b981}
+/* ── PROC HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.pnum{font-size:12px;font-weight:600;color:var(--sb);cursor:pointer;font-family:'SF Mono','Fira Code',monospace}
+.pnum:hover{text-decoration:underline}
+.pbadges{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.badge-nf{background:#ede9fe;color:#5b21b6}
+.badge-ic{background:#dbeafe;color:#1e40af}
+.badge-pa{background:#dcfce7;color:#15803d}
+.badge-pic{background:#fee2e2;color:#b91c1c}
+.badge-pp{background:#fef3c7;color:#b45309}
+.badge-pi{background:#f3f4f6;color:#4b5563}
+.badge-ok{background:#dcfce7;color:#15803d}
+.badge-urg{background:#fee2e2;color:#b91c1c}
+.badge-warn{background:#fef3c7;color:#b45309}
+.psub{font-size:12px;color:var(--tx2);margin-bottom:4px}
+.pmeta{font-size:11px;color:var(--txm);display:flex;gap:12px;flex-wrap:wrap}
+/* ── EXPANDED CARD ── */
+.cexp{display:none;margin-top:12px;border-top:1px solid var(--cb);padding-top:12px}
+.cexp.open{display:block}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+.fl{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px}
+.fc{width:100%;padding:7px 10px;border:1px solid var(--ib);border-radius:var(--rs);font-size:13px;color:var(--tx);font-family:var(--f);background:#fff}
+.fc:focus{outline:none;border-color:#4f78d4}
+textarea.fc{min-height:80px;resize:vertical}
+.fa{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--cb)}
+.sm{font-size:12px;color:#16a34a;opacity:0;transition:opacity .3s}
+.sm.show{opacity:1}
+/* ── PRAZO BAR ── */
+.pbar-wrap{margin:8px 0 4px}
+.pbar-track{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px;transition:width .4s}
+.pbar-label{font-size:10px;color:var(--txm);margin-top:3px;display:flex;justify-content:space-between}
+/* ── DESFECHO BADGES ── */
+.def-arc{background:#f3f4f6;color:#374151}
+.def-tac{background:#d1fae5;color:#065f46}
+.def-rec{background:#dbeafe;color:#1e40af}
+.def-acp{background:#ede9fe;color:#4c1d95}
+.def-pro{background:#fef3c7;color:#b45309}
+/* ── DASHBOARD ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:var(--r);border:1px solid var(--cb);padding:14px 16px;position:relative;overflow:hidden}
+.kpi-l{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--txm);margin-bottom:6px}
+.kpi-v{font-size:26px;font-weight:600;line-height:1}
+.kpi-s{font-size:11px;color:var(--txm);margin-top:4px}
+.kpi-bar{position:absolute;bottom:0;left:0;height:3px;border-radius:0 2px 0 0}
+/* ── IMPORT ── */
+.import-area{border:2px dashed var(--ib);border-radius:var(--r);padding:24px;text-align:center;background:#fafbfc;cursor:pointer}
+.import-area:hover{border-color:#4f78d4;background:#f0f4ff}
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;background:#1c2333;color:#fff;padding:10px 18px;border-radius:var(--r);font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;max-width:320px}
+#toast.show{opacity:1}
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--txm);font-size:13px}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:800;display:none}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:580px;width:92%;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="login">
+  <div class="lbox">
+    <div class="lorg">MPPA · Polo Marajó I</div>
+    <div class="ltitle">Extrajudicial</div>
+    <div class="lsub">Ponta de Pedras · Promotoria de Justiça</div>
+    <select class="lsel" id="ln-role" onchange="onRole(this.value)">
+      <option value="">Selecionar perfil</option>
+      <option value="assessor">Assessor (PJ)</option>
+      <option value="est1">Estagiário 1 (Amanda)</option>
+      <option value="est2">Estagiário 2</option>
+    </select>
+    <input class="linp" type="password" id="ln-pwd" placeholder="Senha do assessor" style="display:none" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" id="ln-btn" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-bg" id="modal-import">
+  <div class="modal">
+    <div class="modal-title">📥 Importar inventário do SIMP</div>
+    <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Cole o conteúdo do relatório de inventário analítico exportado do SIMP. O sistema identificará automaticamente os procedimentos e seus prazos.</p>
+    <textarea class="fc" id="import-text" style="min-height:160px;font-size:12px;font-family:var(--f)" placeholder="Cole aqui o texto do relatório..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-p btn-sm" onclick="doImport()">Importar</button>
+      <button class="btn btn-sm" onclick="closeImport()">Cancelar</button>
+    </div>
+    <div id="import-result" style="font-size:12px;color:var(--tx2);margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none">
+  <!-- SIDEBAR -->
+  <nav class="sb">
+    <div class="sb-logo">
+      <div class="sb-org">MPPA · Polo Marajó I</div>
+      <div class="sb-title">Extrajudicial</div>
+      <div class="sb-tag">Ponta de Pedras</div>
+    </div>
+
+    <div class="sb-sec">Visão geral</div>
+    <div class="ni active" id="ni-dash" onclick="swTab('dash',this)">
+      <div class="nil"><span class="nd" style="background:#4ade80"></span><span class="nl">Dashboard</span></div>
+    </div>
+    <div class="ni" id="ni-all" onclick="swTab('all',this)">
+      <div class="nil"><span class="nd" style="background:#94a3b8"></span><span class="nl">Todos</span></div>
+      <span class="nc" id="n-all">0</span>
+    </div>
+    <div class="ni" id="ni-prazo" onclick="swTab('prazo',this)">
+      <div class="nil"><span class="nd" style="background:#f59e0b"></span><span class="nl">Prazos críticos</span></div>
+      <span class="nc" id="n-prazo">0</span>
+    </div>
+
+    <div class="sb-sec">Por tipo</div>
+    <div class="ni" id="ni-NF" onclick="sfTipo('NF',this)">
+      <div class="nil"><span class="nd" style="background:#8b5cf6"></span><span class="nl">Notícia de Fato</span></div>
+      <span class="nc" id="n-NF">0</span>
+    </div>
+    <div class="ni" id="ni-PA" onclick="sfTipo('PA',this)">
+      <div class="nil"><span class="nd" style="background:#16a34a"></span><span class="nl">Proc. Administrativo</span></div>
+      <span class="nc" id="n-PA">0</span>
+    </div>
+    <div class="ni" id="ni-IC" onclick="sfTipo('IC',this)">
+      <div class="nil"><span class="nd" style="background:#2563eb"></span><span class="nl">Inquérito Civil</span></div>
+      <span class="nc" id="n-IC">0</span>
+    </div>
+    <div class="ni" id="ni-PIC" onclick="sfTipo('PIC',this)">
+      <div class="nil"><span class="nd" style="background:#dc2626"></span><span class="nl">PIC</span></div>
+      <span class="nc" id="n-PIC">0</span>
+    </div>
+    <div class="ni" id="ni-PP" onclick="sfTipo('PP',this)">
+      <div class="nil"><span class="nd" style="background:#d97706"></span><span class="nl">Proc. Preparatório</span></div>
+      <span class="nc" id="n-PP">0</span>
+    </div>
+
+    <div class="sb-sec">Status</div>
+    <div class="ni" id="ni-triagem" onclick="sfStatus('triagem',this)">
+      <div class="nil"><span class="nd" style="background:#94a3b8"></span><span class="nl">Triagem</span></div>
+      <span class="nc" id="n-triagem">0</span>
+    </div>
+    <div class="ni" id="ni-instrucao" onclick="sfStatus('instrucao',this)">
+      <div class="nil"><span class="nd" style="background:#3b82f6"></span><span class="nl">Em instrução</span></div>
+      <span class="nc" id="n-instrucao">0</span>
+    </div>
+    <div class="ni" id="ni-diligencias" onclick="sfStatus('diligencias',this)">
+      <div class="nil"><span class="nd" style="background:#f59e0b"></span><span class="nl">Diligências</span></div>
+      <span class="nc" id="n-diligencias">0</span>
+    </div>
+    <div class="ni" id="ni-desfecho" onclick="sfStatus('desfecho',this)">
+      <div class="nil"><span class="nd" style="background:#8b5cf6"></span><span class="nl">Ag. desfecho</span></div>
+      <span class="nc" id="n-desfecho">0</span>
+    </div>
+    <div class="ni" id="ni-finalizado" onclick="sfStatus('finalizado',this)">
+      <div class="nil"><span class="nd" style="background:#10b981"></span><span class="nl">Finalizados</span></div>
+      <span class="nc" id="n-finalizado">0</span>
+    </div>
+
+    <div style="margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)">
+      <div style="font-size:11px;color:var(--sb-m)" id="sb-user"></div>
+      <a href="index.html" style="font-size:11px;color:var(--sb-m);text-decoration:none;display:block;margin-top:4px">← Módulo Judicial</a>
+      <div style="font-size:11px;color:var(--sb-m);margin-top:6px;cursor:pointer" onclick="doLogout()">Sair</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div style="font-size:13px;font-weight:500" id="tb-title">Dashboard Extrajudicial</div>
+      <div class="tbr">
+        <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0" title="Sincronizado"></div>
+        <button class="btn btn-sm" onclick="openImport()">📥 Importar SIMP</button>
+        <button class="btn btn-sm btn-p" onclick="openNovo()" id="btn-novo">+ Novo</button>
+        <button class="btn btn-sm" onclick="syncLoad()" title="Sincronizar">↺</button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabbar">
+      <button class="tbb active" id="tbb-dash" onclick="swTab('dash',this)">Dashboard</button>
+      <button class="tbb" id="tbb-all" onclick="swTab('all',this)">Todos <span class="tb" id="ttb-all">0</span></button>
+      <button class="tbb" id="tbb-prazo" onclick="swTab('prazo',this)">Prazos críticos <span class="tb tb-warn" id="ttb-prazo">0</span></button>
+    </div>
+
+    <!-- TAB: DASHBOARD -->
+    <div class="content" id="tab-dash" style="display:block">
+      <div id="dash-root"></div>
+    </div>
+
+    <!-- TAB: TODOS -->
+    <div class="content" id="tab-all" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+        <input type="text" class="fc" id="busca" placeholder="Buscar por número ou assunto..." style="max-width:280px" oninput="renderAll()">
+        <select class="fc" id="filt-tipo" style="max-width:160px" onchange="renderAll()">
+          <option value="">Todos os tipos</option>
+          <option value="NF">Notícia de Fato</option>
+          <option value="PA">Proc. Administrativo</option>
+          <option value="IC">Inquérito Civil</option>
+          <option value="PIC">PIC</option>
+          <option value="PP">Proc. Preparatório</option>
+        </select>
+        <select class="fc" id="filt-status" style="max-width:160px" onchange="renderAll()">
+          <option value="">Todos os status</option>
+          <option value="triagem">Triagem</option>
+          <option value="instrucao">Em instrução</option>
+          <option value="diligencias">Diligências</option>
+          <option value="desfecho">Ag. desfecho</option>
+          <option value="finalizado">Finalizado</option>
+        </select>
+      </div>
+      <div id="list-all"></div>
+    </div>
+
+    <!-- TAB: PRAZOS -->
+    <div class="content" id="tab-prazo" style="display:none">
+      <div id="list-prazo"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────
+const GS_URL_DEFAULT = localStorage.getItem('mppa_gs') || '';
+const PRAZOS_LEGAIS = {
+  NF: 30, PP: 90, IC: 365, PA: 365, PIC: 90, PI: null
+};
+const PRORROGACAO = {
+  NF: 90, PP: 90, IC: 365, PA: 365, PIC: 90, PI: null
+};
+const TIPO_BADGES = {
+  NF:'badge-nf', PA:'badge-pa', IC:'badge-ic', PIC:'badge-pic', PP:'badge-pp', PI:'badge-pi'
+};
+const TIPO_NOMES = {
+  NF:'Notícia de Fato', PA:'Proc. Administrativo', IC:'Inquérito Civil',
+  PIC:'PIC', PP:'Proc. Preparatório', PI:'Petição Inicial'
+};
+
+// ── STATE ────────────────────────────────────────────────────────────
+let procs = [], CU = null, isA = false, filt = 'dash', filtTipo = '', filtStatus = '';
+let GSURL = GS_URL_DEFAULT;
+const HOJE = () => new Date();
+
+function el(id){ return document.getElementById(id); }
+function g(id){ return el(id)?.value || ''; }
+function toast(m){ const t=el('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
+
+// ── AUTH ─────────────────────────────────────────────────────────────
+function onRole(v){
+  el('ln-pwd').style.display = v==='assessor'?'block':'none';
+}
+function simpleHash(s){
+  let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;}
+  return h.toString(16);
+}
+function doLogin(){
+  const role = g('ln-role');
+  if(!role){ toast('Selecione o perfil'); return; }
+  if(role==='assessor'){
+    const pwd = g('ln-pwd');
+    if(!pwd){ toast('Digite a senha'); return; }
+    // Use same hash as judicial module
+    const h = simpleHash(pwd);
+    const stored = localStorage.getItem('mppa_pwd_hash') || '5658e37e';
+    // Also accept the raw password check via a second hash attempt
+    if(h !== stored){ toast('Senha incorreta'); return; }
+    isA = true; CU = 'Assessor (PJ)';
+  } else {
+    isA = false;
+    CU = role==='est1'
+      ? (localStorage.getItem('mppa_estag1') || 'Estagiário 1')
+      : (localStorage.getItem('mppa_estag2') || 'Estagiário 2');
+  }
+  localStorage.setItem('mppa_ej_user', JSON.stringify({role, name: CU}));
+  el('login').style.display='none';
+  el('app').style.display='flex';
+  el('sb-user').textContent = CU;
+  loadAll();
+}
+function doLogout(){
+  el('login').style.display='flex';
+  el('app').style.display='none';
+  CU=null; isA=false;
+}
+
+// ── DATA MODEL ───────────────────────────────────────────────────────
+function mkProc(d){
+  return {
+    id: d.id || Date.now(),
+    num: d.num || '',
+    tipo: d.tipo || 'NF',
+    assunto: d.assunto || '',
+    dtInst: d.dtInst || '',   // data instauração
+    dtUltimoAto: d.dtUltimoAto || '',
+    atribuido: d.atribuido || '',
+    status: d.status || 'triagem',
+    desfecho: d.desfecho || '',  // arquivamento|tac|recomendacao|acp|ajuizamento
+    prorrogado: d.prorrogado || false,
+    obs: d.obs || '',          // relatório/observações
+    cmd: d.cmd || '',          // prompt/minuta
+    lnk: d.lnk || '',
+    diasInst: d.diasInst || 0,
+    diasUltAto: d.diasUltAto || 0,
+  };
+}
+
+function prazoLegal(p){
+  let base = PRAZOS_LEGAIS[p.tipo] || 365;
+  if(p.prorrogado) base += (PRORROGACAO[p.tipo] || 365);
+  return base;
+}
+
+function diasDesdeInst(p){
+  if(!p.dtInst) return p.diasInst || 0;
+  const d = parseBR(p.dtInst);
+  if(!d) return p.diasInst || 0;
+  return Math.floor((HOJE() - d) / 86400000);
+}
+
+function parseBR(s){
+  if(!s) return null;
+  const parts = s.split('/');
+  if(parts.length===3) return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+  // Try dd/mm/yy
+  const m = s.match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
+  if(!m) return null;
+  const y = m[3].length===2 ? '20'+m[3] : m[3];
+  return new Date(`${y}-${m[2]}-${m[1]}`);
+}
+
+function statusPrazo(p){
+  const dias = diasDesdeInst(p);
+  const prazo = prazoLegal(p);
+  if(!prazo) return 'ok';
+  const pct = dias/prazo;
+  if(pct >= 1) return 'vencido';
+  if(pct >= 0.8) return 'critico';
+  if(pct >= 0.6) return 'atencao';
+  return 'ok';
+}
+
+// ── LOAD / SAVE ──────────────────────────────────────────────────────
+function loadAll(){
+  const local = localStorage.getItem('mppa_extraj_v2');
+  if(local){ try{ procs = JSON.parse(local).map(mkProc); }catch(e){ procs=[]; } }
+  renderUI();
+  if(GSURL) syncLoad();
+}
+
+function saveLocal(){
+  localStorage.setItem('mppa_extraj_v2', JSON.stringify(procs));
+}
+
+async function syncLoad(){
+  if(!GSURL) return;
+  setSyncDot('loading');
+  try{
+    const r = await fetch(GSURL+'?action=load&tab=extrajudicial');
+    const data = await r.json();
+    if(data.rows && data.rows.length){
+      procs = data.rows.map(row=>mkProc({
+        id:row[0],num:row[1],tipo:row[2],assunto:row[3],
+        dtInst:row[4],dtUltimoAto:row[5],atribuido:row[6],
+        status:row[7],desfecho:row[8],prorrogado:row[9]==='true',
+        obs:row[10],cmd:row[11],lnk:row[12],
+        diasInst:parseInt(row[13])||0,diasUltAto:parseInt(row[14])||0
+      }));
+      saveLocal();
+      renderUI();
+    }
+    setSyncDot('ok');
+  }catch(e){ setSyncDot('err'); }
+}
+
+async function syncSave(){
+  saveLocal();
+  if(!GSURL) return;
+  const rows = procs.map(p=>[
+    p.id,p.num,p.tipo,p.assunto,p.dtInst,p.dtUltimoAto,
+    p.atribuido,p.status,p.desfecho,p.prorrogado,p.obs,p.cmd,p.lnk,
+    diasDesdeInst(p),p.diasUltAto
+  ]);
+  try{
+    await fetch(GSURL, {method:'POST',body:JSON.stringify({action:'save',tab:'extrajudicial',rows})});
+    setSyncDot('ok');
+  }catch(e){ setSyncDot('err'); }
+}
+
+function setSyncDot(s){
+  const d = el('sync-dot');
+  if(!d) return;
+  d.style.background = s==='ok'?'#10b981':s==='loading'?'#f59e0b':'#ef4444';
+}
+
+// ── IMPORT SIMP ──────────────────────────────────────────────────────
+function openImport(){ el('modal-import').classList.add('open'); }
+function closeImport(){ el('modal-import').classList.remove('open'); el('import-text').value=''; el('import-result').textContent=''; }
+
+function parseTipo(num){
+  // 01.xxxx = NF/PI, 06.xxxx = IC, 09.xxxx = PA, PIC prefix
+  const pref = num.split('.')[0];
+  // Check by context — use section header approach
+  return null; // will be set by context
+}
+
+function doImport(){
+  const text = el('import-text').value.trim();
+  if(!text){ toast('Cole o texto do relatório'); return; }
+
+  let count = 0;
+  const lines = text.split('\n');
+  let currentTipo = '';
+  const newProcs = [];
+
+  // Detect type from section headers
+  const tipoMap = {
+    '910002': 'NF',
+    '910004': 'IC',
+    '910005': 'PA',
+    '1733': 'PIC',
+    'Petição Inicial': 'PI',
+    '910003': 'PP',
+  };
+
+  for(const line of lines){
+    const trimmed = line.trim();
+    // Section header detection
+    for(const [key, tipo] of Object.entries(tipoMap)){
+      if(trimmed.includes(key)) { currentTipo = tipo; break; }
+    }
+    if(trimmed.includes('Petição Inicial')) currentTipo = 'PI';
+
+    // Number pattern: XX.XXXX.XXXXXXXXX-X
+    const numMatch = trimmed.match(/^(\d{2}\.\d{4}\.\d{8,9}-\d)/);
+    if(numMatch && currentTipo){
+      const num = numMatch[1];
+      // Skip if already exists
+      if(procs.find(p=>p.num===num)) continue;
+
+      // Parse rest of line
+      const rest = trimmed.substring(num.length).trim();
+      // Extract assunto (first field after number)
+      const assuntoMatch = rest.match(/^([\d]+ - [^0-9\n]+?)(?:\s{2,}|\t|$)/);
+      const assunto = assuntoMatch ? assuntoMatch[1].trim() : rest.split('\t')[0].trim().substring(0,60);
+
+      // Extract date and days from the line or nearby lines
+      const dateMatch = rest.match(/(\d{2}\/\d{2}\/\d{2,4})/);
+      const dtUltimoAto = dateMatch ? dateMatch[1] : '';
+
+      // Extract dias from numbers at end
+      const diasMatch = rest.match(/(\d+)\s+(\d+)\s*$/);
+      const diasUltAto = diasMatch ? parseInt(diasMatch[1]) : 0;
+      const diasInst = diasMatch ? parseInt(diasMatch[2]) : 0;
+
+      // Determine dtInst from diasInst
+      let dtInst = '';
+      if(diasInst > 0){
+        const d = new Date(HOJE() - diasInst*86400000);
+        dtInst = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+      }
+
+      newProcs.push(mkProc({
+        id: Date.now() + count,
+        num, tipo: currentTipo,
+        assunto: assunto || rest.substring(0,50),
+        dtInst, dtUltimoAto,
+        diasInst, diasUltAto,
+        status: 'triagem',
+        atribuido: '',
+      }));
+      count++;
+    }
+  }
+
+  procs = [...procs, ...newProcs];
+  saveLocal();
+  renderUI();
+  el('import-result').textContent = `✓ ${count} procedimentos importados`;
+  toast(`${count} procedimentos importados`);
+  if(count===0) el('import-result').textContent = 'Nenhum procedimento encontrado. Verifique o formato do texto.';
+}
+
+// ── RENDER UI ────────────────────────────────────────────────────────
+function renderUI(){
+  updStats();
+  const t = filt;
+  if(t==='dash') renderDash();
+  else if(t==='all') renderAll();
+  else if(t==='prazo') renderPrazos();
+}
+
+function updStats(){
+  const active = procs.filter(p=>p.status!=='finalizado');
+  el('n-all').textContent = procs.length;
+  el('ttb-all').textContent = procs.length;
+
+  // Prazos críticos
+  const criticos = procs.filter(p=>{
+    const sp = statusPrazo(p);
+    return p.status!=='finalizado' && (sp==='vencido'||sp==='critico');
+  });
+  el('n-prazo').textContent = criticos.length;
+  el('ttb-prazo').textContent = criticos.length;
+
+  // By tipo
+  ['NF','PA','IC','PIC','PP'].forEach(t=>{
+    const n = procs.filter(p=>p.tipo===t && p.status!=='finalizado').length;
+    el('n-'+t).textContent = n;
+  });
+
+  // By status
+  ['triagem','instrucao','diligencias','desfecho','finalizado'].forEach(s=>{
+    el('n-'+s).textContent = procs.filter(p=>p.status===s).length;
+  });
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────
+function renderDash(){
+  const d = el('dash-root');
+  if(!d) return;
+  const active = procs.filter(p=>p.status!=='finalizado');
+  const finalizados = procs.filter(p=>p.status==='finalizado');
+  const vencidos = active.filter(p=>statusPrazo(p)==='vencido');
+  const criticos = active.filter(p=>statusPrazo(p)==='critico');
+
+  const byTipo = {};
+  active.forEach(p=>{ byTipo[p.tipo]=(byTipo[p.tipo]||0)+1; });
+  const maxTipo = Math.max(...Object.values(byTipo),1);
+
+  const tipoColors = {NF:'#7c3aed',PA:'#16a34a',IC:'#2563eb',PIC:'#dc2626',PP:'#d97706'};
+
+  d.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:15px;font-weight:600">Inventário Extrajudicial</div>
+        <div style="font-size:12px;color:var(--txm)">Polo Marajó I · ${HOJE().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}</div>
+      </div>
+      <button class="btn btn-sm" onclick="openImport()">📥 Importar SIMP</button>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-l">Total em aberto</div>
+        <div class="kpi-v">${active.length}</div>
+        <div class="kpi-s">procedimentos ativos</div>
+        <div class="kpi-bar" style="width:100%;background:var(--cb)"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Prazo vencido</div>
+        <div class="kpi-v" style="color:#dc2626">${vencidos.length}</div>
+        <div class="kpi-s">acima do prazo legal</div>
+        <div class="kpi-bar" style="width:${Math.round(vencidos.length/Math.max(active.length,1)*100)}%;background:#dc2626"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Atenção (>80%)</div>
+        <div class="kpi-v" style="color:#d97706">${criticos.length}</div>
+        <div class="kpi-s">prazo acima de 80%</div>
+        <div class="kpi-bar" style="width:${Math.round(criticos.length/Math.max(active.length,1)*100)}%;background:#d97706"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Finalizados</div>
+        <div class="kpi-v" style="color:#16a34a">${finalizados.length}</div>
+        <div class="kpi-s">arquivados / TAC / ACP</div>
+        <div class="kpi-bar" style="width:${Math.min(100,Math.round(finalizados.length/Math.max(procs.length,1)*100))}%;background:#16a34a"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Proc. Administrativo</div>
+        <div class="kpi-v" style="color:#16a34a">${byTipo.PA||0}</div>
+        <div class="kpi-s">maior volume</div>
+        <div class="kpi-bar" style="width:${Math.round((byTipo.PA||0)/Math.max(active.length,1)*100)}%;background:#16a34a"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="card">
+        <div style="font-size:12px;font-weight:500;color:var(--txm);margin-bottom:12px">Volume por tipo</div>
+        ${Object.entries(byTipo).sort((a,b)=>b[1]-a[1]).map(([tipo,n])=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <div style="font-size:12px;color:var(--txm);width:110px;text-align:right;flex-shrink:0">${TIPO_NOMES[tipo]||tipo}</div>
+            <div style="flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden">
+              <div style="height:100%;border-radius:4px;background:${tipoColors[tipo]||'#888'};width:${Math.round(n/maxTipo*100)}%"></div>
+            </div>
+            <div style="font-size:12px;font-weight:500;min-width:18px">${n}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="card">
+        <div style="font-size:12px;font-weight:500;color:var(--txm);margin-bottom:10px">Prazos vencidos / críticos</div>
+        ${vencidos.slice(0,5).map(p=>{
+          const dias = diasDesdeInst(p);
+          const prazo = prazoLegal(p);
+          const excesso = dias - prazo;
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--cb)">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--sb);font-family:monospace">${p.num.substring(0,18)}</div>
+              <div style="font-size:11px;color:var(--tx2)">${(p.assunto||'').substring(0,30)}</div>
+            </div>
+            <span style="font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;background:#fee2e2;color:#b91c1c;white-space:nowrap">+${excesso}d</span>
+          </div>`;
+        }).join('') || '<div style="color:var(--txm);font-size:13px">Nenhum prazo vencido</div>'}
+        ${vencidos.length>5?`<div style="font-size:11px;color:var(--txm);margin-top:6px">+ ${vencidos.length-5} outros vencidos</div>`:''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:12px;font-weight:500;color:var(--txm);margin-bottom:10px">Distribuição por status</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        ${[
+          {s:'triagem',l:'Triagem',c:'#94a3b8'},
+          {s:'instrucao',l:'Em instrução',c:'#3b82f6'},
+          {s:'diligencias',l:'Diligências',c:'#f59e0b'},
+          {s:'desfecho',l:'Ag. desfecho',c:'#8b5cf6'},
+          {s:'finalizado',l:'Finalizado',c:'#10b981'},
+        ].map(({s,l,c})=>{
+          const n = procs.filter(p=>p.status===s).length;
+          return `<div style="text-align:center;min-width:80px">
+            <div style="width:48px;height:48px;border-radius:50%;background:${c}20;color:${c};font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;cursor:pointer" onclick="sfStatus('${s}',null)">${n}</div>
+            <div style="font-size:11px;color:var(--txm)">${l}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ── RENDER ALL ───────────────────────────────────────────────────────
+function renderAll(){
+  const container = el('list-all');
+  const busca = (g('busca')||'').toLowerCase();
+  const fTipo = g('filt-tipo');
+  const fStatus = g('filt-status');
+
+  let list = procs.filter(p=>{
+    if(filtTipo && p.tipo!==filtTipo) return false;
+    if(fTipo && p.tipo!==fTipo) return false;
+    if(fStatus && p.status!==fStatus) return false;
+    if(filtStatus && p.status!==filtStatus) return false;
+    if(busca && !p.num.toLowerCase().includes(busca) && !(p.assunto||'').toLowerCase().includes(busca)) return false;
+    return true;
+  }).sort((a,b)=>diasDesdeInst(b)-diasDesdeInst(a));
+
+  if(!list.length){
+    container.innerHTML='<div class="empty">Nenhum procedimento encontrado</div>';
+    return;
+  }
+  container.innerHTML = list.map(p=>renderCard(p)).join('');
+}
+
+function renderPrazos(){
+  const container = el('list-prazo');
+  const vencidos = procs.filter(p=>p.status!=='finalizado'&&statusPrazo(p)==='vencido').sort((a,b)=>diasDesdeInst(b)-diasDesdeInst(a));
+  const criticos = procs.filter(p=>p.status!=='finalizado'&&statusPrazo(p)==='critico').sort((a,b)=>diasDesdeInst(b)-diasDesdeInst(a));
+  const atencao = procs.filter(p=>p.status!=='finalizado'&&statusPrazo(p)==='atencao').sort((a,b)=>diasDesdeInst(b)-diasDesdeInst(a));
+
+  let html = '';
+  if(vencidos.length) html += `<div style="font-size:12px;font-weight:600;color:#dc2626;margin:0 0 8px">🔴 Prazo vencido — ${vencidos.length} procedimento(s)</div>`+vencidos.map(p=>renderCard(p)).join('');
+  if(criticos.length) html += `<div style="font-size:12px;font-weight:600;color:#d97706;margin:12px 0 8px">🟡 Crítico (>80%) — ${criticos.length} procedimento(s)</div>`+criticos.map(p=>renderCard(p)).join('');
+  if(atencao.length) html += `<div style="font-size:12px;font-weight:600;color:#2563eb;margin:12px 0 8px">🔵 Atenção (>60%) — ${atencao.length} procedimento(s)</div>`+atencao.map(p=>renderCard(p)).join('');
+  if(!html) html='<div class="empty">Nenhum prazo crítico</div>';
+  container.innerHTML = html;
+}
+
+function renderCard(p){
+  const dias = diasDesdeInst(p);
+  const prazo = prazoLegal(p);
+  const sp = statusPrazo(p);
+  const pct = prazo ? Math.min(100,Math.round(dias/prazo*100)) : 0;
+  const barColor = sp==='vencido'?'#ef4444':sp==='critico'?'#f59e0b':sp==='atencao'?'#3b82f6':'#10b981';
+  const cardClass = sp==='vencido'?'urg':sp==='critico'?'warn':'';
+  const diasRestLabel = prazo ? (dias>=prazo ? `+${dias-prazo}d vencido` : `${prazo-dias}d restantes`) : '';
+
+  const desfechoLabel = {
+    arquivamento:'🗂 Arquivado',tac:'✅ TAC',recomendacao:'📋 Recomendação',
+    acp:'⚖ ACP ajuizada',ajuizamento:'⚖ Ajuizado',prorrogacao:'🔄 Prorrogado'
+  }[p.desfecho]||'';
+  const desfechoClass = {
+    arquivamento:'def-arc',tac:'def-tac',recomendacao:'def-rec',
+    acp:'def-acp',ajuizamento:'def-acp',prorrogacao:'badge-pp'
+  }[p.desfecho]||'';
+
+  const statusLabel = {
+    triagem:'Triagem',instrucao:'Em instrução',diligencias:'Diligências',
+    desfecho:'Ag. desfecho',finalizado:'Finalizado'
+  }[p.status]||p.status;
+
+  return `<div class="card ${cardClass}" id="card-${p.id}">
+    <div class="ph">
+      <div>
+        <div class="pnum" onclick="togCard(${p.id})">${p.num}</div>
+        <div class="psub">${p.assunto||'—'}</div>
+        <div class="pmeta">
+          ${p.dtInst?'<span>Inst: '+p.dtInst+'</span>':''}
+          ${p.dtUltimoAto?'<span>Último ato: '+p.dtUltimoAto+'</span>':''}
+          ${p.atribuido?'<span>→ '+p.atribuido+'</span>':''}
+        </div>
+      </div>
+      <div class="pbadges">
+        <span class="badge ${TIPO_BADGES[p.tipo]||''}">${p.tipo}</span>
+        ${p.desfecho?`<span class="badge ${desfechoClass}">${desfechoLabel}</span>`:`<span class="badge" style="background:#f3f4f6;color:#374151">${statusLabel}</span>`}
+        ${sp==='vencido'?'<span class="badge badge-urg">Vencido</span>':sp==='critico'?'<span class="badge badge-warn">Crítico</span>':''}
+      </div>
+    </div>
+    ${prazo?`<div class="pbar-wrap">
+      <div class="pbar-track"><div class="pbar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div class="pbar-label"><span>${dias}d / ${prazo}d</span><span style="color:${barColor};font-weight:600">${diasRestLabel}</span></div>
+    </div>`:''}
+    <div class="cexp" id="cexp-${p.id}">
+      <div class="fr">
+        <div>
+          <label class="fl">Tipo de procedimento</label>
+          <select class="fc" id="tipo-${p.id}">
+            ${['NF','PP','IC','PA','PIC','PI'].map(t=>`<option value="${t}" ${p.tipo===t?'selected':''}>${TIPO_NOMES[t]||t}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="fl">Status</label>
+          <select class="fc" id="st-${p.id}">
+            <option value="triagem" ${p.status==='triagem'?'selected':''}>Triagem</option>
+            <option value="instrucao" ${p.status==='instrucao'?'selected':''}>Em instrução</option>
+            <option value="diligencias" ${p.status==='diligencias'?'selected':''}>Diligências pendentes</option>
+            <option value="desfecho" ${p.status==='desfecho'?'selected':''}>Aguardando desfecho</option>
+            <option value="finalizado" ${p.status==='finalizado'?'selected':''}>Finalizado</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr">
+        <div>
+          <label class="fl">Atribuído para</label>
+          <select class="fc" id="atr-${p.id}">
+            <option value="">— Selecionar —</option>
+            <option value="Assessor (PJ)" ${p.atribuido==='Assessor (PJ)'?'selected':''}>Assessor (PJ)</option>
+            <option value="${localStorage.getItem('mppa_estag1')||'Amanda'}" ${p.atribuido===(localStorage.getItem('mppa_estag1')||'Amanda')?'selected':''}>${localStorage.getItem('mppa_estag1')||'Amanda'}</option>
+            <option value="${localStorage.getItem('mppa_estag2')||'Estagiário 2'}" ${p.atribuido===(localStorage.getItem('mppa_estag2')||'Estagiário 2')?'selected':''}>${localStorage.getItem('mppa_estag2')||'Estagiário 2'}</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl">Desfecho</label>
+          <select class="fc" id="def-${p.id}">
+            <option value="">— Pendente —</option>
+            <option value="arquivamento" ${p.desfecho==='arquivamento'?'selected':''}>Arquivamento</option>
+            <option value="tac" ${p.desfecho==='tac'?'selected':''}>TAC</option>
+            <option value="recomendacao" ${p.desfecho==='recomendacao'?'selected':''}>Recomendação</option>
+            <option value="acp" ${p.desfecho==='acp'?'selected':''}>ACP ajuizada</option>
+            <option value="ajuizamento" ${p.desfecho==='ajuizamento'?'selected':''}>Ajuizamento</option>
+            <option value="prorrogacao" ${p.desfecho==='prorrogacao'?'selected':''}>Prorrogação</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+        <div>
+          <label class="fl">Data de instauração</label>
+          <input class="fc" type="text" id="dtinst-${p.id}" value="${p.dtInst}" placeholder="DD/MM/AAAA">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding-top:18px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="pro-${p.id}" ${p.prorrogado?'checked':''}>
+            Prorrogado
+          </label>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <label class="fl">Relatório / Observações</label>
+        <textarea class="fc" id="obs-${p.id}" placeholder="Fatos apurados, diligências realizadas, situação atual...">${p.obs||''}</textarea>
+      </div>
+      <div style="margin-bottom:10px">
+        <label class="fl">Link / Protocolo</label>
+        <input class="fc" type="text" id="lnk-${p.id}" value="${p.lnk||''}" placeholder="Link do SIMP ou protocolo">
+      </div>
+      <div class="fa">
+        <button class="btn btn-p btn-sm" onclick="saveCard(${p.id})">Salvar</button>
+        <span class="sm" id="sm-${p.id}">✓</span>
+        ${isA?`<button class="btn btn-sm" style="color:#dc2626;border-color:#fca5a5" onclick="excluir(${p.id})">Apagar</button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function togCard(id){
+  const exp = el('cexp-'+id);
+  if(!exp) return;
+  exp.classList.toggle('open');
+}
+
+function saveCard(id){
+  const p = procs.find(x=>x.id===id);
+  if(!p) return;
+  p.tipo = g('tipo-'+id) || p.tipo;
+  p.status = g('st-'+id) || p.status;
+  p.atribuido = g('atr-'+id);
+  p.desfecho = g('def-'+id);
+  p.dtInst = g('dtinst-'+id);
+  p.prorrogado = el('pro-'+id)?.checked||false;
+  p.obs = g('obs-'+id);
+  p.lnk = g('lnk-'+id);
+  const sm=el('sm-'+id);
+  if(sm){sm.classList.add('show');setTimeout(()=>sm.classList.remove('show'),2000);}
+  syncSave();
+  updStats();
+  renderUI();
+  toast('Salvo');
+}
+
+function excluir(id){
+  if(!confirm('Apagar este procedimento?')) return;
+  procs = procs.filter(p=>p.id!==id);
+  syncSave();
+  renderUI();
+  toast('Apagado');
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────────
+function swTab(n, el_){
+  filt = n; filtTipo = ''; filtStatus = '';
+  document.querySelectorAll('.tc-content').forEach(t=>t.style.display='none');
+  document.querySelectorAll('.tbb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('active'));
+
+  ['dash','all','prazo'].forEach(t=>{
+    const tab = el('tab-'+t); if(tab) tab.style.display='none';
+    const tbb = el('tbb-'+t); if(tbb) tbb.classList.remove('active');
+  });
+  ['dash','all','prazo','NF','PA','IC','PIC','PP','triagem','instrucao','diligencias','desfecho','finalizado'].forEach(s=>{
+    const ni = el('ni-'+s); if(ni) ni.classList.remove('active');
+  });
+
+  const tabEl = el('tab-'+n);
+  if(tabEl) tabEl.style.display='block';
+  const tbbEl = el('tbb-'+n);
+  if(tbbEl) tbbEl.classList.add('active');
+  if(el_) el_.classList.add('active');
+
+  const titles = {dash:'Dashboard Extrajudicial',all:'Todos os Procedimentos',prazo:'Prazos Críticos'};
+  el('tb-title').textContent = titles[n]||n;
+  renderUI();
+}
+
+function sfTipo(tipo, el_){
+  filtTipo = tipo; filtStatus = '';
+  filt = 'all';
+  swTab('all', el_);
+}
+
+function sfStatus(status, el_){
+  filtStatus = status; filtTipo = '';
+  filt = 'all';
+  swTab('all', el_);
+}
+
+// ── NOVO PROC ────────────────────────────────────────────────────────
+function openNovo(){
+  const num = prompt('Número do procedimento (ex: 09.2026.00001234-5):');
+  if(!num||!num.trim()) return;
+  const tipo = prompt('Tipo (NF/PP/IC/PA/PIC/PI):', 'PA');
+  if(!tipo) return;
+  const assunto = prompt('Assunto:','');
+  const dtInst = prompt('Data de instauração (DD/MM/AAAA):','');
+
+  const p = mkProc({
+    id: Date.now(),
+    num: num.trim(),
+    tipo: tipo.trim().toUpperCase(),
+    assunto: assunto||'',
+    dtInst: dtInst||'',
+    status:'triagem'
+  });
+  procs.unshift(p);
+  syncSave();
+  renderUI();
+  toast('Procedimento cadastrado');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+// Auto-login if session saved
+const savedUser = localStorage.getItem('mppa_ej_user');
+if(savedUser){
+  try{
+    const u = JSON.parse(savedUser);
+    CU = u.name; isA = u.role==='assessor';
+    el('login').style.display='none';
+    el('app').style.display='flex';
+    el('sb-user').textContent = CU;
+    loadAll();
+  }catch(e){}
+}
+</script>
+</body>
+</html>
