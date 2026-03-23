@@ -854,7 +854,7 @@ async function _gerarDespachoComTipo(id, tipoSel) {
     } else {
       parts = [{text: prompt}];
     }
-    var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key, {
+    var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+(localStorage.getItem('mppa_gemini_model')||'gemini-2.0-flash')+':generateContent?key='+key, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:0.2,maxOutputTokens:1800}})
     });
