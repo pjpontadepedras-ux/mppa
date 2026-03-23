@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Teste Claude API — MPPA</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:#f4f5f7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{background:#fff;border-radius:12px;padding:32px 36px;max-width:520px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+h2{font-size:17px;color:#1a2744;margin-bottom:4px}
+.sub{font-size:12px;color:#8892aa;margin-bottom:24px}
+label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#5a6272;display:block;margin-bottom:5px}
+input{width:100%;padding:10px 12px;border:1.5px solid #d0d4dc;border-radius:6px;font-size:13px;margin-bottom:14px;font-family:inherit;color:#1c2333}
+input:focus{outline:none;border-color:#4f78d4}
+button{width:100%;padding:11px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+button:hover{background:#253561}
+button:disabled{opacity:.5;cursor:not-allowed}
+.log{margin-top:16px;background:#f8f9fb;border:1px solid #e2e5ea;border-radius:8px;padding:14px;font-size:12px;font-family:monospace;line-height:1.9;max-height:380px;overflow-y:auto;white-space:pre-wrap;display:none}
+.ok{color:#166534;font-weight:600}
+.err{color:#991b1b;font-weight:600}
+.warn{color:#92400e}
+.info{color:#1e40af}
+</style>
+</head>
+<body>
+<div class="box">
+  <h2>Teste da API Claude</h2>
+  <p class="sub">MPPA · Polo Marajó I · claude-haiku-3-5</p>
+
+  <label>Chave API Anthropic (sk-ant-...)</label>
+  <input type="text" id="key" placeholder="sk-ant-api03-...">
+
+  <button id="btn" onclick="testar()">▶ Testar agora</button>
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+var logEl = document.getElementById('log');
+var btn   = document.getElementById('btn');
+
+function log(msg, cls) {
+  logEl.style.display = 'block';
+  var line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+window.onload = function() {
+  var saved = localStorage.getItem('mppa_ak');
+  if (saved && saved.length > 10) {
+    document.getElementById('key').value = saved;
+    log('Chave carregada do sistema.', 'info');
+  } else {
+    log('Nenhuma chave salva. Cole a chave sk-ant-... no campo.', 'warn');
+  }
+};
+
+async function testar() {
+  logEl.innerHTML = '';
+  logEl.style.display = 'block';
+
+  var key = document.getElementById('key').value.trim();
+  if (!key) { log('Cole a chave antes de testar.', 'err'); return; }
+  if (!key.startsWith('sk-ant-')) {
+    log('AVISO: chave não começa com sk-ant- — verifique se copiou corretamente.', 'warn');
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Testando...';
+
+  log('Modelo: claude-haiku-4-5-20251001', 'info');
+  log('Chave: ' + key.substring(0, 16) + '... (' + key.length + ' chars)');
+  log('Enviando requisição...');
+
+  var t0 = Date.now();
+  try {
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':         'application/json',
+        'x-api-key':            key,
+        'anthropic-version':    '2023-06-01',
+        'anthropic-dangerous-direct-browser-calls': 'true'
+      },
+      body: JSON.stringify({
+        model:      'claude-haiku-4-5-20251001',
+        max_tokens: 30,
+        messages:   [{role: 'user', content: 'Responda apenas: API MPPA OK.'}]
+      })
+    });
+
+    var ms = Date.now() - t0;
+    log('HTTP ' + resp.status + ' · ' + ms + 'ms', resp.ok ? 'ok' : 'warn');
+
+    var data = await resp.json();
+
+    if (resp.ok && data.content && data.content[0]) {
+      var texto = data.content[0].text.trim();
+      log('');
+      log('✓ API FUNCIONANDO!', 'ok');
+      log('Resposta: ' + texto, 'ok');
+      log('Modelo confirmado: ' + (data.model || 'claude'), 'ok');
+      log('Latência: ' + ms + 'ms', 'ok');
+      log('Tokens usados: ' + (data.usage ? data.usage.input_tokens + ' in / ' + data.usage.output_tokens + ' out' : 'n/a'));
+      log('');
+      log('Chave salva no sistema.', 'ok');
+      log('Pode fechar esta página e usar os botões Despacho no módulo extrajudicial.', 'ok');
+      localStorage.setItem('mppa_ak', key);
+
+    } else if (data.error) {
+      log('');
+      log('✗ Erro ' + (data.error.type||'') + ': ' + (data.error.message||''), 'err');
+      var t = data.error.type || '';
+      if (t === 'authentication_error') {
+        log('CAUSA: Chave inválida ou revogada.', 'warn');
+        log('SOLUÇÃO: Gere uma nova chave em console.anthropic.com', 'warn');
+      } else if (t === 'permission_error') {
+        log('CAUSA: Chave sem créditos ou plano expirado.', 'warn');
+        log('SOLUÇÃO: Verifique o billing em console.anthropic.com', 'warn');
+      } else if (t === 'rate_limit_error') {
+        log('CAUSA: Rate limit atingido — aguarde 1 minuto.', 'warn');
+      } else if (resp.status === 404) {
+        log('CAUSA: Modelo não encontrado. Pode ser nome desatualizado.', 'warn');
+      } else {
+        log('Verifique console.anthropic.com para mais detalhes.', 'warn');
+      }
+    } else {
+      log('Resposta inesperada: ' + JSON.stringify(data).substring(0,200), 'warn');
+    }
+
+  } catch(e) {
+    log('');
+    log('✗ Erro de rede: ' + e.message, 'err');
+    if (e.message.toLowerCase().includes('cors') || e.message.toLowerCase().includes('fetch')) {
+      log('');
+      log('CORS bloqueado — comportamento esperado em alguns browsers.', 'warn');
+      log('A API Claude não aceita chamadas diretas do browser por padrão.', 'warn');
+      log('');
+      log('SOLUÇÃO: O header "anthropic-dangerous-direct-browser-calls: true"', 'warn');
+      log('precisa estar ativo. Se continuar falhando, o firewall da rede', 'warn');
+      log('pode estar bloqueando api.anthropic.com.', 'warn');
+      log('Teste com hotspot do celular para confirmar.', 'warn');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ Testar novamente';
+  }
+}
+</script>
+</body>
+</html>
