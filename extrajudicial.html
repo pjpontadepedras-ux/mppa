@@ -713,7 +713,6 @@ function renderUI() {
 
 
 let _despachoProcId = null;
-let GEMINI_KEY = localStorage.getItem('mppa_gemini') || '';
 
 
 // ── PDF HANDLING ──────────────────────────────────────────────────────
@@ -832,45 +831,71 @@ async function gerarDespacho(id) {
 async function _gerarDespachoComTipo(id, tipoSel) {
   var p = procs.find(function(x){return String(x.id)===String(id);});
   if (!p) return;
-  var key = GEMINI_KEY || localStorage.getItem('mppa_gemini') || '';
-  if (!key) { toast('Configure a chave Gemini nas Configuracoes do modulo judicial'); return; }
+
+  var gsUrl    = localStorage.getItem('mppa_gs') || '';
+  var claudeKey = localStorage.getItem('mppa_ak') || '';
+  if (!gsUrl)    { toast('Configure a URL do Apps Script nas Configuracoes'); return; }
+  if (!claudeKey){ toast('Configure a chave Claude nas Configuracoes'); return; }
+
   var r = calcPrazo(p);
   var tipoLabels = {prorrogacao:'Prorrogacao de prazo',arquivamento_NF:'Arquivamento NF',instauracao_PP:'Instauracao de PP',instauracao_IC:'Instauracao de IC',diligencias:'Diligencias'};
   el('md-title').textContent = (tipoLabels[tipoSel]||tipoSel)+' - '+p.num.substring(0,18);
-  el('md-status').textContent = 'Gerando com Gemini...'; el('md-status').style.color='#f59e0b';
+  el('md-status').textContent = 'Gerando com Claude...'; el('md-status').style.color='#f59e0b';
+
   var btn = el('gd-btn-'+id);
   if (btn) { btn.disabled=true; btn.innerHTML='<span class="spin"></span>'; }
+
   showPdfInfoModal(id);
+
   try {
     var prompt = buildPrompt(p, r, tipoSel);
     var pdfInfo = _pdfData[id];
-    var parts;
+    var messages;
+
     if (pdfInfo) {
-      el('md-status').textContent = 'Analisando PDF e gerando despacho...';
-      parts = [
-        {inline_data: {mime_type: 'application/pdf', data: pdfInfo.b64}},
-        {text: 'Analise o procedimento acima e com base nele redija:\n\n' + prompt}
-      ];
+      el('md-status').textContent = 'Analisando PDF com Claude...';
+      messages = [{
+        role: 'user',
+        content: [
+          {type:'document', source:{type:'base64', media_type:'application/pdf', data: pdfInfo.b64}},
+          {type:'text', text:'Analise o procedimento acima e com base nele redija:\n\n' + prompt}
+        ]
+      }];
     } else {
-      parts = [{text: prompt}];
+      messages = [{role: 'user', content: prompt}];
     }
-    var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+(localStorage.getItem('mppa_gemini_model')||'gemini-2.0-flash')+':generateContent?key='+key, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:0.2,maxOutputTokens:1800}})
+
+    var resp = await fetch(gsUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({
+        action:     'claude',
+        apiKey:     claudeKey,
+        model:      'claude-haiku-4-5-20251001',
+        max_tokens: 2000,
+        system:     'Voce e assessor juridico da Promotoria de Justica de Ponta de Pedras, MPPA - Polo Marajo I. Redija pecas juridicas em portugues brasileiro, texto corrido, sem marcadores, sem listas, sem bullet points. Linguagem tecnica e objetiva. Cite corretamente os artigos e resolucoes do CNMP aplicaveis.',
+        messages:   messages
+      })
     });
-    if (!resp.ok) { var e=await resp.json(); throw new Error(e.error&&e.error.message||'Erro API'); }
-    var data=await resp.json();
-    el('md-texto').value=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'').trim();
-    var hasPdf = pdfInfo ? ' (com base no PDF)' : '';
-    el('md-status').textContent='Despacho gerado'+hasPdf+' - revise e ajuste antes de usar'; el('md-status').style.color='#16a34a';
-  } catch(er) { el('md-status').textContent='Erro: '+er.message; el('md-status').style.color='#dc2626'; }
-  finally { if(btn){btn.disabled=false;btn.innerHTML='Despacho';} }
+
+    var data = await resp.json();
+
+    if (data.ok && data.text) {
+      el('md-texto').value = data.text.trim();
+      var hasPdf = pdfInfo ? ' (com base no PDF)' : '';
+      el('md-status').textContent = 'Despacho gerado' + hasPdf + ' - revise antes de usar';
+      el('md-status').style.color = '#16a34a';
+    } else {
+      throw new Error(data.error || 'Erro desconhecido');
+    }
+  } catch(er) {
+    el('md-status').textContent = 'Erro: ' + er.message;
+    el('md-status').style.color = '#dc2626';
+  } finally {
+    if (btn) { btn.disabled=false; btn.innerHTML='Despacho'; }
+  }
 }
 
-function copiarDespacho() {
-  var txt=el('md-texto').value; if(!txt)return;
-  navigator.clipboard&&navigator.clipboard.writeText(txt).then(function(){toast('Copiado');}).catch(function(){el('md-texto').select();document.execCommand('copy');toast('Copiado');});
-}
 
 async function gerarDespachoDocx() {
   const texto=el("md-texto").value; if(!texto.trim()){toast("Gere o despacho primeiro");return;}
