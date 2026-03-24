@@ -677,7 +677,7 @@ function cardHtml(p) {
   var apagaBtn = isA ? '<button class="btn btn-sm" style="color:#dc2626;border-color:#fca5a5" onclick="excluir(\''+r.id+'\')">Apagar</button>' : '';
 
   return '<div class="card" style="'+bl+'" id="card-'+r.id+'">'
-    + '<div class="card-head" onclick="togCard(\''+r.id+'\')">'
+    + '<div class="card-head" data-id="' + r.id + '">'
     + '<div style="flex:1;min-width:0">'
     + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">'
     + '<span class="badge '+( TIPO_BADGE[r.tipo]||'')+'" >'+r.tipo+'</span>'
@@ -739,13 +739,13 @@ function copyNum(evt, el, num) {
 }
 
 function togCard(id) {
-  el('cexp-'+id)?.classList.toggle('open');
-  // If despacho was saved, show indicator
-  const _p = procs.find(x=>String(x.id)===String(id));
-  const _btn = el('gd-btn-'+id);
+  var cexp = document.getElementById('cexp-'+id);
+  if(!cexp) { console.warn('togCard: cexp not found for id:', id); return; }
+  cexp.classList.toggle('open');
+  var _p = procs.find(function(x){ return String(x.id)===String(id); });
+  var _btn = document.getElementById('gd-btn-'+id);
   if(_btn && _p && _p.ultimoDespacho) {
     _btn.style.background = '#dcfce7';
-    _btn.title = 'Despacho salvo — clique para ver/gerar novo';
   }
 }
 
@@ -1224,6 +1224,17 @@ async function gerarDespachoDocx() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────
+
+// Event delegation for card-head clicks (more reliable than inline onclick)
+document.addEventListener('click', function(e) {
+  var head = e.target.closest('.card-head');
+  if(head && head.dataset && head.dataset.id) {
+    // Don't toggle if clicked on pnum (copy) or button
+    if(e.target.closest('.pnum') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea') || e.target.closest('label')) return;
+    togCard(head.dataset.id);
+  }
+});
+
 const sess = localStorage.getItem('mppa_ej_sess');
 if (sess) {
   try {
