@@ -328,7 +328,7 @@ async function importarExcel(input) {
         const prorrogado = /920054|1000031|Prorrogação/.test(ultAto);
 
         const novo = {
-          id: Date.now() + i + Math.random(),
+          id: String(Date.now()) + '_' + i,
           num, tipo, assunto, dtInst,
           prorrogado, diasInstSnap: diasSnap,
           atribuido: alocado !== 'None' ? alocado.replace('FRANCYS LUCY GALHARDO DO VALE','Promotora').replace('LUIZ GUSTAVO','Luiz Gustavo') : '',
@@ -348,6 +348,8 @@ async function importarExcel(input) {
             procs[idx].prorrogado  = novo.prorrogado;
             procs[idx].diasInstSnap = novo.diasInstSnap;
             procs[idx].ultimoAto   = novo.ultimoAto;
+            // Normalize ID
+            procs[idx].id = String(procs[idx].id).replace(/[^a-zA-Z0-9_-]/g, '_');
             atualiz++;
           }
         } else {
@@ -415,8 +417,12 @@ function loadLocal() {
   if (!raw) return;
   try {
     let data = JSON.parse(raw);
-    if (Array.isArray(data)) procs = data;
-    else if (data.procs) procs = data.procs;
+    let arr = Array.isArray(data) ? data : (data.procs || []);
+    // Normalize IDs: replace dots/special chars to avoid HTML attribute issues
+    procs = arr.map(function(p) {
+      p.id = String(p.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+      return p;
+    });
   } catch(e) {}
 }
 
@@ -675,7 +681,7 @@ function cardHtml(p) {
     + '<div style="flex:1;min-width:0">'
     + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">'
     + '<span class="badge '+( TIPO_BADGE[r.tipo]||'')+'" >'+r.tipo+'</span>'
-    + '<span class="pnum" onclick="copyNum(this,\''+r.num+'\')" title="Clique para copiar" style="cursor:pointer">'+r.num+'</span>'
+    + '<span class="pnum" onclick="event.stopPropagation();copyNum(this,\''+r.num+'\')" title="Clique para copiar" style="cursor:pointer">'+r.num+'</span>'
     + urgBadge + acaoBadge + prorBadge
     + '</div>'
     + '<div class="psub">'+(r.assunto||'').replace(/^\d+ - /,'').substring(0,60)+'</div>'
@@ -717,18 +723,18 @@ function cardHtml(p) {
 
 
 
-function copyNum(el, num) {
-  navigator.clipboard && navigator.clipboard.writeText(num).then(function() {
-    var orig = el.style.color;
-    el.style.color = '#16a34a';
-    el.title = 'Copiado!';
-    setTimeout(function() { el.style.color = orig; el.title = 'Clique para copiar'; }, 1200);
-  }).catch(function() {
+function copyNum(evt, el, num) {
+  evt && evt.stopPropagation(); // prevent togCard from firing
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(num).then(function() {
+      el.style.color = '#16a34a';
+      setTimeout(function() { el.style.color = ''; }, 1200);
+    }).catch(function(){});
+  } else {
     var ta = document.createElement('textarea');
     ta.value = num; document.body.appendChild(ta); ta.select();
     document.execCommand('copy'); document.body.removeChild(ta);
-    toast('Número copiado: ' + num);
-  });
+  }
   toast('Copiado: ' + num);
 }
 
