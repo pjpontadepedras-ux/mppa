@@ -128,7 +128,7 @@ textarea.fc{min-height:72px;resize:vertical}
         <button class="btn btn-sm" onclick="regegarDespacho()" title="Gerar novamente com o tipo selecionado">↺ Regerar</button>
         <button class="btn btn-sm" onclick="copiarDespacho()">Copiar</button>
         <button class="btn btn-sm btn-p" onclick="gerarDespachoDocx()">DOCX</button>
-        <button class="btn btn-sm" onclick="el('modal-despacho').classList.remove('open')">Fechar</button>
+        <button class="btn btn-sm" onclick="salvarEFecharDespacho()">Fechar</button>
       </div>
     </div>
     <div style="margin-bottom:10px">
@@ -140,6 +140,10 @@ textarea.fc{min-height:72px;resize:vertical}
         <option value="instauracao_IC">Instauração de Inquérito Civil (de NF/PA)</option>
         <option value="diligencias">Diligências — requisição de informações</option>
       </select>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Orientações adicionais (opcional)</label>
+      <textarea id="md-extra" class="fc" style="min-height:56px;font-size:12px;resize:vertical" placeholder="Ex: mencionar que já foi feita diligência X, focar no aspecto Y, não mencionar Z..."></textarea>
     </div>
     <div id="md-pdf-info" style="font-size:12px;padding:6px 10px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:var(--rs);margin-bottom:8px;display:none">
       <span id="md-pdf-label">📎 PDF carregado</span>
@@ -225,6 +229,10 @@ textarea.fc{min-height:72px;resize:vertical}
       <div style="display:flex;align-items:center;gap:8px">
         <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981" title="Sincronizado"></div>
         <button class="btn btn-sm" onclick="el('modal-import').classList.add('open')">📥 Importar SAJ</button>
+        <label class="btn btn-sm" style="cursor:pointer" title="Upload de PDFs em lote — nomeie os arquivos com o número do procedimento">
+          📎 PDFs em lote
+          <input type="file" accept=".pdf" multiple style="display:none" onchange="uploadPdfLote(this)">
+        </label>
         <button class="btn btn-sm btn-p" onclick="novoManual()">+ Novo</button>
       </div>
     </div>
@@ -618,6 +626,18 @@ function renderLista(lista) {
 }
 
 // ── CARD ──────────────────────────────────────────────────────────────
+
+function getAcao(p, r) {
+  if (p.tipo === 'NF') {
+    if (!p.prorrogado && r.diasDec <= 110) return {txt:'Prorrogar', col:'#7c3aed', bg:'#ede9fe'};
+    if (p.prorrogado && r.diasDec <= 120) return {txt:'Aguardar', col:'#0369a1', bg:'#e0f2fe'};
+    return {txt:'Arquivar / PP', col:'#b45309', bg:'#fef3c7'};
+  }
+  if (['PA','IC','PP'].includes(p.tipo)) return {txt:'Prorrogar', col:'#7c3aed', bg:'#ede9fe'};
+  if (p.tipo === 'PIC') return {txt:'Prorrogar', col:'#b91c1c', bg:'#fee2e2'};
+  return {txt:'Verificar', col:'#374151', bg:'#f3f4f6'};
+}
+
 function cardHtml(p) {
   const r = p.pct !== undefined ? p : {...p,...calcPrazo(p)};
   const cor = r.cat==='vencido'?'#ef4444':r.cat==='critico'?'#f59e0b':r.cat==='atencao'?'#3b82f6':'#10b981';
@@ -628,17 +648,7 @@ function cardHtml(p) {
   const prazoLabel = r.prorrogado
     ? `${PRAZOS_BASE[r.tipo]}d + ${PRAZOS_PRORR[r.tipo]}d prorr. = ${r.total}d`
     : `${r.total}d`;
-  // Recommended action
-  function getAcao(p, r) {
-    if (p.tipo === 'NF') {
-      if (!p.prorrogado && r.diasDec <= 110) return {txt:'Prorrogar', col:'#7c3aed', bg:'#ede9fe'};
-      if (p.prorrogado && r.diasDec <= 120) return {txt:'Aguardar', col:'#0369a1', bg:'#e0f2fe'};
-      return {txt:'Arquivar / PP', col:'#b45309', bg:'#fef3c7'};
-    }
-    if (['PA','IC','PP'].includes(p.tipo)) return {txt:'Prorrogar', col:'#7c3aed', bg:'#ede9fe'};
-    if (p.tipo === 'PIC') return {txt:'Prorrogar', col:'#b91c1c', bg:'#fee2e2'};
-    return {txt:'Verificar', col:'#374151', bg:'#f3f4f6'};
-  }
+
   const _acao = (r.cat==='vencido'||r.cat==='critico') ? getAcao(r,r) : null;
   const acaoBadge = _acao ? `<span class="badge" style="background:${_acao.bg};color:${_acao.col}">→ ${_acao.txt}</span>` : '';
 
@@ -715,7 +725,7 @@ function cardHtml(p) {
       <div class="fa">
         <button class="btn btn-p btn-sm" onclick="saveCard('${p.id}')">Salvar</button>
         <span class="sm" id="sm-${p.id}">✓</span>
-        <button class="btn btn-sm" style="background:#f0fdf4;color:#166534;border-color:#86efac" id="gd-btn-${p.id}" onclick="gerarDespacho('${p.id}')">Despacho</button>
+        <button class="btn btn-sm" style="background:#f0fdf4;color:#166534;border-color:#86efac" id="gd-btn-${p.id}" onclick="gerarDespacho('${p.id}')" title="${r.ultimoDespacho?'Despacho salvo':'Gerar despacho'}${_pdfData[String(r.id)]?' · PDF carregado':''}">${r.ultimoDespacho?'✓ Despacho':'Despacho'}${_pdfData[String(r.id)]?' 📎':''}</button>
         ${isA?`<button class="btn btn-sm" style="color:#dc2626;border-color:#fca5a5" onclick="excluir('${p.id}')">Apagar</button>`:''}
       </div>
     </div>
@@ -740,6 +750,13 @@ function copyNum(el, num) {
 
 function togCard(id) {
   el('cexp-'+id)?.classList.toggle('open');
+  // If despacho was saved, show indicator
+  const _p = procs.find(x=>String(x.id)===String(id));
+  const _btn = el('gd-btn-'+id);
+  if(_btn && _p && _p.ultimoDespacho) {
+    _btn.style.background = '#dcfce7';
+    _btn.title = 'Despacho salvo — clique para ver/gerar novo';
+  }
 }
 
 function saveCard(id) {
@@ -781,7 +798,149 @@ let _despachoProcId = null;
 
 
 // ── PDF HANDLING ──────────────────────────────────────────────────────
-var _pdfData = {}; // id -> {name, b64}
+var _pdfData = {}; // cache em memória id -> {name, b64}
+
+// ── IndexedDB para PDFs (sem limite prático de tamanho) ───────────────
+var _idb = null;
+
+function idbOpen() {
+  return new Promise(function(resolve, reject) {
+    if(_idb) { resolve(_idb); return; }
+    var req = indexedDB.open('mppa_pdfs', 1);
+    req.onupgradeneeded = function(e) {
+      e.target.result.createObjectStore('pdfs', {keyPath: 'id'});
+    };
+    req.onsuccess = function(e) { _idb = e.target.result; resolve(_idb); };
+    req.onerror   = function(e) { reject(e); };
+  });
+}
+
+function idbSavePdf(id, name, b64) {
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction('pdfs','readwrite');
+      tx.objectStore('pdfs').put({id: String(id), name: name, b64: b64});
+      tx.oncomplete = resolve;
+      tx.onerror    = reject;
+    });
+  });
+}
+
+function idbDeletePdf(id) {
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction('pdfs','readwrite');
+      tx.objectStore('pdfs').delete(String(id));
+      tx.oncomplete = resolve;
+    });
+  });
+}
+
+function idbLoadAllPdfs() {
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx  = db.transaction('pdfs','readonly');
+      var req = tx.objectStore('pdfs').getAll();
+      req.onsuccess = function(e) {
+        var all = {};
+        (e.target.result||[]).forEach(function(r){ all[r.id] = {name:r.name, b64:r.b64}; });
+        resolve(all);
+      };
+      req.onerror = reject;
+    });
+  });
+}
+
+// Carrega PDFs do IndexedDB na inicialização
+idbLoadAllPdfs().then(function(all) {
+  _pdfData = all;
+  // Atualiza botões dos cards que têm PDF
+  setTimeout(function() { updStats(); }, 300);
+}).catch(function(e) { console.warn('IDB load failed:', e); });
+
+function savePdfLocal() { /* PDFs salvos individualmente via idbSavePdf */ }
+
+
+// ── UPLOAD DE PDFs EM LOTE ────────────────────────────────────────────
+// Nomear arquivos com o número do procedimento: 01.2025.00036147-2.pdf
+function uploadPdfLote(input) {
+  var files = Array.from(input.files);
+  if(!files.length) return;
+
+  var matched = 0, notFound = [];
+
+  // Pattern: extract proc number from filename
+  // Supports: "01.2025.00036147-2.pdf" or "01.2025.00036147-2 - alguma coisa.pdf"
+  var numPattern = /(\d{2}\.\d{4}\.\d{8,9}-\d)/;
+
+  var pending = files.length;
+  files.forEach(function(file) {
+    var m = file.name.match(numPattern);
+    if(!m) { notFound.push(file.name); pending--; checkDone(); return; }
+    var numProc = m[1];
+    // Find proc by number
+    var proc = procs.find(function(p){ return p.num === numProc; });
+    if(!proc) { notFound.push(file.name + ' (não encontrado)'); pending--; checkDone(); return; }
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      _pdfData[String(proc.id)] = {name: file.name, b64: b64};
+      matched++;
+      pending--;
+      checkDone();
+    };
+    reader.onerror = function() { pending--; checkDone(); };
+    reader.readAsDataURL(file);
+  });
+
+  function checkDone() {
+    if(pending > 0) return;
+    // Save all matched PDFs to IndexedDB
+    var savePromises = Object.keys(_pdfData).map(function(id) {
+      var pdf = _pdfData[id];
+      return idbSavePdf(id, pdf.name, pdf.b64);
+    });
+    Promise.all(savePromises).catch(function(e){ console.warn('IDB bulk save error:', e); });
+    var msg = matched + ' PDF(s) alocado(s) automaticamente.';
+    if(notFound.length) msg += ' Não encontrados: ' + notFound.slice(0,3).join(', ') + (notFound.length>3?' e mais '+( notFound.length-3):'' ) + '.';
+    toast(msg);
+    // Refresh card buttons to show green indicator
+    renderUI();
+    // Show modal with result
+    el('import-status') && (el('import-status').textContent = msg);
+  }
+  input.value = '';
+}
+
+
+function salvarEFecharDespacho() {
+  var txt = el('md-texto') && el('md-texto').value;
+  if(txt && txt.trim() && _despachoProcId) {
+    var _dp = procs.find(function(x){ return String(x.id)===String(_despachoProcId); });
+    if(_dp) { _dp.ultimoDespacho = txt.trim(); saveLocal(); }
+  }
+  el('modal-despacho').classList.remove('open');
+}
+
+function copiarDespacho() {
+  var txt = el('md-texto') && el('md-texto').value;
+  if(!txt) return;
+  if(_despachoProcId) {
+    var _dp = procs.find(function(x){ return String(x.id)===String(_despachoProcId); });
+    if(_dp) { _dp.ultimoDespacho = txt; saveLocal(); }
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function(){ toast('Copiado'); }).catch(function(){ fallbackCopy(txt); });
+  } else { fallbackCopy(txt); }
+}
+
+function fallbackCopy(txt) {
+  var ta = document.createElement('textarea');
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  document.execCommand('copy'); document.body.removeChild(ta);
+  toast('Copiado');
+}
 
 function onPdfSelect(id, input) {
   var file = input.files[0];
@@ -792,13 +951,21 @@ function onPdfSelect(id, input) {
   reader.onload = function(e) {
     var b64 = e.target.result.split(',')[1];
     _pdfData[id] = {name: file.name, b64: b64};
+    idbSavePdf(id, file.name, b64).catch(function(e){ console.warn('IDB save error:', e); });
     toast('PDF carregado: ' + file.name);
+    // Update button to show PDF indicator
+    var btn = el('gd-btn-'+id);
+    if(btn && btn.textContent.indexOf('📎')===-1) btn.innerHTML += ' 📎';
   };
   reader.readAsDataURL(file);
 }
 
 function limparPdfModal() {
-  if (_despachoProcId) delete _pdfData[_despachoProcId];
+  if (_despachoProcId) {
+    var _idStr = String(_despachoProcId);
+    delete _pdfData[_idStr];
+    idbDeletePdf(_idStr).catch(function(){});
+  }
   var info = el('md-pdf-info');
   if (info) info.style.display = 'none';
 }
@@ -866,7 +1033,19 @@ function buildPrompt(p, r, tipoSel) {
     pedido = 'INSTRUÇÃO: Redija o DESPACHO mais adequado ao tipo e situação do procedimento, fundamentado na Resolução 012/2024-CPJ MPPA e demais normas aplicáveis. Máximo 4 parágrafos corridos.';
   }
 
-  return cabecalho + contexto + pedido + '\n\nFINALIZE COM:\n' + assinatura;
+  // Append user's extra instructions if provided
+  var extra = '';
+  var mdExtra = document.getElementById('md-extra');
+  if (mdExtra && mdExtra.value.trim()) {
+    extra = '\n\nINSTRUÇÕES ADICIONAIS DO ASSESSOR (incorpore ao texto):\n' + mdExtra.value.trim();
+  }
+  // Append user's extra instructions if provided
+  var extra = '';
+  var mdExtra = document.getElementById('md-extra');
+  if (mdExtra && mdExtra.value && mdExtra.value.trim()) {
+    extra = '\n\nINSTRUCOES ADICIONAIS DO ASSESSOR (incorpore ao texto de forma natural):\n' + mdExtra.value.trim();
+  }
+  return cabecalho + contexto + pedido + extra + '\n\nFINALIZE COM:\n' + assinatura;
 }
 
 // OLD buildPrompt replaced — keeping this comment as marker
@@ -941,7 +1120,14 @@ async function gerarDespacho(id) {
   _despachoProcId = id;
   el('md-title').textContent = (p.tipo||'') + ' - ' + p.num.substring(0,18);
   el('md-status').textContent = '';
-  el('md-texto').value = '';
+  var _mdex = el('md-extra'); if(_mdex) _mdex.value = '';
+  // Pre-fill with saved despacho if exists
+  var _savedDesp = p.ultimoDespacho || '';
+  el('md-texto').value = _savedDesp;
+  if(_savedDesp) {
+    el('md-status').textContent = 'Despacho anterior carregado — clique ↺ Regerar para criar novo';
+    el('md-status').style.color = '#0369a1';
+  }
   el('modal-despacho').classList.add('open');
   showPdfInfoModal(id);
   preSelectTipo(p);
