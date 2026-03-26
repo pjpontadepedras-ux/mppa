@@ -505,10 +505,10 @@ textarea.fc{resize:vertical;min-height:64px;line-height:1.5;font-size:12px}
 <div class="mo" id="bulk-modal">
   <div class="mb" style="max-width:600px">
     <div class="mb-title">Importar processos em lote</div>
-    <div class="mb-sub">Cole a lista de processos no formato: <code style="font-family:var(--fm);font-size:11px;background:#f1f5f9;padding:1px 5px;border-radius:3px">data/hora TAB número</code> — um por linha. O formato é exatamente o que você exportou do sistema anterior.</div>
+    <div class="mb-sub">Cole a lista do <strong>SAJ</strong> (<code style="font-family:var(--fm);font-size:11px;background:#dcfce7;padding:1px 5px;border-radius:3px">data/hora TAB número</code>) ou cole diretamente o conteúdo da caixa de entrada do <strong>PJe</strong> (múltiplas linhas por processo). O sistema detecta o formato automaticamente.</div>
     <div class="fr1">
       <label class="fl">Lista de processos</label>
-      <textarea class="fc" id="bulk-text" rows="10" placeholder="23/02/2026 19:24:50&#9;0800678-15.2025.8.14.0042&#10;23/02/2026 20:05:40&#9;0800827-11.2025.8.14.0042&#10;..." style="font-family:var(--fm);font-size:11px;line-height:1.6" oninput="parseBulk()"></textarea>
+      <textarea class="fc" id="bulk-text" rows="10" placeholder="SAJ:\n23/02/2026 19:24:50\t0800678-15.2025.8.14.0042\n\nPJe:\nMINISTÉRIO PÚBLICO DO ESTADO DO PARÁ MPPA\nAto Ordinatório (32813531)\nExpedição eletrônica (13/03/2026 18:30)\nPrazo:10 dias\nMINISTERIO PUBLICO DO ESTADO DO PARÁ tomou ciência em 16/03/2026 15:09\nData limite prevista para manifestação: 26/03/2026 23:59\nAPOrd 0800186-57.2024.8.14.0042 Maus Tratos\n..." style="font-family:var(--fm);font-size:11px;line-height:1.6" oninput="parseBulk()"></textarea>
     </div>
     <div id="bulk-preview" style="font-size:11px;color:var(--txm);margin-top:6px"></div>
     <div class="mb-actions">
@@ -1371,66 +1371,184 @@ function confirmDelete(id){
 
 
 function parseBulkLine(line){
-  // Handles: tab-separated, space-separated, multiple columns
-  // Format expected: DD/MM/YYYY HH:MM:SS<TAB>NUMERO or NUMERO only
-  // Also handles SAJ export with many columns: A B C D E F DATE NUM
+  // SAJ format: DD/MM/YYYY HH:MM:SS<TAB>XXXXXXX-XX.XXXX.X.XX.XXXX
   const parts=line.split('\t');
   if(parts.length>=2){
-    // Find the date (DD/MM/YYYY format) and number (NNNNNNN-NN.NNNN... format)
     let dtStr='',num='';
     for(const p of parts){
       const t=p.trim();
       if(!dtStr&&/^\d{2}\/\d{2}\/\d{4}/.test(t))dtStr=t;
       if(!num&&/^\d{7,}-\d{2}\.\d{4}/.test(t))num=t;
     }
-    if(num)return{dtStr:dtStr||parts[0].trim(),num};
+    if(num)return{dtStr:dtStr||parts[0].trim(),num,fonte:'SAJ'};
   }
-  // Single column — just a number
+  // Single number
   const t=line.trim();
-  if(/^\d{7,}-\d{2}\.\d{4}/.test(t))return{dtStr:'',num:t};
+  if(/^\d{7,}-\d{2}\.\d{4}/.test(t))return{dtStr:'',num:t,fonte:'manual'};
   return null;
+}
+
+// Parse a full PJe notification block (multi-line)
+// Returns array of {num, dtStr, prazo, assunto, partes, vara, dtLimite}
+function parsePJeBloco(text){
+  const NUM_RE = /\d{7,}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/g;
+  const DT_CIENCIA_RE = /tomou ciência em (\d{2}\/\d{2}\/\d{4})/i;
+  const DT_LIMITE_RE = /Data limite.*?:(\s*)(\d{2}\/\d{2}\/\d{4})/i;
+  const PRAZO_RE = /Prazo[:\s]*(\d+)\s*dias?/i;
+  const results = [];
+  
+  // Split into blocks separated by blank lines or repeated patterns
+  // Each block starts with "MINISTÉRIO PÚBLICO" or has a process number
+  const blocks = text.split(/\n(?=MINIST|(?=\d{7,}-\d{2}))/);
+  
+  for(const block of blocks){
+    const lines = block.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!lines.length) continue;
+    
+    // Find process number
+    const allNums = block.match(NUM_RE);
+    if(!allNums || !allNums.length) continue;
+    const num = allNums[0];
+    
+    // Date of awareness
+    const dtCienciaM = block.match(DT_CIENCIA_RE);
+    const dtStr = dtCienciaM ? dtCienciaM[1] : '';
+    
+    // Deadline date
+    const dtLimiteM = block.match(DT_LIMITE_RE);
+    const dtLimite = dtLimiteM ? dtLimiteM[2] : '';
+    
+    // Prazo in days
+    const prazoM = block.match(PRAZO_RE);
+    const prazoDias = prazoM ? parseInt(prazoM[1]) : null;
+    
+    // Calculate prazo date from dtStr + prazoDias if no explicit date
+    let prazoFinal = dtLimite;
+    if(!prazoFinal && dtStr && prazoDias){
+      const parts = dtStr.split('/');
+      const d = new Date(parts[2]+'-'+parts[1]+'-'+parts[0]);
+      d.setDate(d.getDate() + prazoDias);
+      prazoFinal = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    }
+    
+    // Find line with number + subject: "APOrd 0800186-57.2024.8.14.0042 Maus Tratos"
+    let assunto = '', partes = '', vara = '';
+    for(const line of lines){
+      if(NUM_RE.test(line)){
+        const after = line.replace(NUM_RE,'').trim();
+        // Remove class code prefix (APOrd, AO, etc.)
+        assunto = after.replace(/^[A-Z][A-Za-z]+\.?\s*/, '').replace(/^\d+\s*-\s*/, '').trim();
+        if(!assunto){
+          // subject might be before the number
+          const before = line.substring(0, line.search(NUM_RE)).trim();
+          assunto = before.replace(/^[A-Z][A-Za-z]+\.?\s*/, '').trim();
+        }
+        NUM_RE.lastIndex = 0;
+      }
+      // Parties: "MP X NAME"
+      if(/\bX\b/.test(line) && /MINIST/.test(line)){
+        partes = line.split('/')[0].trim(); // remove "/Vara" suffix
+        const varaMatch = line.match(/\/(Vara[^$]+)/i);
+        if(varaMatch) vara = varaMatch[1].trim();
+      }
+      // Vara line: "/Vara Única de..."
+      if(line.startsWith('/') && /vara/i.test(line)){
+        vara = line.substring(1).trim();
+      }
+    }
+    
+    results.push({
+      num, dtStr, prazo: prazoFinal, assunto: assunto.substring(0,60),
+      partes, vara, fonte:'PJe', prazoDias
+    });
+  }
+  return results;
 }
 function parseBulk(){
   const text=document.getElementById('bulk-text').value.trim();
   if(!text){document.getElementById('bulk-preview').textContent='';document.getElementById('bulk-save').disabled=true;return;}
-  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  let valid=0,skip=0;
-  lines.forEach(line=>{
-    const parts=parseBulkLine(line);
-    if(parts){
-      if(procs.some(p=>p.num===parts.num))skip++;
+  
+  // Detect format
+  const isPJe = /tomou ciência em|Data limite.*:|Expedição eletrônica/i.test(text);
+  let valid=0, skip=0, format='';
+  
+  if(isPJe){
+    format = 'PJe';
+    const items = parsePJeBloco(text);
+    items.forEach(function(it){
+      if(procs.some(p=>p.num===it.num)) skip++;
       else valid++;
-    }
-  });
+    });
+  } else {
+    format = 'SAJ';
+    const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+    lines.forEach(function(line){
+      const parts=parseBulkLine(line);
+      if(parts){
+        if(procs.some(p=>p.num===parts.num))skip++;
+        else valid++;
+      }
+    });
+  }
+  
   const el=document.getElementById('bulk-preview');
-  el.textContent=valid+' processo(s) a importar'+( skip>0?' · '+skip+' já existem (serão ignorados)':'');
-  el.style.color=valid>0?'#16a34a':'#dc2626';
+  const fmtBadge = '<span style="background:'+(isPJe?'#dbeafe':'#dcfce7')+';color:'+(isPJe?'#1e40af':'#166534')+';padding:1px 6px;border-radius:3px;font-weight:600;margin-right:4px">'+format+'</span>';
+  el.innerHTML=fmtBadge+valid+' processo(s) a importar'+(skip>0?' · '+skip+' já existem':'')+' · '+format+' detectado';
+  el.style.color=valid>0?'var(--tx)':'#dc2626';
   document.getElementById('bulk-save').disabled=valid===0;
 }
 function doBulkImport(){
-  const text=document.getElementById('bulk-text').value.trim();
-  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  let added=0;
-  lines.forEach(line=>{
-    const parts=parseBulkLine(line);
-    if(!parts)return;
-    const{dtStr,num}=parts;
-    if(!num||procs.some(p=>p.num===num))return;
-    const yr=num.match(/\.(?<y>\d{4})\./)?.[1]||String(new Date().getFullYear());
-    const vr=num.match(/\.(\d{4})$/)?.[1]||'0042';
-    let ent;
-    try{
-      const[d,m,y]=dtStr.split(' ')[0].split('/');
-      const t=dtStr.split(' ')[1]||'00:00:00';
-      ent=new Date(`${y}-${m}-${d}T${t}`);
-    }catch(e){ent=new Date();}
-    const d2=dias(ent);
-    procs.push(mkProc(dtStr,num,procs.length,null));
-    added++;
-  });
-  document.getElementById('bulk-modal').classList.remove('open');
-  syncSave();updStats();renderAll();
-  toast(added+' processo(s) importados com sucesso');
+  const text = document.getElementById('bulk-text').value.trim();
+  if(!text) return;
+  
+  const isPJe = /tomou ciência em|Data limite.*:|Expedição eletrônica/i.test(text);
+  let added = 0;
+  
+  if(isPJe){
+    // PJe format
+    const items = parsePJeBloco(text);
+    items.forEach(function(it){
+      if(procs.some(p=>p.num===it.num)) return; // skip existing
+      const novo = mkP({
+        num:  it.num,
+        dtE:  it.dtStr, // data de ciência = data de entrada
+        prazo: it.prazo || '',
+        cat:  it.assunto ? guessCat(it.assunto) : 'outro',
+        esSt: 'triagem',
+        obs:  it.partes ? 'Partes: '+it.partes : '',
+        d:    0,
+      });
+      if(it.assunto) novo.obs = (novo.obs ? novo.obs + ' | ' : '') + it.assunto;
+      procs.unshift(novo);
+      added++;
+    });
+  } else {
+    // SAJ format
+    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+    lines.forEach(function(line){
+      const parts = parseBulkLine(line);
+      if(!parts || procs.some(p=>p.num===parts.num)) return;
+      procs.unshift(mkP({num:parts.num, dtE:parts.dtStr, esSt:'triagem'}));
+      added++;
+    });
+  }
+  
+  if(added > 0){
+    syncSave();
+    renderAll();
+    document.getElementById('bulk-modal').classList.remove('open');
+    document.getElementById('bulk-text').value = '';
+    toast(added+' processo(s) importado(s)');
+  }
+}
+
+function guessCat(assunto){
+  const a = (assunto||'').toLowerCase();
+  if(/tráfico|flagrante|penal|crime|furto|roubo|estupro|homicídio|lesão|ameaça|maus tratos|viol/i.test(a)) return 'criminal';
+  if(/alimentos|pensão/i.test(a)) return 'alimentos';
+  if(/execução/i.test(a)) return 'exec penal';
+  if(/ambiental|dano ambient/i.test(a)) return 'cível';
+  return 'outro';
 }
 
 
