@@ -845,10 +845,11 @@ function updStats(){
   const filaEl=document.getElementById('tb-fila');if(filaEl)filaEl.textContent=procs.filter(p=>!p.ok&&!p.bxOk).length+(filaExtraj||[]).filter(p=>p.status!=='finalizado').length;
   const done=procs.filter(p=>p.ok).length,urg=procs.filter(p=>p.urg).length,atr=procs.filter(p=>p.atrib&&!p.ok).length,bx=procs.filter(p=>p.agBx&&!p.bxOk).length,rev=procs.filter(p=>(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok).length,inbox=procs.filter(p=>(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok&&!p.agBx&&p.esSt==='triagem').length,proto=procs.filter(p=>(p.esSt==='protocolo'||p.esSt==='registro saj')&&!p.ok).length;
   const cri=procs.filter(p=>p.cat.startsWith('Criminal')).length,ep=procs.filter(p=>p.cat.startsWith('Execução Penal')).length,ali=procs.filter(p=>p.cat.startsWith('Alimentos')).length,civ=procs.filter(p=>p.cat.startsWith('Cível')).length,cie=procs.filter(p=>p.cat==='Mera ciência').length;
+  const baixapje=procs.filter(p=>p.cat==='Mera baixa no PJe'&&!p.ok).length,baixasaj=procs.filter(p=>p.cat==='Mera baixa no SAJ'&&!p.ok).length;
   const ant=procs.filter(p=>p.d>7&&!p.ok).length,pnd=procs.filter(p=>!p.ok).length;
   function s(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
   s('st',procs.length);s('st-inbox',inbox);s('su',urg);s('sc2',done);s('sa',atr);s('srev',rev);s('sb2',bx);
-  s('n-inbox',inbox);s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-ep',ep||0);s('n-ali',ali||0);s('n-civ',civ);s('n-cie',cie);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
+  s('n-inbox',inbox);s('n-all',procs.length);s('n-urg',urg);s('n-rev',rev);s('n-bx',bx);s('n-cri',cri);s('n-ep',ep||0);s('n-ali',ali||0);s('n-civ',civ);s('n-cie',cie);s('n-baixapje',baixapje);s('n-baixasaj',baixasaj);s('n-ant',ant);s('n-pnd',pnd);s('n-ok',done);
   const pct=Math.round((done/procs.length)*100);
   document.getElementById('pf').style.width=pct+'%';document.getElementById('ptxt').textContent=done+' / '+procs.length+' concluídos';
   s('tb-tri',procs.length);s('tb-est',atr);s('tb-rev',rev);s('tb-proto',proto);s('tb-bx',bx);
@@ -924,7 +925,7 @@ function summ(p){if(p.iaStatus==='loading')return'<span class="spin"></span> Ana
 function getFilt(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   const s=document.getElementById('srt')?.value||'ent_asc';
-  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok&&!p.agBx&&p.esSt==='triagem';if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='ep')return p.cat.startsWith('Execução Penal');if(filt==='ali')return p.cat.startsWith('Alimentos');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='cat')return p.cat===filtCat;
+  let l=procs.filter(p=>{if(q&&!p.num.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)&&!p.cmd.toLowerCase().includes(q)&&!(p.atrib||'').toLowerCase().includes(q))return false;if(filt==='inbox')return(!p.cat||p.cat===''||p.cat==='— Selecionar —')&&!p.ok&&!p.agBx&&p.esSt==='triagem';if(filt==='urg')return p.urg;if(filt==='rev')return(p.esSt==='minuta pronta'||p.esSt==='revisao')&&!p.ok;if(filt==='bx')return p.agBx&&!p.bxOk;if(filt==='cri')return p.cat.startsWith('Criminal');if(filt==='ep')return p.cat.startsWith('Execução Penal');if(filt==='ali')return p.cat.startsWith('Alimentos');if(filt==='civ')return p.cat.startsWith('Cível');if(filt==='cie')return p.cat==='Mera ciência';if(filt==='baixapje')return p.cat==='Mera baixa no PJe';if(filt==='baixasaj')return p.cat==='Mera baixa no SAJ';if(filt==='cat')return p.cat===filtCat;
     if(filt==='civeltipo'){
       if(filtCat==='civel-simples')return p.cat&&p.cat.startsWith('Cível')&&!p.cpl&&!p.ok;
       if(filtCat==='civel-complexo')return p.cat&&p.cat.startsWith('Cível')&&p.cpl&&!p.ok;
